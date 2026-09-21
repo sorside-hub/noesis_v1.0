@@ -1,0 +1,325 @@
+import React, { useState } from 'react';
+import { Sparkles, Folder, Tag, Layers, Check, X, Info, CheckCircle2, AlertCircle } from 'lucide-react';
+import { AutoDetectResult } from '../../../api-core/autoDetectHandler';
+
+interface AutoDetectModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  result: AutoDetectResult | null;
+  cascadeLog?: any[];
+  onApply: (customResult: AutoDetectResult) => void;
+}
+
+export const AutoDetectModal: React.FC<AutoDetectModalProps> = ({
+  isOpen,
+  onClose,
+  result,
+  cascadeLog,
+  onApply,
+}) => {
+  if (!isOpen || !result) return null;
+
+  const [title, setTitle] = useState(result.suggestedTitle);
+  const [noteType, setNoteType] = useState(result.noteType);
+  const [tags, setTags] = useState<string[]>(
+    (result.tags || []).map((t) => t.trim().replace(/^#/, '').toLowerCase()).filter(Boolean)
+  );
+  const [aliases, setAliases] = useState<string[]>(result.aliases || []);
+  const [newFolderName, setNewFolderName] = useState(result.folderDecision?.newFolderName || '');
+  const [showLog, setShowLog] = useState(false);
+
+  // Granular section toggles (default all checked)
+  const [applyTitle, setApplyTitle] = useState(true);
+  const [applyNoteType, setApplyNoteType] = useState(true);
+  const [applyFolder, setApplyFolder] = useState(true);
+  const [applyTags, setApplyTags] = useState(true);
+  const [applyAliases, setApplyAliases] = useState(true);
+
+  const handleRemoveTag = (indexToRemove: number) => {
+    setTags((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleRemoveAlias = (indexToRemove: number) => {
+    setAliases((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleConfirm = () => {
+    const finalResult: AutoDetectResult = {
+      ...result,
+      suggestedTitle: applyTitle ? (title.trim() || result.suggestedTitle) : '',
+      noteType: applyNoteType ? noteType : '',
+      tags: applyTags ? tags.map((t) => t.trim().replace(/^#/, '').toLowerCase()).filter(Boolean) : [],
+      aliases: applyAliases ? aliases : [],
+      folderDecision: applyFolder
+        ? {
+            ...result.folderDecision,
+            newFolderName: newFolderName.trim() || result.folderDecision?.newFolderName || '',
+          }
+        : {
+            action: 'existing',
+            reasoning: 'Dilewati oleh pengguna',
+          },
+    };
+
+    onApply(finalResult);
+  };
+
+  const isExistingFolder = result.folderDecision.action === 'existing';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+      <div 
+        className="w-full max-w-md bg-bg-surface border border-border-default rounded-2xl shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-accent-primary/10 text-accent-primary">
+              <Sparkles size={16} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-text-heading">AI Auto-Detect Suggestions</h3>
+              <p className="text-[11px] text-text-muted">Review metadata & folder placement before applying</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            {cascadeLog && cascadeLog.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowLog(!showLog)}
+                className={`p-1 rounded-md transition-colors cursor-pointer mr-1 ${showLog ? 'bg-accent-primary/20 text-accent-primary' : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'}`}
+                title="Riwayat Eksekusi AI"
+              >
+                <Info size={16} />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Content Body */}
+        {showLog && cascadeLog ? (
+          <div className="p-4 space-y-3 bg-bg-surface overflow-y-auto max-h-[60vh] rounded-xl border border-border-default">
+            {cascadeLog.map((attempt: any, idx: number) => (
+              <div key={idx} className="flex gap-3 text-xs">
+                <div className="mt-0.5">
+                  {attempt.status === 'active' ? (
+                    <div className="w-4 h-4 rounded-full bg-status-success/20 flex items-center justify-center">
+                      <CheckCircle2 size={10} className="text-status-success" />
+                    </div>
+                  ) : (
+                    <div className="w-4 h-4 rounded-full bg-status-error/20 flex items-center justify-center">
+                      <AlertCircle size={10} className="text-status-error" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-text-primary">{attempt.modelTried}</span>
+                    <span className="text-[10px] text-text-muted px-1.5 py-0.5 rounded bg-bg-secondary uppercase tracking-wider">{attempt.slotId}</span>
+                  </div>
+                  {attempt.error && (
+                    <p className="text-status-error text-[11px] leading-relaxed break-words">{attempt.error}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-3.5 text-xs">
+          {/* 1. Suggested Title */}
+          <div className={`space-y-1 transition-opacity ${applyTitle ? 'opacity-100' : 'opacity-40'}`}>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                Judul Catatan
+              </label>
+              <input
+                type="checkbox"
+                checked={applyTitle}
+                onChange={(e) => setApplyTitle(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-border-default text-accent-primary focus:ring-0 focus:ring-offset-0 cursor-pointer accent-accent-primary"
+                title="Pilih untuk terapkan judul ini"
+              />
+            </div>
+            <input
+              type="text"
+              disabled={!applyTitle}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-3 py-1.5 bg-bg-primary border border-border-default rounded-xl text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-text-muted/40 focus:border-border-hover disabled:cursor-not-allowed"
+            />
+          </div>
+
+          {/* 2. Note Type */}
+          <div className={`space-y-1 transition-opacity ${applyNoteType ? 'opacity-100' : 'opacity-40'}`}>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                Note Type
+              </label>
+              <input
+                type="checkbox"
+                checked={applyNoteType}
+                onChange={(e) => setApplyNoteType(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-border-default text-accent-primary focus:ring-0 focus:ring-offset-0 cursor-pointer accent-accent-primary"
+                title="Pilih untuk terapkan note type ini"
+              />
+            </div>
+            <input
+              type="text"
+              disabled={!applyNoteType}
+              value={noteType}
+              onChange={(e) => setNoteType(e.target.value)}
+              className="w-full px-3 py-1.5 bg-bg-primary border border-border-default rounded-xl text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-text-muted/40 focus:border-border-hover disabled:cursor-not-allowed"
+            />
+          </div>
+
+          {/* 3. Target Folder Decision */}
+          <div className={`p-3 bg-bg-primary border border-border-default rounded-xl space-y-2 transition-opacity ${applyFolder ? 'opacity-100' : 'opacity-40'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-text-heading">
+                <Folder size={14} className="text-text-muted shrink-0" />
+                <span>Rekomendasi Folder</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-bg-secondary text-text-muted">
+                  {isExistingFolder ? 'Folder Eksisting' : 'Folder Baru'}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={applyFolder}
+                  onChange={(e) => setApplyFolder(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-border-default text-accent-primary focus:ring-0 focus:ring-offset-0 cursor-pointer accent-accent-primary"
+                  title="Pilih untuk memindahkan ke folder ini"
+                />
+              </div>
+            </div>
+
+            {isExistingFolder ? (
+              <div className="text-xs text-status-success font-medium flex items-center gap-1.5 p-2 rounded-lg bg-status-success/5 border border-status-success/20">
+                <Check size={13} className="shrink-0" />
+                <span>Pakai folder: <strong className="font-semibold text-text-primary">{result.folderDecision.existingFolderPath || 'Root Vault'}</strong></span>
+              </div>
+            ) : (
+              <div className="space-y-1.5 p-2 rounded-lg bg-accent-primary/5 border border-accent-primary/20">
+                <div className="flex items-center justify-between text-xs text-accent-primary font-medium">
+                  <div className="flex items-center gap-1">
+                    <Sparkles size={12} className="shrink-0" />
+                    <span>Buat Subfolder Baru:</span>
+                  </div>
+                  <span className="text-[10px] text-text-muted">Bisa diedit</span>
+                </div>
+                <input
+                  type="text"
+                  disabled={!applyFolder}
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  placeholder="Nama subfolder baru..."
+                  className="w-full px-2.5 py-1.5 bg-bg-surface border border-accent-primary/40 focus:border-accent-primary rounded-lg text-xs font-semibold text-text-primary outline-none transition-colors disabled:cursor-not-allowed"
+                />
+              </div>
+            )}
+
+            <p className="text-[11px] text-text-muted italic leading-relaxed pt-0.5">
+              &quot;{result.folderDecision.reasoning}&quot;
+            </p>
+          </div>
+
+          {/* 4. Tags */}
+          <div className={`space-y-1 transition-opacity ${applyTags ? 'opacity-100' : 'opacity-40'}`}>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1">
+                <Tag size={11} /> Tags
+              </label>
+              <input
+                type="checkbox"
+                checked={applyTags}
+                onChange={(e) => setApplyTags(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-border-default text-accent-primary focus:ring-0 focus:ring-offset-0 cursor-pointer accent-accent-primary"
+                title="Pilih untuk menerapkan tags"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {tags.map((t, idx) => (
+                <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-bg-hover text-text-primary border border-border-subtle text-[11px] font-medium">
+                  <span>#{t}</span>
+                  {applyTags && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(idx)}
+                      className="text-text-muted hover:text-text-primary cursor-pointer p-0.5 -mr-0.5 rounded transition-colors"
+                      title={`Hapus #${t}`}
+                    >
+                      <X size={11} />
+                    </button>
+                  )}
+                </span>
+              ))}
+              {tags.length === 0 && <span className="text-text-muted text-[11px] italic">Tidak ada tags</span>}
+            </div>
+          </div>
+
+          {/* 5. Aliases */}
+          <div className={`space-y-1 transition-opacity ${applyAliases ? 'opacity-100' : 'opacity-40'}`}>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1">
+                <Layers size={11} /> Aliases
+              </label>
+              <input
+                type="checkbox"
+                checked={applyAliases}
+                onChange={(e) => setApplyAliases(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-border-default text-accent-primary focus:ring-0 focus:ring-offset-0 cursor-pointer accent-accent-primary"
+                title="Pilih untuk menerapkan aliases"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {aliases.map((a, idx) => (
+                <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-bg-hover text-text-secondary border border-border-subtle text-[11px]">
+                  <span>{a}</span>
+                  {applyAliases && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAlias(idx)}
+                      className="text-text-muted hover:text-text-primary cursor-pointer p-0.5 -mr-0.5 rounded transition-colors"
+                      title={`Hapus ${a}`}
+                    >
+                      <X size={11} />
+                    </button>
+                  )}
+                </span>
+              ))}
+              {aliases.length === 0 && <span className="text-text-muted text-[11px] italic">Tidak ada alias</span>}
+            </div>
+          </div>
+        </div>
+        )}
+
+        {/* Footer Actions */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 text-xs text-text-muted hover:text-text-primary rounded-xl hover:bg-bg-hover transition-colors cursor-pointer"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            className="px-4 py-1.5 text-xs font-semibold bg-accent-primary text-accent-contrast hover:opacity-90 rounded-xl transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
+          >
+            <Check size={13} className="text-accent-contrast" strokeWidth={2.5} />
+            <span>Terapkan Hasil</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
