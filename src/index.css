@@ -89,13 +89,7 @@
 
 @layer base {
   :root,
-  :root.dark,
-  :root[data-theme="charcoal-navy"],
-  html,
-  html.dark,
-  html[data-theme="charcoal-navy"],
-  .dark,
-  [data-theme="charcoal-navy"] {
+  html {
     /* 1. Universal Dark Theme Canvas & Backgrounds */
     --bg-primary: #262626;
     --bg-secondary: #212121;

@@ -104,29 +104,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
           </h2>
           
           <div className="grid grid-cols-1 gap-3">
-            {/* Charcoal Navy (Unified Dark Theme) */}
             <div
-              className="p-3.5 rounded-xl bg-bg-secondary text-left flex items-center justify-between gap-2.5 shadow-2xs"
+              className="p-3.5 rounded-xl bg-bg-secondary flex items-center justify-between gap-2.5"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2.5 rounded-xl bg-bg-primary text-accent-primary border border-border-default shadow-xs shrink-0">
+                <div className="p-2.5 rounded-xl bg-bg-primary text-accent-primary shrink-0">
                   <Moon size={18} className="text-accent-primary" />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-text-primary block truncate">Mode Gelap</span>
-                    <span className="text-[10px] font-medium bg-accent-soft text-accent-primary px-1.5 py-0.5 rounded-md">
-                      Aktif (Token Default)
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-text-muted block truncate mt-0.5">
-                    Charcoal Navy • Single Source of Truth Theme
-                  </span>
+                  <span className="text-sm font-semibold text-text-primary block truncate">Mode Gelap</span>
                 </div>
               </div>
-              <div className="w-5 h-5 rounded-full bg-accent-primary text-accent-contrast flex items-center justify-center shrink-0">
-                <Check size={12} strokeWidth={2.5} />
-              </div>
+              <span className="text-[11px] font-medium bg-accent-primary/10 text-accent-primary px-2 py-0.5 rounded-md shrink-0">
+                Aktif
+              </span>
             </div>
           </div>
         </section>
