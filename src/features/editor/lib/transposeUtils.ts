@@ -1,4 +1,5 @@
 import { Editor } from '@tiptap/core';
+import { isValidChordName, STRICT_CHORD_REGEX } from './chordUtils';
 
 /**
  * Utility for detecting chords in text and transposing chord strings.
@@ -93,8 +94,7 @@ export function isValidChordToken(token: string): boolean {
   const lower = trimmed.toLowerCase();
   if (IGNORED_SECTION_TAGS.has(lower)) return false;
 
-  // Standard chord syntax: Root (A-G, optional # or b or ##) + optional quality/extensions + optional /bass
-  return /^[A-Ga-g](?:##|bb|[#b])?(?:m|min|maj|dim|aug|sus[24]?|[0-9])*(?:\/[A-Ga-g](?:##|bb|[#b])?)?$/i.test(trimmed);
+  return isValidChordName(trimmed);
 }
 
 /**
@@ -103,6 +103,9 @@ export function isValidChordToken(token: string): boolean {
 export function isChordLine(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed || trimmed.length > 150) return false;
+
+  // Skip lines containing reminders
+  if (/(?:⏰|@remind|📅)/.test(trimmed)) return false;
 
   // Strip section prefix if any (e.g. "Intro: ", "Chord: ", "Kunci: ")
   const cleaned = trimmed.replace(/^(?:intro|chord|chords|kunci|interlude|reff|outro)\s*[:=\-]\s*/i, '');
@@ -117,9 +120,6 @@ export function isChordLine(line: string): boolean {
     }
   }
 
-  // A chord line has:
-  // - exactly 1 token and that token is a chord (e.g. "C#" or "[Am]")
-  // - OR at least 2 chords and at least half the tokens are chords (e.g. "C  G  Am  F")
   return (tokens.length === 1 && chordCount === 1) || (chordCount >= 2 && (chordCount / tokens.length >= 0.5));
 }
 
@@ -132,6 +132,15 @@ export function cleanMarkdownEscapedBrackets(str: string): string {
 }
 
 /**
+ * Strips reminder patterns from text before searching for chords so reminder brackets [Custom Title] are never mistaken for chords.
+ */
+export function stripRemindersFromText(text: string): string {
+  if (!text) return '';
+  // Strip ⏰ ... [Custom Title] or @remind(...) [Custom Title]
+  return text.replace(/(?:⏰\uFE0F?|@remind\(|📅\s*)[^\n\[\]]*(?:\([^\)\n]*\))?(?:\s*\[[^\]\n]*\])?/gu, ' ');
+}
+
+/**
  * Regex to detect presence of inline chords in text: [C], [Am7], [G/B], with optional whitespace
  */
 export const INLINE_CHORD_DETECTOR_REGEX = /\[\s*([A-Ga-g][a-zA-Z0-9#\/b\+\-]*?)\s*\]/g;
@@ -141,9 +150,12 @@ export const INLINE_CHORD_DETECTOR_REGEX = /\[\s*([A-Ga-g][a-zA-Z0-9#\/b\+\-]*?)
  */
 export function hasChordsInContent(content: string): boolean {
   if (!content) return false;
-  const unescaped = cleanMarkdownEscapedBrackets(content);
+  
+  // 1. Strip reminder tokens so reminder brackets are ignored
+  const noReminders = stripRemindersFromText(content);
+  const unescaped = cleanMarkdownEscapedBrackets(noReminders);
 
-  // 1. Check for bracketed chords: [C], [Am7], [G/B], [c], [em]
+  // 2. Check for bracketed chords: [C], [Am7], [G/B], [c], [em]
   INLINE_CHORD_DETECTOR_REGEX.lastIndex = 0;
   let match: RegExpExecArray | null;
   while ((match = INLINE_CHORD_DETECTOR_REGEX.exec(unescaped)) !== null) {
@@ -163,7 +175,7 @@ export function hasChordsInContent(content: string): boolean {
     }
   }
 
-  // 2. Check for chord lines (e.g. "C  G  Am  F")
+  // 3. Check for chord lines (e.g. "C  G  Am  F")
   const lines = unescaped.split('\n');
   for (const line of lines) {
     if (isChordLine(line)) {

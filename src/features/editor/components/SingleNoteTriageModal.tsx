@@ -26,11 +26,11 @@ export const SingleNoteTriageModal: React.FC<SingleNoteTriageModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
       <div 
-        className="w-full max-w-md bg-bg-surface border border-border-default rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+        className="w-full max-w-md bg-bg-primary rounded-2xl shadow-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-bg-elevated/40">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-bg-secondary">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-accent-primary/10 text-accent-primary flex items-center justify-center">
               <Sparkles size={17} />
@@ -118,7 +118,7 @@ export const SingleNoteTriageModal: React.FC<SingleNoteTriageModalProps> = ({
         </div>
 
         {/* Footer info */}
-        <div className="px-5 py-3 border-t border-border-subtle bg-bg-elevated/20 flex items-center justify-between text-[11px] text-text-muted">
+        <div className="px-5 py-3 border-t border-border-subtle bg-bg-secondary flex items-center justify-between text-[11px] text-text-muted">
           <span>Keputusan PKM Triage</span>
           <button
             type="button"

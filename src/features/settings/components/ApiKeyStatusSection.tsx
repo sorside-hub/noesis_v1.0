@@ -225,8 +225,8 @@ export const ApiKeyStatusSection: React.FC = () => {
       <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2.5 px-1 flex items-center gap-2">
         <ShieldCheck size={14} className="text-accent-primary" /> API Connectivity
       </h2>
-      <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden divide-y divide-border-subtle shadow-xs">
-        <div className="flex items-center justify-between p-3.5 bg-bg-primary/30">
+      <div className="bg-bg-secondary rounded-xl overflow-hidden divide-y divide-border-subtle shadow-2xs">
+        <div className="flex items-center justify-between p-3.5 bg-bg-secondary">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-accent-primary">Api Key Status</span>
           </div>

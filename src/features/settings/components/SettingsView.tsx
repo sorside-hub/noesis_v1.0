@@ -106,7 +106,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
           <div className="grid grid-cols-1 gap-3">
             {/* Charcoal Navy (Unified Dark Theme) */}
             <div
-              className="p-3.5 rounded-xl border border-accent-primary/60 bg-bg-surface text-left flex items-center justify-between gap-2.5 shadow-xs"
+              className="p-3.5 rounded-xl bg-bg-secondary text-left flex items-center justify-between gap-2.5 shadow-2xs"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="p-2.5 rounded-xl bg-bg-primary text-accent-primary border border-border-default shadow-xs shrink-0">
@@ -115,7 +115,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-text-primary block truncate">Mode Gelap</span>
-                    <span className="text-[10px] font-medium bg-accent-soft text-accent-primary px-1.5 py-0.5 rounded-md border border-border-default">
+                    <span className="text-[10px] font-medium bg-accent-soft text-accent-primary px-1.5 py-0.5 rounded-md">
                       Aktif (Token Default)
                     </span>
                   </div>
@@ -171,9 +171,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
             Local Backup & Data Management
           </h2>
           
-          <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-xs divide-y divide-border-subtle">
+          <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs divide-y divide-border-subtle">
             {/* Quick Stats Banner */}
-            <div className="p-4 bg-bg-surface flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="p-4 bg-bg-secondary flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary shrink-0">
                   <FileCheck size={18} />
@@ -186,7 +186,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
             </div>
 
             {/* Action Buttons */}
-            <div className="p-4 bg-bg-primary/40 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-4 bg-bg-secondary/40 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="file"
                 accept=".json"
@@ -198,7 +198,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
               <button
                 type="button"
                 onClick={handleExport}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-bg-surface hover:bg-bg-hover text-text-primary rounded-xl text-xs font-semibold transition-all border border-border-default hover:border-accent-primary/40 shadow-xs cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-bg-primary hover:bg-bg-hover text-text-primary rounded-xl text-xs font-semibold transition-all border border-border-default hover:border-accent-primary/40 shadow-xs cursor-pointer"
               >
                 <Download size={14} className="text-accent-primary shrink-0" />
                 <span>Export Backup (JSON)</span>
@@ -207,7 +207,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
               <button
                 type="button"
                 onClick={handleImportClick}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-bg-surface hover:bg-bg-hover text-text-primary rounded-xl text-xs font-semibold transition-all border border-border-default hover:border-accent-primary/40 shadow-xs cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-bg-primary hover:bg-bg-hover text-text-primary rounded-xl text-xs font-semibold transition-all border border-border-default hover:border-accent-primary/40 shadow-xs cursor-pointer"
               >
                 <Upload size={14} className="text-accent-primary shrink-0" />
                 <span>Import Backup (JSON)</span>

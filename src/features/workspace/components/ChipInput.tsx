@@ -8,6 +8,7 @@ interface ChipInputProps {
   onChange: (items: string[]) => void;
   placeholder?: string;
   prefix?: string;
+  prefixColorClass?: string;
   chipColorClass?: string;
   helperText?: string;
   suggestions?: string[];
@@ -20,7 +21,8 @@ export const ChipInput: React.FC<ChipInputProps> = ({
   onChange,
   placeholder = 'Add...',
   prefix = '',
-  chipColorClass = 'bg-bg-hover text-text-primary border-border-default',
+  prefixColorClass = '',
+  chipColorClass = 'bg-bg-secondary text-text-primary',
   helperText,
   suggestions = [],
   forceLowerCase = false,
@@ -151,30 +153,34 @@ export const ChipInput: React.FC<ChipInputProps> = ({
       <div className="relative">
         <div
           onClick={() => inputRef.current?.focus()}
-          className="min-h-[42px] p-2 bg-bg-primary border border-border-default hover:border-border-default focus-within:border-accent-primary rounded-xl flex flex-wrap gap-1.5 items-center cursor-text transition-all shadow-xs"
+          className="min-h-[34px] px-2.5 py-1 bg-bg-primary focus-within:ring-1 focus-within:ring-accent-primary/50 rounded-xl flex flex-wrap gap-1 items-center cursor-text transition-all shadow-2xs"
         >
           {items.map((item) => (
             <span
               key={item}
               className={twMerge(
-                'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border',
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium shadow-2xs transition-all',
                 chipColorClass
               )}
             >
-              <span>
-                {prefix}
-                {item}
+              <span className="flex items-center leading-none">
+                {prefix && (
+                  <span className={twMerge('font-bold select-none mr-0.5', prefixColorClass)}>
+                    {prefix}
+                  </span>
+                )}
+                <span>{item}</span>
               </span>
               <button
                 type="button"
                 onClick={(e) => handleRemove(item, e)}
-                className="hover:text-status-error rounded-full p-0.5 cursor-pointer text-text-muted transition-colors"
+                className="hover:text-status-error rounded-full p-0.5 cursor-pointer text-text-muted transition-colors leading-none"
               >
-                <X size={11} />
+                <X size={10} />
               </button>
             </span>
           ))}
-          <div className="flex items-center gap-1 flex-1 min-w-[120px]">
+          <div className="flex items-center gap-1 flex-1 min-w-[100px]">
             <input
               ref={inputRef}
               type="text"
@@ -193,7 +199,7 @@ export const ChipInput: React.FC<ChipInputProps> = ({
               autoCorrect={forceLowerCase ? 'off' : undefined}
               spellCheck={forceLowerCase ? false : undefined}
               placeholder={items.length === 0 ? placeholder : 'Add...'}
-              className="w-full bg-transparent text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none px-1 py-0.5"
+              className="w-full bg-transparent text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none px-1 py-1"
             />
             {inputValue && (
               <button

@@ -54,7 +54,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
     >
       <nav
         aria-label="Main Navigation"
-        className={`p-0.5 sm:p-1 rounded-full bg-bg-surface/95 backdrop-blur-md shadow-2xl ${
+        className={`p-0.5 sm:p-1 rounded-full bg-bg-quaternary shadow-2xl ${
           isChatView ? 'flex flex-col items-center gap-1' : 'flex flex-row items-center gap-1'
         }`}
       >

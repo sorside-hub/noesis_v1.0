@@ -170,7 +170,7 @@ export const NoteOptionsMenu: React.FC<NoteOptionsMenuProps> = ({
         {isOpen && (
           <div
             className={twMerge(
-              'absolute z-50 bg-bg-quaternary border border-border-default rounded-xl shadow-xl py-1.5 min-w-[175px] backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-100',
+              'absolute z-50 bg-bg-secondary rounded-xl py-1.5 min-w-[175px] backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-100',
               variant === 'floating'
                 ? 'right-full mr-2.5 top-1/2 -translate-y-1/2'
                 : 'right-0 top-full mt-1.5'

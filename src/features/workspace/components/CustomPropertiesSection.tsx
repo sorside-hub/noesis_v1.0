@@ -44,7 +44,7 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
 
       <div className="space-y-2">
         {customProperties.map((prop) => (
-          <div key={prop.id} className="flex flex-col gap-2 p-2.5 bg-bg-primary border border-border-default hover:border-border-default rounded-xl group transition-all shadow-xs">
+          <div key={prop.id} className="flex flex-col gap-2 p-2.5 bg-bg-primary rounded-xl group transition-all shadow-2xs">
             
             <div className="flex items-center justify-between gap-2">
               <div className="flex-1 flex items-center gap-2">
@@ -67,7 +67,7 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
                   <select
                     value={prop.type}
                     onChange={(e) => handleUpdateProperty(prop.id, { type: e.target.value as PropertyType, value: '' })}
-                    className="appearance-none bg-bg-elevated border border-border-default rounded-lg text-[10px] text-text-secondary px-2.5 py-1 pr-6 focus:outline-none focus:border-border-default cursor-pointer uppercase font-bold tracking-wider shadow-xs"
+                    className="appearance-none bg-bg-secondary rounded-lg text-[10px] text-text-secondary px-2.5 py-1 pr-6 focus:outline-none cursor-pointer uppercase font-bold tracking-wider shadow-2xs"
                   >
                     <option value="text">TEXT</option>
                     <option value="number">NUMBER</option>
@@ -81,7 +81,7 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
                   type="button"
                   onClick={() => handleDeleteProperty(prop.id)}
                   title="Delete property"
-                  className="p-1 rounded-lg text-status-error/80 hover:text-status-error bg-status-error-bg/30 hover:bg-status-error-bg border border-status-error-border/40 hover:border-status-error-border transition-all cursor-pointer shrink-0"
+                  className="p-1 rounded-lg text-status-error/80 hover:text-status-error bg-status-error-bg/30 hover:bg-status-error-bg transition-all cursor-pointer shrink-0"
                 >
                   <Trash2 size={13} />
                 </button>
@@ -92,8 +92,8 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
               {prop.type === 'checkbox' ? (
                 <label className="flex items-center gap-2 cursor-pointer py-0.5">
                   <div className={twMerge(
-                    "w-4 h-4 rounded border flex items-center justify-center transition-colors",
-                    prop.value ? "bg-accent-primary border-accent-primary text-accent-contrast" : "bg-bg-elevated border-border-default"
+                    "w-4 h-4 rounded flex items-center justify-center transition-colors",
+                    prop.value ? "bg-accent-primary text-accent-contrast" : "bg-bg-secondary"
                   )}>
                     {prop.value && <Check size={12} strokeWidth={3} />}
                   </div>
@@ -127,7 +127,7 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
                       }
                     }}
                     className={twMerge(
-                      "w-full bg-bg-elevated border border-border-default focus:border-border-default rounded-lg px-2.5 py-1.5 text-xs focus:outline-none transition-colors cursor-pointer shadow-xs [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer relative z-10",
+                      "w-full bg-bg-secondary rounded-lg px-2.5 py-1.5 text-xs focus:outline-none transition-colors cursor-pointer shadow-2xs [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer relative z-10",
                       prop.value ? "text-text-primary" : "text-transparent"
                     )}
                   />
@@ -152,7 +152,7 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
                     }
                   }}
                   placeholder="Empty..."
-                  className="w-full bg-bg-elevated border border-border-default focus:border-border-default rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none transition-colors shadow-xs"
+                  className="w-full bg-bg-secondary rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none transition-colors shadow-2xs"
                 />
               )}
             </div>
@@ -164,7 +164,7 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
       <button
         type="button"
         onClick={handleAddProperty}
-        className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 bg-bg-primary/70 hover:bg-bg-elevated border border-border-default hover:border-border-default text-text-secondary hover:text-text-primary rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs group"
+        className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-bg-primary hover:bg-bg-hover text-text-secondary hover:text-text-primary rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
       >
         <Plus size={14} className="text-accent-primary transition-transform group-hover:scale-110" />
         <span>Add Property</span>

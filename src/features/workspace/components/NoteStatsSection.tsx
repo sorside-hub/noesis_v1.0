@@ -45,7 +45,7 @@ export const NoteStatsSection: React.FC<NoteStatsSectionProps> = ({
         </label>
         <div className="grid grid-cols-2 gap-2.5">
           {/* Words Card */}
-          <div className="p-3 bg-bg-primary border border-border-default rounded-xl flex flex-col items-center justify-center text-center">
+          <div className="p-3 bg-bg-primary rounded-xl flex flex-col items-center justify-center text-center shadow-2xs">
             <div className="flex items-center justify-center gap-1.5 text-xs text-text-muted">
               <FileText size={13} className="text-icon-secondary" />
               <span>Words</span>
@@ -55,7 +55,7 @@ export const NoteStatsSection: React.FC<NoteStatsSectionProps> = ({
             </div>
           </div>
           {/* Characters Card */}
-          <div className="p-3 bg-bg-primary border border-border-default rounded-xl flex flex-col items-center justify-center text-center">
+          <div className="p-3 bg-bg-primary rounded-xl flex flex-col items-center justify-center text-center shadow-2xs">
             <div className="flex items-center justify-center gap-1.5 text-xs text-text-muted">
               <FileCode size={13} className="text-icon-secondary" />
               <span>Characters</span>

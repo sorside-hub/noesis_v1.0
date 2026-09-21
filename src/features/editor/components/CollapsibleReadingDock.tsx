@@ -236,31 +236,27 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         {hasChords ? (
           <svg
             viewBox="0 0 30 82"
-            className="absolute inset-0 w-full h-full drop-shadow-md overflow-visible transition-all"
+            className="absolute inset-0 w-full h-full overflow-visible transition-all"
           >
             <path
               d="M 30 0 L 14 14 Q 2 22 2 30 L 2 76 Q 2 82 7 82 L 30 82 Z"
               style={{
-                fill: 'var(--bg-surface)',
-                stroke: 'var(--border-default)',
+                fill: 'var(--bg-quaternary)',
               }}
               className="group-hover:opacity-90 transition-opacity"
-              strokeWidth="1.2"
             />
           </svg>
         ) : (
           <svg
             viewBox="0 0 30 54"
-            className="absolute inset-0 w-full h-full drop-shadow-md overflow-visible transition-all"
+            className="absolute inset-0 w-full h-full overflow-visible transition-all"
           >
             <path
               d="M 30 0 L 14 12 Q 2 18 2 24 L 2 48 Q 2 54 7 54 L 30 54 Z"
               style={{
-                fill: 'var(--bg-surface)',
-                stroke: 'var(--border-default)',
+                fill: 'var(--bg-quaternary)',
               }}
               className="group-hover:opacity-90 transition-opacity"
-              strokeWidth="1.2"
             />
           </svg>
         )}
@@ -330,7 +326,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         Jika catatan memiliki chord -> menampilkan seksi Auto-Scroll dan Transpose.
         Jika catatan biasa tanpa chord -> HANYA menampilkan seksi Auto-Scroll (Transpose disembunyikan total).
       */}
-      <div className="w-[48px] bg-bg-surface/95 backdrop-blur-md border-y border-l border-border-default rounded-l-2xl shadow-2xl p-1.5 flex flex-col items-center gap-1 transition-all">
+      <div className="w-[48px] bg-bg-quaternary rounded-l-2xl p-1.5 flex flex-col items-center gap-1 transition-all">
         {/* Tombol Lipat / Tutup Kecil di Atas */}
         <button
           type="button"
@@ -350,10 +346,10 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         <button
           type="button"
           onClick={() => setIsPlaying(!isPlaying)}
-          className={`w-8 h-8 flex items-center justify-center rounded-xl border transition-colors cursor-pointer shadow-2xs ${
+          className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all cursor-pointer ${
             isPlaying
-              ? 'bg-accent-primary border-accent-primary text-accent-contrast shadow-sm'
-              : 'bg-bg-canvas hover:bg-bg-hover text-text-primary border-border-default'
+              ? 'bg-accent-primary text-accent-contrast shadow-xs'
+              : 'bg-bg-secondary text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
           title={isPlaying ? 'Jeda Auto-Scroll' : 'Mulai Auto-Scroll'}
           aria-label="Toggle Auto-Scroll"
@@ -370,7 +366,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
           type="button"
           onClick={() => setSpeed((s) => Math.min(8, Math.round((s + 0.5) * 10) / 10))}
           disabled={speed >= 8}
-          className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
+          className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
           title="Percepat Auto-Scroll (+0.5x)"
           aria-label="Speed Up"
         >
@@ -390,7 +386,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
           type="button"
           onClick={() => setSpeed((s) => Math.max(0.5, Math.round((s - 0.5) * 10) / 10))}
           disabled={speed <= 0.5}
-          className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
+          className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
           title="Perlambat Auto-Scroll (-0.5x)"
           aria-label="Speed Down"
         >
@@ -401,7 +397,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         <button
           type="button"
           onClick={handleScrollToTop}
-          className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+          className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors cursor-pointer"
           title="Ke Atas Halaman"
           aria-label="Scroll to Top"
         >
@@ -414,11 +410,11 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         {hasChords && (
           <>
             {/* Pemisah Rapi */}
-            <div className="w-6 border-t border-border-default/70 my-0.5" />
+            <div className="w-6 border-t border-border-subtle my-0.5" />
 
             {/* Key Header Badge */}
             <div
-              className="w-8 h-8 flex flex-col items-center justify-center rounded-xl border select-none transition-colors bg-accent-primary/10 border-accent-primary/20 text-accent-primary"
+              className="w-8 h-8 flex flex-col items-center justify-center rounded-xl select-none transition-colors text-accent-primary"
               title="Transpose Chord Musik"
             >
               <Music size={12} />
@@ -431,7 +427,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
             <button
               type="button"
               onClick={() => onTranspose(1)}
-              className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+              className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors cursor-pointer"
               title="Naikkan +1 Semitone (Setengah Nada)"
               aria-label="Transpose Up"
             >
@@ -442,7 +438,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
             <div
               className={`w-full text-[10px] font-mono font-bold text-center py-0.5 rounded select-none transition-colors ${
                 semitones !== 0
-                  ? 'bg-accent-primary/15 text-accent-primary border border-accent-primary/30'
+                  ? 'bg-accent-primary/15 text-accent-primary font-bold'
                   : 'text-text-secondary'
               }`}
               title={`Offset nada dasar: ${displaySemitones} semitone`}
@@ -454,7 +450,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
             <button
               type="button"
               onClick={() => onTranspose(-1)}
-              className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+              className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors cursor-pointer"
               title="Turunkan -1 Semitone (Setengah Nada)"
               aria-label="Transpose Down"
             >
@@ -466,7 +462,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
               type="button"
               onClick={onReset}
               disabled={semitones === 0}
-              className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors border-t border-border-default/60"
+              className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors border-t border-border-subtle"
               title={semitones !== 0 ? 'Kembalikan Nada Asli' : 'Sudah di nada asli (0)'}
               aria-label="Reset Transpose"
             >

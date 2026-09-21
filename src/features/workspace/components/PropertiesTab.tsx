@@ -4,7 +4,6 @@ import {
   ChevronDown,
   ChevronRight,
   Sliders,
-  Sparkles,
 } from 'lucide-react';
 import { FileNode } from '../../../types/vault';
 import { ChipInput } from './ChipInput';
@@ -128,7 +127,7 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({
           <select
             value={status}
             onChange={(e) => handleStatusChange(e.target.value)}
-            className="w-full px-3 py-2 bg-bg-primary border border-border-default hover:border-border-default focus:border-accent-primary/60 rounded-xl text-xs text-text-primary appearance-none focus:outline-none pr-8 cursor-pointer transition-colors"
+            className="w-full px-3 py-2 bg-bg-primary focus:ring-1 focus:ring-accent-primary/50 rounded-xl text-xs text-text-primary appearance-none focus:outline-none pr-8 cursor-pointer transition-all shadow-2xs"
           >
             <option value="">-</option>
             <option value="Inbox">Inbox</option>
@@ -151,8 +150,9 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({
         onChange={handleTagsChange}
         placeholder="Add tag (e.g. journal)..."
         prefix="#"
+        prefixColorClass="text-accent-primary"
         forceLowerCase={true}
-        chipColorClass="bg-accent-soft text-text-primary border border-border-default shadow-xs font-medium"
+        chipColorClass="bg-bg-secondary text-accent-primary hover:bg-bg-secondary/80"
         suggestions={existingTags}
       />
 
@@ -162,7 +162,7 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({
         items={aliases}
         onChange={handleAliasesChange}
         placeholder="Add alias (e.g. Daily Note)..."
-        chipColorClass="bg-bg-primary text-text-secondary border border-border-default shadow-xs hover:border-border-default transition-colors font-medium"
+        chipColorClass="bg-bg-secondary text-text-primary italic hover:bg-bg-secondary/80"
         helperText="Nama alias yang dapat memicu tautan [[wikilink]]."
       />
 
@@ -176,9 +176,8 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({
       <div className="space-y-3 pt-1">
         <div className="flex items-center gap-2">
           <div className="h-px bg-border-subtle flex-1" />
-          <span className="text-[10px] font-bold text-accent-primary uppercase tracking-widest px-2 flex items-center gap-1.5">
-            <Sparkles size={11} className="text-accent-primary" />
-            <span>AI Intelligence</span>
+          <span className="text-[10px] font-bold text-accent-primary uppercase tracking-widest px-2">
+            AI Intelligence
           </span>
           <div className="h-px bg-border-subtle flex-1" />
         </div>

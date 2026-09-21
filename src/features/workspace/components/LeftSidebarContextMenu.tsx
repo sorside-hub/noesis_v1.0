@@ -82,10 +82,10 @@ export const LeftSidebarContextMenu: React.FC<LeftSidebarContextMenuProps> = ({
           top: `${menuPosition.y}px`,
           left: `${menuPosition.x}px`,
         }}
-        className="fixed w-48 bg-bg-quaternary border border-border-default rounded-xl shadow-lg py-1.5 z-60 flex flex-col text-xs animate-in fade-in zoom-in-95 duration-100 font-normal"
+        className="fixed w-48 bg-bg-primary rounded-xl py-1.5 z-60 flex flex-col text-xs animate-in fade-in zoom-in-95 duration-100 font-normal"
       >
         {/* Header info */}
-        <div className="px-3 py-1.5 border-b border-border-default mb-1 flex items-center gap-2 text-text-secondary truncate font-medium">
+        <div className="px-3 py-1.5 border-b border-border-subtle mb-1 flex items-center gap-2 text-text-secondary truncate font-medium">
           {activeMenuNode.type === 'folder' ? (
             <Folder size={13} className="text-icon-accent shrink-0" />
           ) : (
@@ -208,7 +208,7 @@ export const LeftSidebarContextMenu: React.FC<LeftSidebarContextMenuProps> = ({
           <span>Pindahkan ke...</span>
         </button>
 
-        <div className="my-1 border-t border-border-default" />
+        <div className="my-1 border-t border-border-subtle" />
 
         <button
           type="button"

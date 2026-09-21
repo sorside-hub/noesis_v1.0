@@ -31,7 +31,7 @@ export const ChatSettingsSidebar: React.FC<ChatSettingsSidebarProps> = ({
 }) => {
   return (
     <aside
-      className={className || "h-full w-full bg-bg-surface flex flex-col overflow-hidden relative select-none"}
+      className={className || "h-full w-full bg-bg-secondary flex flex-col overflow-hidden relative select-none"}
     >
       {/* Header Right Sidebar */}
       <div className="h-14 px-4 border-b border-border-default flex items-center justify-between shrink-0">
@@ -47,7 +47,7 @@ export const ChatSettingsSidebar: React.FC<ChatSettingsSidebarProps> = ({
           <label className="block font-semibold text-text-heading uppercase tracking-wider text-[11px] pt-1">
             Sumber Konteks Chat
           </label>
-          <div className="grid grid-cols-2 gap-1.5 p-1 bg-bg-primary border border-border-default rounded-xl">
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-bg-primary rounded-xl">
             <button
               type="button"
               onClick={() => setMode('rag')}
@@ -89,7 +89,7 @@ export const ChatSettingsSidebar: React.FC<ChatSettingsSidebarProps> = ({
                 <label className="font-semibold text-text-heading uppercase tracking-wider text-[11px]">
                   Kedalaman Konteks (Top-K)
                 </label>
-                <span className="px-2 py-0.5 rounded-md bg-accent-primary/15 text-accent-primary font-mono text-xs font-bold">
+                <span className="px-1.5 py-0.5 rounded bg-accent-primary/15 text-accent-primary font-mono text-[10px] font-semibold">
                   {topK} Chunks
                 </span>
               </div>
@@ -102,11 +102,11 @@ export const ChatSettingsSidebar: React.FC<ChatSettingsSidebarProps> = ({
                 step={1}
                 value={topK}
                 onChange={(e) => setTopK(Number(e.target.value))}
-                className="w-full h-1.5 bg-bg-surface border border-border-default rounded-lg appearance-none cursor-pointer accent-accent-primary"
+                className="w-full h-1.5 bg-bg-primary rounded-lg appearance-none cursor-pointer accent-accent-primary"
               />
 
               {/* Quick Preset Buttons */}
-              <div className="grid grid-cols-4 gap-1 pt-1">
+              <div className="grid grid-cols-4 gap-1.5 pt-1">
                 {[
                   { label: '3', desc: 'Ringkas', val: 3 },
                   { label: '6', desc: 'Standar', val: 6 },
@@ -117,10 +117,10 @@ export const ChatSettingsSidebar: React.FC<ChatSettingsSidebarProps> = ({
                     key={item.val}
                     type="button"
                     onClick={() => setTopK(item.val)}
-                    className={`py-1.5 px-1 rounded-md border text-center transition-colors cursor-pointer ${
+                    className={`py-1.5 px-1 rounded-lg text-center transition-colors cursor-pointer ${
                       topK === item.val
-                        ? 'bg-accent-primary text-accent-contrast border-accent-primary font-bold shadow-2xs'
-                        : 'bg-bg-primary border-border-default text-text-secondary hover:text-text-primary hover:border-border-hover'
+                        ? 'bg-accent-primary text-accent-contrast font-bold shadow-2xs'
+                        : 'bg-bg-primary text-text-secondary hover:text-text-primary hover:bg-bg-hover'
                     }`}
                   >
                     <div className="text-[11px] font-mono leading-tight">{item.label}</div>
@@ -143,7 +143,7 @@ export const ChatSettingsSidebar: React.FC<ChatSettingsSidebarProps> = ({
                   <label className="font-semibold text-text-heading uppercase tracking-wider text-[11px]">
                     Filter Presisi Relevansi
                   </label>
-                  <span className="px-2 py-0.5 rounded-md bg-accent-primary/15 text-accent-primary font-mono text-xs font-bold">
+                  <span className="px-1.5 py-0.5 rounded bg-accent-primary/15 text-accent-primary font-mono text-[10px] font-semibold">
                     {threshold.toFixed(2)}
                   </span>
                 </div>
@@ -156,7 +156,7 @@ export const ChatSettingsSidebar: React.FC<ChatSettingsSidebarProps> = ({
                   step={0.05}
                   value={threshold}
                   onChange={(e) => setThreshold(Number(e.target.value))}
-                  className="w-full h-1.5 bg-bg-surface border border-border-default rounded-lg appearance-none cursor-pointer accent-accent-primary"
+                  className="w-full h-1.5 bg-bg-primary rounded-lg appearance-none cursor-pointer accent-accent-primary"
                 />
 
                 {/* Quick Preset Buttons */}
@@ -170,10 +170,10 @@ export const ChatSettingsSidebar: React.FC<ChatSettingsSidebarProps> = ({
                       key={item.val}
                       type="button"
                       onClick={() => setThreshold(item.val)}
-                      className={`py-1.5 px-1 rounded-md border text-center transition-colors cursor-pointer ${
+                      className={`py-1.5 px-1 rounded-lg text-center transition-colors cursor-pointer ${
                         Math.abs(threshold - item.val) < 0.02
-                          ? 'bg-accent-primary text-accent-contrast border-accent-primary font-semibold shadow-2xs'
-                          : 'bg-bg-primary border-border-default text-text-secondary hover:text-text-primary hover:border-border-hover'
+                          ? 'bg-accent-primary text-accent-contrast font-semibold shadow-2xs'
+                          : 'bg-bg-primary text-text-secondary hover:text-text-primary hover:bg-bg-hover'
                       }`}
                     >
                       <div className="text-[11px] leading-tight">{item.label}</div>

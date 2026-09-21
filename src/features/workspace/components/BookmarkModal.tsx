@@ -91,11 +91,11 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-bg-quaternary border border-border-default rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
+        className="w-full max-w-md bg-bg-primary rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-default bg-bg-quaternary">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-bg-primary">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-accent-primary/10 flex items-center justify-center text-icon-accent shrink-0">
               <Bookmark size={18} className="fill-accent-primary/20 text-accent-primary" />
@@ -125,7 +125,7 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
             <label className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary flex items-center gap-1.5">
               <span>Alur / Lokasi File</span>
             </label>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-bg-surface border border-border-default text-xs text-text-secondary overflow-x-auto select-all">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-bg-secondary text-xs text-text-secondary overflow-x-auto select-all">
               <span className="text-icon-accent shrink-0 text-[11px]">📁</span>
               <span className="font-mono text-[11.5px] truncate text-text-secondary">
                 {nodePath}
@@ -154,7 +154,7 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={targetNode.name}
-              className="w-full px-3 py-2 rounded-xl bg-bg-surface border border-border-default text-xs text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-1 focus:ring-accent-primary focus:border-accent-primary transition-all font-medium"
+              className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/50 transition-all font-medium"
             />
           </div>
 
@@ -181,7 +181,7 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
                       setSelectedGroupId(val ? val : null);
                     }
                   }}
-                  className="w-full px-3 py-2 rounded-xl bg-bg-surface border border-border-default text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary focus:border-accent-primary transition-all cursor-pointer"
+                  className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary/50 transition-all cursor-pointer"
                 >
                   <option value="">Tanpa Grup (Root)</option>
                   {groups.map((grp) => (
@@ -194,7 +194,7 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
               </div>
             ) : (
               /* Inline New Group Input */
-              <div className="space-y-2 p-3 bg-bg-surface/80 border border-border-default rounded-xl animate-in fade-in duration-150">
+              <div className="space-y-2 p-3 bg-bg-secondary rounded-xl animate-in fade-in duration-150">
                 <div className="flex items-center justify-between text-xs text-text-primary font-medium">
                   <span className="flex items-center gap-1.5 text-accent-primary">
                     <FolderPlus size={14} className="text-icon-accent" />
@@ -217,14 +217,14 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
                   placeholder="Contoh: Proyek Aktif, Referensi Penting..."
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-bg-quaternary border border-border-default text-xs text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:border-accent-primary"
+                  className="w-full px-3 py-1.5 rounded-lg bg-bg-primary text-xs text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/50"
                 />
               </div>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-3 border-t border-border-default flex items-center justify-between gap-2">
+          <div className="pt-3 border-t border-border-subtle flex items-center justify-between gap-2">
             {isBookmarked ? (
               <button
                 type="button"

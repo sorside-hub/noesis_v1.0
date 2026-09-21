@@ -28,7 +28,7 @@ export const NoteRagCard: React.FC<NoteRagCardProps> = ({
   const [isCascadeModalOpen, setIsCascadeModalOpen] = useState(false);
 
   return (
-    <div className="flex flex-col gap-2.5 p-3 rounded-xl bg-bg-primary border border-border-default text-xs transition-all duration-200 shadow-2xs">
+    <div className="flex flex-col gap-2.5 p-3 rounded-xl bg-bg-primary text-xs transition-all duration-200 shadow-2xs">
       {/* Card Header Row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-text-primary">

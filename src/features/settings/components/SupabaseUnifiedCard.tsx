@@ -57,7 +57,7 @@ export const SupabaseUnifiedCard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-bg-surface border border-border-default rounded-xl p-8 flex items-center justify-center text-text-muted text-xs">
+      <div className="bg-bg-secondary rounded-xl p-8 flex items-center justify-center text-text-muted text-xs shadow-2xs">
         <Loader2 className="w-4 h-4 animate-spin mr-2 text-accent-primary" />
         Memeriksa status Cloud Sync...
       </div>
@@ -65,9 +65,9 @@ export const SupabaseUnifiedCard: React.FC = () => {
   }
 
   return (
-    <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-xs divide-y divide-border-subtle">
+    <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs divide-y divide-border-subtle">
       {/* 1. TOP HEADER: Status Koneksi & Akun Ringkas */}
-      <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-bg-surface">
+      <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-bg-secondary">
         <div className="flex items-center gap-3.5">
           <div className="p-2.5 rounded-xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary shrink-0">
             <Cloud className="w-5 h-5" />

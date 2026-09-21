@@ -38,8 +38,8 @@ export const NotificationSettingsCard: React.FC = () => {
   };
 
   return (
-    <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-xs divide-y divide-border-subtle">
-      <div className="p-4 bg-bg-surface flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+    <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs divide-y divide-border-subtle">
+      <div className="p-4 bg-bg-secondary flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-xl border shrink-0 ${
             status === 'granted'

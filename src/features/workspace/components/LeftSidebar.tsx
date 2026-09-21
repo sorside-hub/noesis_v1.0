@@ -173,7 +173,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       {/* TOP TAB SWITCHER: FILES vs TAGS vs BOOKMARKS (Obsidian Style) */}
       {/* ----------------------------------------------------------- */}
       <div className="px-2.5 pt-2.5 pb-1.5 flex items-center justify-between border-b border-border-subtle shrink-0">
-        <div className="flex items-center gap-0.5 bg-bg-quaternary p-0.5 rounded-lg w-full">
+        <div className="flex items-center gap-0.5 bg-bg-primary p-0.5 rounded-lg w-full">
           {/* 1. Files Tab */}
           <button
             type="button"

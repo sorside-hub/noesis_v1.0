@@ -98,7 +98,7 @@ export const NoteTitle: React.FC<NoteTitleProps> = ({
   if (isReadOnly) {
     return (
       <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-2">
-        <h1 className="text-[28px] font-serif font-bold leading-[1.3] text-text-primary break-words">
+        <h1 className="text-[20px] font-serif font-bold leading-[1.35] text-text-primary break-words">
           {title.trim() || 'Untitled'}
         </h1>
       </div>
@@ -127,7 +127,7 @@ export const NoteTitle: React.FC<NoteTitleProps> = ({
         }}
         onKeyDown={handleKeyDown}
         placeholder="Untitled"
-        className="w-full resize-none overflow-hidden bg-transparent text-[28px] font-serif font-bold leading-[1.3] text-text-primary placeholder:text-text-secondary/50 focus:outline-none border-none p-0 tracking-tight block min-h-[38px]"
+        className="w-full resize-none overflow-hidden bg-transparent text-[20px] font-serif font-bold leading-[1.35] text-text-primary placeholder:text-text-secondary/50 focus:outline-none border-none p-0 tracking-tight block min-h-[30px]"
         aria-label="Note Title"
       />
     </div>

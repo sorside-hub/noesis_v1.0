@@ -60,9 +60,9 @@ export const TemplateSettingsCard: React.FC<TemplateSettingsCardProps> = ({
   const previewTime = formatTemplateTime(new Date(), settings.timeFormat);
 
   return (
-    <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-xs divide-y divide-border-subtle">
+    <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs divide-y divide-border-subtle">
       {/* 1. Header Banner */}
-      <div className="p-3.5 sm:p-4 bg-bg-surface">
+      <div className="p-3.5 sm:p-4 bg-bg-secondary">
         <div className="flex items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="p-2 sm:p-2.5 rounded-xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary shrink-0">

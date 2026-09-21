@@ -99,10 +99,10 @@ export const FloatingAutoScrollWidget: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsPlaying(!isPlaying)}
-        className={`w-8 h-8 flex items-center justify-center rounded-xl border transition-colors cursor-pointer shadow-2xs ${
+        className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors cursor-pointer shadow-2xs ${
           isPlaying
-            ? 'bg-accent-primary border-accent-primary text-accent-contrast shadow-sm'
-            : 'bg-bg-canvas hover:bg-bg-hover text-text-primary border-border-default'
+            ? 'bg-accent-primary text-accent-contrast shadow-sm'
+            : 'bg-bg-canvas hover:bg-bg-hover text-text-primary'
         }`}
         title={isPlaying ? 'Jeda Auto-Scroll' : 'Mulai Auto-Scroll'}
         aria-label="Toggle Auto-Scroll"
@@ -150,7 +150,7 @@ export const FloatingAutoScrollWidget: React.FC = () => {
       <button
         type="button"
         onClick={handleScrollToTop}
-        className="w-7 h-7 flex items-center justify-center mt-0.5 text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer border-t border-border-default/60"
+        className="w-7 h-7 flex items-center justify-center mt-0.5 text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer border-t border-border-subtle"
         title="Ke Atas Halaman"
         aria-label="Scroll to Top"
       >

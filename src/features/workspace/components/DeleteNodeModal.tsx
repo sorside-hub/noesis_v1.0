@@ -20,7 +20,7 @@ export const DeleteNodeModal: React.FC<DeleteNodeModalProps> = ({
       onClick={closeActiveDialog}
     >
       <div
-        className="w-full max-w-sm bg-bg-quaternary border border-border-default rounded-xl shadow-2xl p-5 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-100"
+        className="w-full max-w-sm bg-bg-primary rounded-xl shadow-2xl p-5 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-100"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-semibold text-text-primary">

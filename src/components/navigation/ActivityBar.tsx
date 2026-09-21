@@ -22,7 +22,7 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({ activeTab, onTabChange
   };
 
   return (
-    <div className="hidden lg:flex flex-col w-12 h-full bg-bg-surface border-r border-border-default shrink-0 items-center py-4 justify-between select-none z-20">
+    <div className="hidden lg:flex flex-col w-12 h-full bg-bg-quaternary border-r border-border-default shrink-0 items-center py-4 justify-between select-none z-20">
       <div className="flex flex-col items-center gap-3 w-full px-1.5">
         {/* Noesis Brand Logo */}
         <div 

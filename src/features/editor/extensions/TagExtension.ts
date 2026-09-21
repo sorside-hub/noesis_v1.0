@@ -68,6 +68,7 @@ export const TagExtension = Extension.create<TagOptions>({
                         })
                       );
                     } else {
+                      // Solid 1-block pill decoration
                       decorations.push(
                         Decoration.inline(start, end, {
                           class: 'inline-tag select-text',

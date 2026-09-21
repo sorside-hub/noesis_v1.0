@@ -256,7 +256,7 @@ export const ChatHistorySidebar: React.FC<ChatHistorySidebarProps> = ({
       <aside
         className={
           className ||
-          'h-full w-full bg-bg-surface flex flex-col overflow-hidden relative select-none'
+          'h-full w-full bg-bg-secondary flex flex-col overflow-hidden relative select-none'
         }
       >
         {/* Header Left Sidebar */}

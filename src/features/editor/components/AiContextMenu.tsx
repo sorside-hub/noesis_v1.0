@@ -86,11 +86,11 @@ export const AiContextMenu: React.FC<AiContextMenuProps> = ({
       {/* Modal Container */}
       <div 
         ref={modalRef}
-        className="w-full max-w-lg bg-bg-elevated border-t sm:border border-border-default/60 sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-4 transition-all duration-300 ease-out origin-bottom mt-auto sm:mb-auto"
+        className="w-full max-w-lg bg-bg-primary sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-4 transition-all duration-300 ease-out origin-bottom mt-auto sm:mb-auto"
         style={{ maxHeight: '85dvh' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border-default/50 bg-bg-surface/50">
+        <div className="flex items-center justify-between px-4 py-3 bg-bg-secondary">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-accent-primary" />
             <h3 className="font-semibold text-text-primary">
@@ -113,7 +113,7 @@ export const AiContextMenu: React.FC<AiContextMenuProps> = ({
             <>
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Selected Text</span>
-                <div className="p-3 bg-bg-surface border border-border-default rounded-xl text-sm text-text-secondary max-h-48 overflow-y-auto italic">
+                <div className="p-3 bg-bg-secondary rounded-xl text-sm text-text-secondary max-h-48 overflow-y-auto italic">
                   "{selectedText}"
                 </div>
               </div>
@@ -132,19 +132,19 @@ export const AiContextMenu: React.FC<AiContextMenuProps> = ({
                       <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Pilih Gaya Bahasa</span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      <button onClick={() => { setIsToneMenuOpen(false); handleAction('tone', 'Profesional'); }} className="flex items-center justify-start gap-2 px-3 py-2 bg-bg-surface hover:bg-bg-hover border border-border-default rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
+                      <button onClick={() => { setIsToneMenuOpen(false); handleAction('tone', 'Profesional'); }} className="flex items-center justify-start gap-2 px-3 py-2 bg-bg-secondary hover:bg-bg-hover rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
                         💼 Profesional
                       </button>
-                      <button onClick={() => { setIsToneMenuOpen(false); handleAction('tone', 'Santai'); }} className="flex items-center justify-start gap-2 px-3 py-2 bg-bg-surface hover:bg-bg-hover border border-border-default rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
+                      <button onClick={() => { setIsToneMenuOpen(false); handleAction('tone', 'Santai'); }} className="flex items-center justify-start gap-2 px-3 py-2 bg-bg-secondary hover:bg-bg-hover rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
                         ☕ Santai
                       </button>
-                      <button onClick={() => { setIsToneMenuOpen(false); handleAction('tone', 'Ringkas'); }} className="flex items-center justify-start gap-2 px-3 py-2 bg-bg-surface hover:bg-bg-hover border border-border-default rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
+                      <button onClick={() => { setIsToneMenuOpen(false); handleAction('tone', 'Ringkas'); }} className="flex items-center justify-start gap-2 px-3 py-2 bg-bg-secondary hover:bg-bg-hover rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
                         ✂️ Ringkas
                       </button>
-                      <button onClick={() => { setIsToneMenuOpen(false); handleAction('tone', 'Kreatif'); }} className="flex items-center justify-start gap-2 px-3 py-2 bg-bg-surface hover:bg-bg-hover border border-border-default rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
+                      <button onClick={() => { setIsToneMenuOpen(false); handleAction('tone', 'Kreatif'); }} className="flex items-center justify-start gap-2 px-3 py-2 bg-bg-secondary hover:bg-bg-hover rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
                         🎨 Kreatif
                       </button>
-                      <button onClick={() => { setIsToneMenuOpen(false); handleAction('tone', 'Puitis'); }} className="flex items-center justify-start gap-2 px-3 py-2 bg-bg-surface hover:bg-bg-hover border border-border-default rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
+                      <button onClick={() => { setIsToneMenuOpen(false); handleAction('tone', 'Puitis'); }} className="flex items-center justify-start gap-2 px-3 py-2 bg-bg-secondary hover:bg-bg-hover rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
                         🌌 Puitis
                       </button>
                     </div>
@@ -153,19 +153,19 @@ export const AiContextMenu: React.FC<AiContextMenuProps> = ({
                   <div className="flex flex-col gap-2 animate-in slide-in-from-left-4 fade-in duration-200">
                     <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Aksi Cepat</span>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      <button onClick={() => handleAction('grammar')} className="flex items-center justify-center gap-2 px-3 py-2 bg-bg-surface hover:bg-bg-hover border border-border-default rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
+                      <button onClick={() => handleAction('grammar')} className="flex items-center justify-center gap-2 px-3 py-2 bg-bg-secondary hover:bg-bg-hover rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
                         <Wand2 size={14} className="text-text-muted" /> Tata Bahasa
                       </button>
-                      <button onClick={() => handleAction('summarize')} className="flex items-center justify-center gap-2 px-3 py-2 bg-bg-surface hover:bg-bg-hover border border-border-default rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
+                      <button onClick={() => handleAction('summarize')} className="flex items-center justify-center gap-2 px-3 py-2 bg-bg-secondary hover:bg-bg-hover rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
                         <AlignLeft size={14} className="text-text-muted" /> Ringkas
                       </button>
-                      <button onClick={() => setIsToneMenuOpen(true)} className="flex items-center justify-center gap-2 px-3 py-2 bg-bg-surface hover:bg-bg-hover border border-border-default rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
+                      <button onClick={() => setIsToneMenuOpen(true)} className="flex items-center justify-center gap-2 px-3 py-2 bg-bg-secondary hover:bg-bg-hover rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
                         <MessageSquare size={14} className="text-text-muted" /> Gaya Bahasa
                       </button>
-                      <button onClick={() => handleAction('translate')} className="flex items-center justify-center gap-2 px-3 py-2 bg-bg-surface hover:bg-bg-hover border border-border-default rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
+                      <button onClick={() => handleAction('translate')} className="flex items-center justify-center gap-2 px-3 py-2 bg-bg-secondary hover:bg-bg-hover rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
                         <Globe size={14} className="text-text-muted" /> Terjemahkan
                       </button>
-                      <button onClick={() => handleAction('expand')} className="flex items-center justify-center gap-2 px-3 py-2 bg-bg-surface hover:bg-bg-hover border border-border-default rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
+                      <button onClick={() => handleAction('expand')} className="flex items-center justify-center gap-2 px-3 py-2 bg-bg-secondary hover:bg-bg-hover rounded-lg text-xs font-medium text-text-primary transition-colors cursor-pointer">
                         <Maximize size={14} className="text-text-muted" /> Kembangkan
                       </button>
                     </div>
@@ -174,7 +174,7 @@ export const AiContextMenu: React.FC<AiContextMenuProps> = ({
               </div>
 
               <div className="mt-2">
-                <form onSubmit={handleSubmitCustom} className="flex items-center gap-2 bg-bg-surface border border-border-default focus-within:border-accent-primary/50 rounded-xl px-3 py-2 transition-colors">
+                <form onSubmit={handleSubmitCustom} className="flex items-center gap-2 bg-bg-secondary focus-within:ring-1 focus-within:ring-accent-primary/50 rounded-xl px-3 py-2 transition-colors">
                   <input
                     type="text"
                     value={customPrompt}
@@ -205,7 +205,7 @@ export const AiContextMenu: React.FC<AiContextMenuProps> = ({
                 {activeAction === 'translate' && 'Translating text...'}
                 {activeAction === 'expand' && 'Expanding text...'}
                 {activeAction === 'custom' && 'Applying custom instruction...'}
-                {!activeAction && 'Processing...'}
+                {!activeAction === null && 'Processing...'}
               </div>
             </div>
           )}
@@ -215,7 +215,7 @@ export const AiContextMenu: React.FC<AiContextMenuProps> = ({
             <div className="flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Original</span>
-                <div className="p-3 bg-bg-surface/50 border border-border-default/50 rounded-xl text-sm text-text-muted max-h-24 overflow-y-auto italic line-through opacity-70">
+                <div className="p-3 bg-bg-secondary rounded-xl text-sm text-text-muted max-h-24 overflow-y-auto italic line-through opacity-70">
                   "{selectedText}"
                 </div>
               </div>
@@ -243,7 +243,7 @@ export const AiContextMenu: React.FC<AiContextMenuProps> = ({
                 </div>
 
                 {showLog && actionLog ? (
-                  <div className="p-3 bg-bg-surface border border-border-default rounded-xl space-y-3 max-h-48 overflow-y-auto">
+                  <div className="p-3 bg-bg-secondary rounded-xl space-y-3 max-h-48 overflow-y-auto">
                     {actionLog.map((attempt, idx) => (
                       <div key={idx} className="flex gap-2.5 text-xs">
                         <div className="mt-0.5">
@@ -260,7 +260,7 @@ export const AiContextMenu: React.FC<AiContextMenuProps> = ({
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="font-semibold text-text-primary">{attempt.modelTried}</span>
-                            <span className="text-[9px] text-text-muted px-1.5 py-0.5 rounded bg-bg-secondary uppercase tracking-wider">{attempt.slotId}</span>
+                            <span className="text-[9px] text-text-muted px-1.5 py-0.5 rounded bg-bg-primary uppercase tracking-wider">{attempt.slotId}</span>
                           </div>
                           {attempt.error && (
                             <p className="text-status-error text-[10px] leading-relaxed break-words">{attempt.error}</p>
@@ -270,16 +270,16 @@ export const AiContextMenu: React.FC<AiContextMenuProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <div className="p-3 bg-accent-primary/5 border border-accent-primary/20 rounded-xl text-sm text-text-primary max-h-48 overflow-y-auto whitespace-pre-wrap">
+                  <div className="p-3 bg-accent-primary/10 rounded-xl text-sm text-text-primary max-h-48 overflow-y-auto whitespace-pre-wrap">
                     {aiResult}
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border-default/50">
+              <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border-subtle">
                 <button
                   onClick={onClose}
-                  className="flex-1 py-2.5 rounded-xl border border-border-default text-text-primary font-medium hover:bg-bg-hover transition-colors cursor-pointer text-sm"
+                  className="flex-1 py-2.5 rounded-xl bg-bg-secondary text-text-primary font-medium hover:bg-bg-hover transition-colors cursor-pointer text-sm"
                 >
                   Cancel
                 </button>

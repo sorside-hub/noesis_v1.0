@@ -31,7 +31,7 @@ export const RenameNodeModal: React.FC<RenameNodeModalProps> = ({
       onClick={closeActiveDialog}
     >
       <div 
-        className="w-full max-w-sm bg-bg-quaternary border border-border-default rounded-xl shadow-2xl p-4 flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-100"
+        className="w-full max-w-sm bg-bg-primary rounded-xl shadow-2xl p-4 flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-100"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-sm font-semibold text-text-primary">
@@ -51,10 +51,10 @@ export const RenameNodeModal: React.FC<RenameNodeModalProps> = ({
             }
           }}
           className={twMerge(
-            "w-full px-3 py-2 bg-bg-surface border rounded-lg text-sm text-text-primary placeholder:text-text-secondary/60 focus:outline-none transition-colors",
+            "w-full px-3 py-2 bg-bg-secondary rounded-lg text-sm text-text-primary placeholder:text-text-secondary/60 focus:outline-none transition-colors",
             isRenameDuplicate 
-              ? "border-status-error focus:ring-1 focus:ring-status-error" 
-              : "border-border-default focus:border-accent-primary/60 focus:ring-1 focus:ring-accent-primary/40"
+              ? "focus:ring-1 focus:ring-status-error" 
+              : "focus:ring-1 focus:ring-accent-primary/50"
           )}
           placeholder="Masukkan nama baru..."
         />

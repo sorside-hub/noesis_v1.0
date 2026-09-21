@@ -9,6 +9,9 @@ import { hasChordsInContent, hasEditorChords, transposeEditorChords } from '../l
 import { FileNode, VaultData } from '../../../types/vault';
 import { EditorMode } from '../../../types/editor';
 import { Wand2, Lock, Unlock } from 'lucide-react';
+import { useScrollDirection } from '../../../hooks/useScrollDirection';
+import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
+import { useNavigation } from '../../../context/NavigationContext';
 import { InsertTemplateModal, TemplateInsertionMode } from '../../templates/components/InsertTemplateModal';
 
 interface EditorMainCanvasProps {
@@ -73,6 +76,12 @@ export const EditorMainCanvas: React.FC<EditorMainCanvasProps> = ({
   const [hasChords, setHasChords] = useState<boolean>(false);
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState<boolean>(false);
+
+  const { activeTabId, isMobileRightSidebarOpen } = useNavigation();
+  const { isVisible: isNavVisible } = useScrollDirection(['vault', activeTabId]);
+  const { isKeyboardOpen } = useVirtualKeyboard();
+
+  const shouldShowMobileLock = isNavVisible && !isKeyboardOpen && !isMobileRightSidebarOpen;
 
   // Listen for template modal open events (e.g. from slash command /template or toolbar)
   useEffect(() => {
@@ -260,19 +269,23 @@ export const EditorMainCanvas: React.FC<EditorMainCanvasProps> = ({
             onReset={handleResetTranspose}
           />
 
-          {/* Mobile Floating Reading Lock Button */}
+          {/* Mobile Floating Reading Lock Button - Aligned with Bottom Nav Pill */}
           <button
             type="button"
             onClick={handleToggleLock}
-            className={`sm:hidden fixed right-3.5 bottom-16 z-40 flex items-center justify-center w-9 h-9 rounded-full shadow-xs transition-all duration-200 active:scale-95 cursor-pointer ${
+            className={`sm:hidden fixed right-3 sm:right-4 bottom-3 sm:bottom-3.5 z-40 flex items-center justify-center w-9 h-9 rounded-full bg-bg-quaternary shadow-2xl transition-all duration-200 ease-out active:scale-95 cursor-pointer ${
+              shouldShowMobileLock
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-20 opacity-0 pointer-events-none'
+            } ${
               isLocked
-                ? 'bg-accent-primary text-accent-contrast shadow-sm'
-                : 'bg-bg-surface/90 backdrop-blur-xs text-text-muted hover:text-text-primary border border-border-default'
+                ? 'text-accent-primary font-semibold'
+                : 'text-text-muted hover:text-accent-primary'
             }`}
             title={isLocked ? 'Buka Kunci (Mode Edit)' : 'Kunci Catatan (Mode Membaca)'}
             aria-label={isLocked ? 'Buka Kunci (Mode Edit)' : 'Kunci Catatan (Mode Membaca)'}
           >
-            {isLocked ? <Lock size={16} /> : <Unlock size={16} />}
+            {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
           </button>
 
           {/* Floating AI Actions Button - Mobile & Desktop when text is selected */}

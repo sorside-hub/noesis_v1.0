@@ -56,6 +56,10 @@ export const MarkdownParagraph = Paragraph.extend({
             state.write(`<p align="${align}" style="text-align: ${align}">`);
             state.renderInline(node);
             state.write('</p>\n\n');
+          } else if (node.content.size === 0) {
+            // Write a non-breaking space for intentional blank lines
+            state.write('&nbsp;');
+            state.closeBlock(node);
           } else {
             state.renderInline(node);
             state.closeBlock(node);

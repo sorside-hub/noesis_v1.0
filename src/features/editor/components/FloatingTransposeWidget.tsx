@@ -77,7 +77,7 @@ export const FloatingTransposeWidget: React.FC<FloatingTransposeWidgetProps> = (
       className="fixed right-3 -translate-y-1/2 z-40 w-[44px] flex flex-col items-center gap-1 p-1.5 bg-bg-surface/95 backdrop-blur-md rounded-2xl shadow-2xl select-none animate-in fade-in slide-in-from-right-4 duration-200"
     >
       {/* Icon & Label Header (Fixed w-8 h-8 matching AutoScroll top button) */}
-      <div className="w-8 h-8 flex flex-col items-center justify-center rounded-xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary select-none">
+      <div className="w-8 h-8 flex flex-col items-center justify-center rounded-xl bg-accent-primary/10 text-accent-primary select-none">
         <Music size={13} />
         <span className="text-[7.5px] font-extrabold uppercase tracking-tight text-accent-primary leading-none mt-0.5">
           Key
@@ -99,7 +99,7 @@ export const FloatingTransposeWidget: React.FC<FloatingTransposeWidgetProps> = (
       <div
         className={`w-full text-[10px] font-mono font-bold text-center py-0.5 rounded select-none transition-colors ${
           semitones !== 0
-            ? 'bg-accent-primary/15 text-accent-primary border border-accent-primary/30'
+            ? 'bg-accent-primary/15 text-accent-primary'
             : 'text-text-secondary'
         }`}
         title={`Offset nada dasar: ${displaySemitones} semitone`}
@@ -123,7 +123,7 @@ export const FloatingTransposeWidget: React.FC<FloatingTransposeWidgetProps> = (
         type="button"
         onClick={onReset}
         disabled={semitones === 0}
-        className="w-7 h-7 flex items-center justify-center mt-0.5 text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors border-t border-border-default/60"
+        className="w-7 h-7 flex items-center justify-center mt-0.5 text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors border-t border-border-subtle"
         title={semitones !== 0 ? 'Kembalikan Nada Asli' : 'Sudah di nada asli (0)'}
         aria-label="Reset Transpose"
       >

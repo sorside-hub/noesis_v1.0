@@ -34,11 +34,11 @@ export const MoveNodeModal: React.FC<MoveNodeModalProps> = ({
       onClick={closeActiveDialog}
     >
       <div
-        className="w-full max-w-sm bg-bg-quaternary border border-border-default rounded-xl shadow-2xl p-4 flex flex-col gap-3 max-h-[85vh] animate-in fade-in zoom-in-95 duration-100"
+        className="w-full max-w-sm bg-bg-primary rounded-xl shadow-2xl p-4 flex flex-col gap-3 max-h-[85vh] animate-in fade-in zoom-in-95 duration-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border-default pb-2">
+        <div className="flex items-center justify-between border-b border-border-subtle pb-2">
           <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
             <FolderInput size={16} className="text-icon-accent" />
             <span>Pindahkan &quot;{movingNode.name}&quot;</span>
@@ -69,7 +69,7 @@ export const MoveNodeModal: React.FC<MoveNodeModalProps> = ({
             onBlur={() => setIsInputFocused(false)}
             onChange={(e) => setFolderSearchQuery(e.target.value)}
             placeholder="Cari folder tujuan..."
-            className="w-full pl-8 pr-7 py-1.5 bg-bg-surface border border-border-default rounded-lg text-xs text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/40 focus:border-accent-primary/60 transition-colors"
+            className="w-full pl-8 pr-7 py-1.5 bg-bg-secondary rounded-lg text-xs text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/50 transition-colors"
           />
           {folderSearchQuery && (
             <button

@@ -88,7 +88,7 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
           onBlur={handleInputBlur}
           onFocus={() => setShowNoteTypeSuggestions(true)}
           placeholder="e.g. Daily, Project, Concept"
-          className="w-full px-3 py-2 bg-bg-primary border border-border-default hover:border-border-default focus:border-accent-primary rounded-xl text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none transition-colors"
+          className="w-full px-3 py-2 bg-bg-primary focus:ring-1 focus:ring-accent-primary/50 rounded-xl text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none transition-all shadow-2xs"
         />
         {showNoteTypeSuggestions && filteredNoteTypes.length > 0 && (
           <div className="absolute z-[100] w-full mt-1 bg-bg-elevated border border-border-default rounded-xl shadow-xl max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">

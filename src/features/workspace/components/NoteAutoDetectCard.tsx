@@ -14,7 +14,7 @@ export const NoteAutoDetectCard: React.FC<NoteAutoDetectCardProps> = ({
   handleRunAutoDetect,
 }) => {
   return (
-    <div className="p-3 bg-bg-primary border border-border-default rounded-xl space-y-2.5 shadow-2xs">
+    <div className="p-3 bg-bg-primary rounded-xl space-y-2.5 shadow-2xs">
       <div className="flex items-center gap-1.5 text-xs font-semibold text-text-primary">
         <Sparkles size={13} className="text-accent-primary" />
         <span>Auto-Detect Metadata & Folder</span>
