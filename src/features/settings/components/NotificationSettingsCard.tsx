@@ -38,15 +38,15 @@ export const NotificationSettingsCard: React.FC = () => {
   };
 
   return (
-    <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs divide-y divide-border-subtle">
+    <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs">
       <div className="p-4 bg-bg-secondary flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-xl border shrink-0 ${
+          <div className={`p-2.5 rounded-xl shrink-0 bg-bg-primary ${
             status === 'granted'
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+              ? 'text-emerald-500'
               : status === 'denied'
-                ? 'bg-status-error-bg border-status-error/20 text-status-error'
-                : 'bg-accent-primary/10 border-accent-primary/20 text-accent-primary'
+                ? 'text-status-error'
+                : 'text-accent-primary'
           }`}>
             {status === 'granted' ? (
               <BellRing size={18} />
@@ -76,13 +76,13 @@ export const NotificationSettingsCard: React.FC = () => {
               type="button"
               onClick={handleTestNotification}
               disabled={isTesting}
-              className="px-3 py-1.5 bg-bg-primary hover:bg-bg-hover text-text-primary rounded-xl text-xs font-semibold border border-border-default hover:border-accent-primary/40 transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-bg-primary hover:bg-bg-hover text-text-primary rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
             >
               <BellRing size={13} className="text-accent-primary" />
               <span>{isTesting ? 'Mengirim...' : 'Tes Notifikasi'}</span>
             </button>
           ) : status === 'denied' ? (
-            <span className="text-[11px] font-medium text-status-error px-2.5 py-1 rounded-lg bg-status-error-bg border border-status-error/20">
+            <span className="text-[11px] font-medium text-status-error px-2.5 py-1 rounded-lg bg-status-error-bg">
               Diblokir
             </span>
           ) : status === 'unsupported' ? (

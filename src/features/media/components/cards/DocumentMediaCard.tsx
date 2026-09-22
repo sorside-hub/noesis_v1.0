@@ -62,13 +62,9 @@ export const DocumentMediaCard: React.FC<DocumentMediaCardProps> = ({
   const isSheet = ['xlsx', 'xls', 'csv'].includes(ext);
   const isSlide = ['pptx', 'ppt'].includes(ext);
 
-  // Dynamic color ONLY for badge type file matching DocumentPill
+  // Unified clean badge colors matching minimal theme
   const getBadgeColors = () => {
-    if (isPdf) return 'bg-rose-500/10 text-rose-500 border-rose-500/20';
-    if (isDocx) return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-    if (isSheet) return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
-    if (isSlide) return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
-    return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+    return 'bg-bg-tertiary text-text-primary border-border-default/60';
   };
 
   const handleCardPreview = () => {
@@ -83,7 +79,7 @@ export const DocumentMediaCard: React.FC<DocumentMediaCardProps> = ({
       <div>
         {editingId === item.id ? (
           <div className="flex items-center gap-2 mb-1.5">
-            <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-500 shrink-0">
+            <div className="p-2 rounded-xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary shrink-0">
               <FileText className="w-4 h-4" />
             </div>
             <input
@@ -98,13 +94,13 @@ export const DocumentMediaCard: React.FC<DocumentMediaCardProps> = ({
           </div>
         ) : (
           <div className="flex items-start justify-between gap-2.5">
-            {/* Left: Purple Document Icon + Title & Date Column */}
+            {/* Left: Document Icon + Title & Date Column */}
             <div 
               onClick={handleCardPreview}
               className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer group/title"
               title="Klik untuk Pratinjau Layar Penuh"
             >
-              <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-500 shrink-0 group-hover/title:bg-purple-500/20 transition-colors">
+              <div className="p-2 rounded-xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary shrink-0 group-hover/title:bg-accent-primary/20 transition-colors">
                 <FileText className="w-4 h-4" />
               </div>
               <div className="min-w-0 flex-1">

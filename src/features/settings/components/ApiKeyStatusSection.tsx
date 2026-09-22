@@ -127,7 +127,7 @@ export const ApiKeyStatusSection: React.FC = () => {
     const localKey = getLocalKeyOverride(slotId);
 
     return (
-      <div key={slotId} className="flex flex-col p-4 group transition-colors hover:bg-bg-hover/30 gap-3 border-t border-border-subtle first:border-0">
+      <div key={slotId} className="flex flex-col p-4 group transition-colors hover:bg-bg-hover/30 gap-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="text-text-secondary shrink-0">{icon}</div>
@@ -139,7 +139,7 @@ export const ApiKeyStatusSection: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-bg-primary rounded-md border border-border-default">
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-bg-secondary rounded-md">
               {getStatusIcon(isTestingThis ? 'checking' : slotInfo.status)}
               <span className="text-[10px] font-medium text-text-secondary hidden sm:inline-block">
                 {getStatusText(isTestingThis ? 'checking' : slotInfo.status)}
@@ -179,10 +179,11 @@ export const ApiKeyStatusSection: React.FC = () => {
              <button
                 type="button"
                 onClick={() => handleStartEdit(slotId)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-primary bg-bg-surface hover:bg-bg-hover rounded-lg transition-colors border border-border-default cursor-pointer shadow-2xs shrink-0"
+                className="p-1.5 sm:px-3 sm:py-1.5 text-text-muted hover:text-accent-primary hover:bg-bg-surface rounded-md cursor-pointer transition-colors shrink-0 flex items-center gap-1.5"
+                title="Edit Key"
               >
-                <Edit3 size={14} className="text-accent-primary" />
-                <span className="hidden sm:inline">Edit</span>
+                <Edit3 size={14} />
+                <span className="hidden sm:inline text-xs font-medium text-text-primary">Edit</span>
              </button>
           ) : (
             <div className="flex items-center gap-1.5 shrink-0">
@@ -225,7 +226,7 @@ export const ApiKeyStatusSection: React.FC = () => {
       <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2.5 px-1 flex items-center gap-2">
         <ShieldCheck size={14} className="text-accent-primary" /> API Connectivity
       </h2>
-      <div className="bg-bg-secondary rounded-xl overflow-hidden divide-y divide-border-subtle shadow-2xs">
+      <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs">
         <div className="flex items-center justify-between p-3.5 bg-bg-secondary">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-accent-primary">Api Key Status</span>
@@ -241,10 +242,22 @@ export const ApiKeyStatusSection: React.FC = () => {
           </button>
         </div>
 
-        {renderSlotRow('groq_primary', overview?.slots.groq_primary, <Zap size={16} className="text-status-warning" />)}
-        {renderSlotRow('groq_secondary', overview?.slots.groq_secondary, <Zap size={16} className="text-amber-500" />)}
+        {/* Padded Divider */}
+        <div className="px-4"><div className="border-t border-border-subtle" /></div>
+
+        {renderSlotRow('groq_primary', overview?.slots.groq_primary, <Zap size={16} className="text-accent-primary" />)}
+        
+        <div className="px-4"><div className="border-t border-border-subtle" /></div>
+        
+        {renderSlotRow('groq_secondary', overview?.slots.groq_secondary, <Zap size={16} className="text-accent-primary" />)}
+        
+        <div className="px-4"><div className="border-t border-border-subtle" /></div>
+        
         {renderSlotRow('gemini_primary', overview?.slots.gemini_primary || overview?.slots.gemini, <Sparkles size={16} className="text-accent-primary" />)}
-        {renderSlotRow('gemini_secondary', overview?.slots.gemini_secondary, <Sparkles size={16} className="text-cyan-500" />)}
+        
+        <div className="px-4"><div className="border-t border-border-subtle" /></div>
+        
+        {renderSlotRow('gemini_secondary', overview?.slots.gemini_secondary, <Sparkles size={16} className="text-accent-primary" />)}
       </div>
     </>
   );

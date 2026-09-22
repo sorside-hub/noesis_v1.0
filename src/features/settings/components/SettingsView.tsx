@@ -86,14 +86,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
       <div className="max-w-2xl mx-auto px-4 py-6 md:py-10 space-y-7 pb-28">
         
         {/* HEADER SECTION */}
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-text-heading tracking-tight">Settings</h1>
-            <p className="text-xs sm:text-sm text-text-muted mt-1">Konfigurasi AI, Sinkronisasi Cloud, dan Pencadangan Data Lokal.</p>
-          </div>
-          <span className="shrink-0 px-2.5 py-1 bg-bg-surface border border-border-default rounded-full text-xs font-mono font-semibold text-accent-primary shadow-xs">
-            v6.0
-          </span>
+        <header className="pb-4 border-b border-border-subtle">
+          <h1 className="text-xl md:text-2xl font-bold text-text-heading tracking-tight">Settings</h1>
         </header>
 
         {/* 1. THEME & APPEARANCE */}
@@ -162,11 +156,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
             Local Backup & Data Management
           </h2>
           
-          <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs divide-y divide-border-subtle">
+          <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs">
             {/* Quick Stats Banner */}
             <div className="p-4 bg-bg-secondary flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary shrink-0">
+                <div className="p-2.5 rounded-xl bg-bg-primary text-accent-primary shrink-0">
                   <FileCheck size={18} />
                 </div>
                 <div className="min-w-0">
@@ -175,6 +169,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
                 </div>
               </div>
             </div>
+
+            {/* Padded Divider */}
+            <div className="px-4"><div className="border-t border-border-subtle" /></div>
 
             {/* Action Buttons */}
             <div className="p-4 bg-bg-secondary/40 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -189,7 +186,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
               <button
                 type="button"
                 onClick={handleExport}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-bg-primary hover:bg-bg-hover text-text-primary rounded-xl text-xs font-semibold transition-all border border-border-default hover:border-accent-primary/40 shadow-xs cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-bg-primary hover:bg-bg-hover text-text-primary rounded-xl text-xs font-semibold transition-all hover:border-accent-primary/40 shadow-xs cursor-pointer"
               >
                 <Download size={14} className="text-accent-primary shrink-0" />
                 <span>Export Backup (JSON)</span>
@@ -198,7 +195,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
               <button
                 type="button"
                 onClick={handleImportClick}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-bg-primary hover:bg-bg-hover text-text-primary rounded-xl text-xs font-semibold transition-all border border-border-default hover:border-accent-primary/40 shadow-xs cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-bg-primary hover:bg-bg-hover text-text-primary rounded-xl text-xs font-semibold transition-all hover:border-accent-primary/40 shadow-xs cursor-pointer"
               >
                 <Upload size={14} className="text-accent-primary shrink-0" />
                 <span>Import Backup (JSON)</span>

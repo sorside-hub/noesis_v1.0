@@ -80,9 +80,9 @@ export const MediaHeader: React.FC<MediaHeaderProps> = ({
             onClick={onScanStorage}
             disabled={isScanning || isLoading}
             title="Pindai file di Cloud Storage"
-            className="px-3 py-2 rounded-xl border border-border-default hover:bg-bg-hover text-text-primary text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+            className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
           >
-            <CloudDownload className={`w-3.5 h-3.5 text-sky-500 ${isScanning ? 'animate-bounce' : ''}`} />
+            <CloudDownload className={`w-4 h-4 text-text-primary ${isScanning ? 'animate-bounce' : ''}`} />
             <span className="hidden sm:inline">{isScanning ? 'Memindai...' : 'Pindai Storage'}</span>
           </button>
 
@@ -91,9 +91,9 @@ export const MediaHeader: React.FC<MediaHeaderProps> = ({
             onClick={onRefresh}
             disabled={isLoading || isScanning}
             title="Refresh Media List"
-            className="p-2 rounded-xl border border-border-default hover:bg-bg-hover text-text-muted hover:text-text-primary transition-all cursor-pointer"
+            className="p-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary transition-all cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
           </button>
 
           <button

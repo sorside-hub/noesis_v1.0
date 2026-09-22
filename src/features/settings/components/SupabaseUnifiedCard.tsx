@@ -65,23 +65,23 @@ export const SupabaseUnifiedCard: React.FC = () => {
   }
 
   return (
-    <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs divide-y divide-border-subtle">
+    <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs">
       {/* 1. TOP HEADER: Status Koneksi & Akun Ringkas */}
       <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-bg-secondary">
         <div className="flex items-center gap-3.5">
-          <div className="p-2.5 rounded-xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary shrink-0">
-            <Cloud className="w-5 h-5" />
+          <div className="p-2.5 rounded-xl bg-bg-primary text-accent-primary shrink-0">
+            <Cloud size={18} />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-text-heading">Supabase Cloud Sync</h3>
               {user ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Connected
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-bg-hover text-text-muted border border-border-default">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-bg-hover text-text-muted">
                   Logged Out
                 </span>
               )}
@@ -98,7 +98,7 @@ export const SupabaseUnifiedCard: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowConfigDetails(!showConfigDetails)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary bg-bg-primary hover:bg-bg-hover rounded-lg transition-colors border border-border-default cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary bg-bg-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
           >
             <Sliders className="w-3.5 h-3.5 text-accent-primary" />
             <span>Credentials</span>
@@ -110,7 +110,7 @@ export const SupabaseUnifiedCard: React.FC = () => {
               type="button"
               onClick={handleSignOut}
               disabled={isSubmitting}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-status-error bg-status-error-bg hover:bg-status-error-bg/80 rounded-lg transition-colors border border-status-error/20 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-status-error bg-status-error-bg hover:bg-status-error-bg/80 rounded-lg transition-colors cursor-pointer"
             >
               {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LogOut className="w-3.5 h-3.5" />}
               <span>Log Out</span>
@@ -137,6 +137,9 @@ export const SupabaseUnifiedCard: React.FC = () => {
         handleResetConnection={handleResetConnection}
         handleSaveConnection={handleSaveConnection}
       />
+
+      {/* Padded Divider */}
+      <div className="px-5"><div className="border-t border-border-subtle" /></div>
 
       {/* 3. AUTH FORM OR CLOUD SYNC CONTROLS */}
       <div className="p-4 sm:p-5">
@@ -167,6 +170,9 @@ export const SupabaseUnifiedCard: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Padded Divider */}
+      <div className="px-5"><div className="border-t border-border-subtle" /></div>
 
       {/* 4. ADVANCED TOOLS: SQL SETUP SCRIPT (COLLAPSIBLE) */}
       <SupabaseSqlSetupModal
