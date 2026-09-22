@@ -78,7 +78,7 @@ export const DocumentMediaCard: React.FC<DocumentMediaCardProps> = ({
   };
 
   return (
-    <div className="group rounded-2xl bg-bg-surface border border-border-default hover:border-accent-primary/50 transition-all shadow-xs hover:shadow-md flex flex-col justify-between p-3.5 space-y-3">
+    <div className="group rounded-2xl bg-bg-secondary transition-all flex flex-col justify-between p-3.5 space-y-3">
       {/* Header: Icon (purple) on the left + Title in middle + Badge on the right */}
       <div>
         {editingId === item.id ? (

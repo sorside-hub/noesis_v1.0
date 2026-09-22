@@ -66,7 +66,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'vault'
               ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
-              : 'text-text-muted hover:text-accent-primary hover:bg-accent-primary/10'
+              : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
           <Folder size={15} />
@@ -80,7 +80,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'hub'
               ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
-              : 'text-text-muted hover:text-accent-primary hover:bg-accent-primary/10'
+              : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
           <LayoutGrid size={15} />
@@ -94,7 +94,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'chat'
               ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
-              : 'text-text-muted hover:text-accent-primary hover:bg-accent-primary/10'
+              : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
           <MessageSquare size={15} />
@@ -108,7 +108,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'media'
               ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
-              : 'text-text-muted hover:text-accent-primary hover:bg-accent-primary/10'
+              : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
           <HardDrive size={15} />
@@ -122,7 +122,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'sorside'
               ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
-              : 'text-text-muted hover:text-accent-primary hover:bg-accent-primary/10'
+              : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
           <Globe size={15} />
@@ -136,7 +136,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'settings'
               ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
-              : 'text-text-muted hover:text-accent-primary hover:bg-accent-primary/10'
+              : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
           <Settings size={15} />

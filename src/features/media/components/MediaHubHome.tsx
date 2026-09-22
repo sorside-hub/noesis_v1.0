@@ -35,7 +35,7 @@ export const MediaHubHome: React.FC<MediaHubHomeProps> = ({
             <div
               key={cat.id}
               onClick={() => onOpenCategory(cat.id)}
-              className={`group relative p-3.5 sm:p-4 rounded-2xl bg-bg-surface hover:bg-bg-elevated border border-border-default ${cat.accentBorder} transition-all duration-200 cursor-pointer shadow-xs hover:shadow-md flex flex-col justify-between overflow-hidden`}
+              className="group relative p-3.5 sm:p-4 rounded-2xl bg-bg-secondary hover:bg-bg-tertiary/70 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden"
             >
               {/* Background Subtle Gradient Glow */}
               <div className="absolute top-0 right-0 w-24 h-24 opacity-0 group-hover:opacity-10 bg-gradient-to-bl from-accent-primary to-transparent rounded-bl-full transition-opacity pointer-events-none" />

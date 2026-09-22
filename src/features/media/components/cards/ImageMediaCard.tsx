@@ -59,7 +59,7 @@ export const ImageMediaCard: React.FC<ImageMediaCardProps> = ({
     : 'IMG';
 
   return (
-    <div className="group rounded-2xl bg-bg-surface border border-border-default hover:border-accent-primary/50 transition-all shadow-xs hover:shadow-md flex flex-col overflow-hidden">
+    <div className="group rounded-2xl bg-bg-secondary transition-all flex flex-col overflow-hidden">
       {/* Visual Image Preview */}
       <div 
         className="relative h-36 bg-bg-elevated flex items-center justify-center overflow-hidden border-b border-border-subtle cursor-pointer"

@@ -145,8 +145,8 @@ export const AudioMediaCard: React.FC<AudioMediaCardProps> = ({
   };
 
   return (
-    <div className={`rounded-2xl bg-bg-surface border transition-all shadow-xs hover:shadow-md p-3.5 flex flex-col justify-between space-y-3 ${
-      isPlaying ? 'border-accent-primary ring-1 ring-accent-primary/20' : 'border-border-default hover:border-accent-primary/50'
+    <div className={`rounded-2xl bg-bg-secondary transition-all p-3.5 flex flex-col justify-between space-y-3 ${
+      isPlaying ? 'ring-1 ring-accent-primary/40' : ''
     }`}>
       <audio ref={audioRef} src={item.url} preload="metadata" />
       {/* Top Section */}

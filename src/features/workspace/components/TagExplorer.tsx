@@ -210,8 +210,8 @@ export const TagExplorer: React.FC<TagExplorerProps> = ({
             isHighlighted
               ? 'bg-accent-primary/20 text-accent-primary ring-1 ring-accent-primary font-semibold animate-pulse'
               : hasActiveFile
-              ? 'bg-accent-primary/10 text-accent-primary'
-              : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+              ? 'bg-bg-primary text-text-primary font-semibold'
+              : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary/60'
           )}
           style={{ paddingLeft: `${Math.max(8, depth * 14 + 8)}px` }}
         >
@@ -231,7 +231,7 @@ export const TagExplorer: React.FC<TagExplorerProps> = ({
               size={13}
               className={twMerge(
                 'shrink-0 transition-colors',
-                hasActiveFile ? 'text-accent-primary' : 'text-icon-accent group-hover:text-accent-primary'
+                hasActiveFile ? 'text-accent-primary' : 'text-accent-primary/70 group-hover:text-accent-primary'
               )}
             />
             <span className="truncate font-mono text-[11.5px] tracking-tight">
@@ -244,7 +244,7 @@ export const TagExplorer: React.FC<TagExplorerProps> = ({
             className={twMerge(
               'ml-2 px-1.5 py-0.2 text-[10px] font-semibold rounded-full shrink-0 tabular-nums transition-colors',
               hasActiveFile
-                ? 'bg-accent-primary/20 text-accent-primary'
+                ? 'bg-accent-primary/10 text-accent-primary font-bold'
                 : 'bg-bg-quaternary text-text-secondary group-hover:text-text-primary border border-border-default/50'
             )}
             title={`${node.totalUniqueNotesCount} catatan`}
@@ -400,8 +400,8 @@ export const TagExplorer: React.FC<TagExplorerProps> = ({
                       isHighlighted
                         ? 'bg-accent-primary/20 text-accent-primary ring-1 ring-accent-primary font-semibold animate-pulse'
                         : hasActiveFile
-                        ? 'bg-accent-primary/10 text-accent-primary'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+                        ? 'bg-bg-primary text-text-primary font-semibold'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary/60'
                     )}
                   >
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -416,7 +416,7 @@ export const TagExplorer: React.FC<TagExplorerProps> = ({
                         size={14}
                         className={twMerge(
                           'shrink-0 transition-colors',
-                          hasActiveFile ? 'text-accent-primary' : 'text-icon-accent group-hover:text-accent-primary'
+                          hasActiveFile ? 'text-accent-primary' : 'text-accent-primary/70 group-hover:text-accent-primary'
                         )}
                       />
                       <span className="truncate font-mono text-[11.5px] tracking-tight">{item.tag}</span>
@@ -426,7 +426,7 @@ export const TagExplorer: React.FC<TagExplorerProps> = ({
                       className={twMerge(
                         'ml-2 px-1.5 py-0.2 text-[10px] font-semibold rounded-full shrink-0 tabular-nums transition-colors',
                         hasActiveFile
-                          ? 'bg-accent-primary/20 text-accent-primary'
+                          ? 'bg-accent-primary/10 text-accent-primary font-bold'
                           : 'bg-bg-quaternary text-text-secondary group-hover:text-text-primary border border-border-default/50'
                       )}
                     >

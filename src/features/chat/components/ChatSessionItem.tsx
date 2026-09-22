@@ -67,8 +67,8 @@ export const ChatSessionItem: React.FC<ChatSessionItemProps> = ({
       onTouchMove={handleTouchEnd}
       className={`group flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer select-none ${
         isActive
-          ? 'bg-bg-hover border-l-2 border-accent-primary text-text-heading font-semibold shadow-2xs'
-          : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover/60'
+          ? 'bg-bg-primary text-text-primary font-semibold'
+          : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/40'
       }`}
     >
       <div className="flex items-center gap-2 min-w-0 flex-1">

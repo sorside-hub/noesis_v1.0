@@ -263,13 +263,13 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
 
         {/* Icon di dalam trigger */}
         {hasChords ? (
-          <div className="relative z-10 flex flex-col items-center justify-between h-[52px] mt-4 pr-0.5 text-text-muted group-hover:text-text-primary transition-colors">
+          <div className="relative z-10 flex flex-col items-center justify-between h-[52px] mt-4 pr-0.5 text-text-primary group-hover:text-accent-primary transition-colors">
             {/* Icon 1: Auto-Scroll */}
             <div
               className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${
                 isPlaying
                   ? 'text-accent-primary animate-pulse'
-                  : 'text-text-muted group-hover:text-text-primary'
+                  : 'text-text-primary group-hover:text-accent-primary'
               }`}
               title={isPlaying ? 'Auto-Scroll Aktif (Sedang Berjalan)' : 'Auto-Scroll'}
             >
@@ -288,7 +288,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
               className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${
                 semitones !== 0
                   ? 'text-accent-primary font-bold'
-                  : 'text-text-muted group-hover:text-text-primary'
+                  : 'text-text-primary group-hover:text-accent-primary'
               }`}
               title={
                 semitones !== 0
@@ -300,13 +300,13 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
             </div>
           </div>
         ) : (
-          <div className="relative z-10 flex flex-col items-center justify-center h-full mt-2.5 pr-0.5 text-text-muted group-hover:text-text-primary transition-colors">
+          <div className="relative z-10 flex flex-col items-center justify-center h-full mt-2.5 pr-0.5 text-text-primary group-hover:text-accent-primary transition-colors">
             {/* Hanya Icon Auto-Scroll saat tidak ada chord di catatan */}
             <div
               className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
                 isPlaying
                   ? 'text-accent-primary animate-pulse'
-                  : 'text-text-muted group-hover:text-text-primary'
+                  : 'text-text-primary group-hover:text-accent-primary'
               }`}
               title={isPlaying ? 'Auto-Scroll Aktif (Sedang Berjalan)' : 'Auto-Scroll'}
             >

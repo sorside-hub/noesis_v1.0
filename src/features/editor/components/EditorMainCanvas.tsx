@@ -280,7 +280,7 @@ export const EditorMainCanvas: React.FC<EditorMainCanvasProps> = ({
             } ${
               isLocked
                 ? 'text-accent-primary font-semibold'
-                : 'text-text-muted hover:text-accent-primary'
+                : 'text-text-primary hover:text-accent-primary'
             }`}
             title={isLocked ? 'Buka Kunci (Mode Edit)' : 'Kunci Catatan (Mode Membaca)'}
             aria-label={isLocked ? 'Buka Kunci (Mode Edit)' : 'Kunci Catatan (Mode Membaca)'}

@@ -43,7 +43,7 @@ export const ChatSessionContextMenu: React.FC<ChatSessionContextMenuProps> = ({
       <div
         style={{ top: contextMenu.y, left: contextMenu.x }}
         onClick={(e) => e.stopPropagation()}
-        className="fixed z-50 w-48 bg-bg-surface border border-border-default rounded-xl p-1 shadow-2xl space-y-0.5 text-xs font-sans animate-in fade-in zoom-in-95 duration-100"
+        className="fixed z-50 w-48 bg-bg-primary rounded-xl p-1 space-y-0.5 text-xs font-sans animate-in fade-in zoom-in-95 duration-100"
       >
         <button
         type="button"

@@ -30,7 +30,7 @@ export const UserMessageBubble: React.FC<UserMessageBubbleProps> = ({
   if (isEditing) {
     return (
       <div className="flex flex-col items-end w-full space-y-2">
-        <div className="w-full sm:max-w-[85%] bg-bg-surface border border-accent-primary/60 rounded-2xl p-3 shadow-md space-y-2.5">
+        <div className="w-full sm:max-w-[85%] bg-bg-secondary rounded-2xl p-3 space-y-2.5">
           <textarea
             value={editDraft}
             onChange={(e) => onEditDraftChange(e.target.value)}
@@ -41,7 +41,7 @@ export const UserMessageBubble: React.FC<UserMessageBubbleProps> = ({
               }
             }}
             rows={Math.max(2, Math.min(8, editDraft.split('\n').length))}
-            className="w-full bg-bg-primary/60 border border-border-default rounded-xl p-2.5 text-sm text-text-primary outline-hidden focus:border-accent-primary resize-none font-sans leading-relaxed"
+            className="w-full bg-bg-primary rounded-xl p-2.5 text-sm text-text-primary outline-hidden focus:ring-1 focus:ring-accent-primary/50 resize-none font-sans leading-relaxed"
             placeholder="Edit pesan Anda..."
             autoFocus
           />
@@ -70,7 +70,7 @@ export const UserMessageBubble: React.FC<UserMessageBubbleProps> = ({
   return (
     <div className="flex flex-col items-end gap-1">
       <div className="flex justify-end w-full">
-        <div className="bg-accent-primary text-accent-contrast font-medium border border-accent-primary rounded-2xl px-4 py-2.5 max-w-[85%] sm:max-w-[75%] shadow-xs text-sm font-sans leading-relaxed break-words whitespace-pre-wrap">
+        <div className="bg-bg-secondary text-text-primary font-normal rounded-2xl px-4 py-2.5 max-w-[85%] sm:max-w-[75%] text-sm font-sans leading-relaxed break-words whitespace-pre-wrap">
           {msg.content}
         </div>
       </div>

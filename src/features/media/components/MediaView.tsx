@@ -136,10 +136,10 @@ export const MediaView: React.FC<MediaViewProps> = ({ vaultState }) => {
           </div>
         )}
 
-        {/* 2. Search & Sort Bar */}
-        <div className="flex items-center gap-2.5 bg-bg-surface p-2 rounded-2xl border border-border-default shadow-xs">
+        {/* 2. Search & Sort Bar (Clean Single Layer) */}
+        <div className="flex items-center gap-2.5">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             <input
               type="text"
               placeholder={
@@ -149,7 +149,7 @@ export const MediaView: React.FC<MediaViewProps> = ({ vaultState }) => {
               }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm rounded-xl bg-bg-elevated border border-border-default focus:border-accent-primary focus:outline-none text-text-primary placeholder:text-text-muted transition-colors"
+              className="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm rounded-xl bg-bg-secondary text-text-primary placeholder:text-text-muted outline-hidden focus:ring-1 focus:ring-accent-primary/50 transition-all"
             />
             {searchQuery && (
               <button 
@@ -167,11 +167,11 @@ export const MediaView: React.FC<MediaViewProps> = ({ vaultState }) => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="appearance-none pl-3.5 pr-8 py-2 text-xs font-medium rounded-xl bg-bg-elevated hover:bg-bg-hover border border-border-default hover:border-accent-primary/50 text-text-primary focus:outline-none focus:border-accent-primary cursor-pointer transition-all shadow-xs"
+                className="appearance-none pl-3.5 pr-8 py-2.5 text-xs font-medium rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary outline-hidden focus:ring-1 focus:ring-accent-primary/50 cursor-pointer transition-all"
               >
-                <option value="newest" className="bg-bg-surface text-text-primary">Terbaru</option>
-                <option value="oldest" className="bg-bg-surface text-text-primary">Terlama</option>
-                <option value="name" className="bg-bg-surface text-text-primary">Nama (A-Z)</option>
+                <option value="newest" className="bg-bg-secondary text-text-primary">Terbaru</option>
+                <option value="oldest" className="bg-bg-secondary text-text-primary">Terlama</option>
+                <option value="name" className="bg-bg-secondary text-text-primary">Nama (A-Z)</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             </div>
