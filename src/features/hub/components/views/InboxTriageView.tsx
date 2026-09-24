@@ -327,19 +327,19 @@ export const InboxTriageView: React.FC<InboxTriageViewProps> = ({
       <div className="flex items-center justify-between gap-1.5 shrink-0 overflow-x-hidden">
         <div className="flex items-center gap-1.5 shrink-0">
           {/* Status Counts Pill */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bg-surface/80 border border-border-default text-[11px] font-medium shadow-2xs shrink-0">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bg-secondary text-[11px] font-medium shadow-2xs shrink-0">
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
               <strong className="text-amber-400 font-semibold">{unsortedCount}</strong>
               <span className="text-text-muted">inbox</span>
             </span>
-            <span className="text-border-default/60 text-[10px]">|</span>
+            <span className="text-text-muted/30 text-[10px]">|</span>
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0" />
               <strong className="text-purple-400 font-semibold">{refinedCount}</strong>
               <span className="text-text-muted">refine</span>
             </span>
-            <span className="text-border-default/60 text-[10px]">|</span>
+            <span className="text-text-muted/30 text-[10px]">|</span>
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
               <strong className="text-emerald-400 font-semibold">{keeperCount}</strong>
@@ -347,22 +347,22 @@ export const InboxTriageView: React.FC<InboxTriageViewProps> = ({
             </span>
           </div>
 
-          {/* AI Triage All Button */}
+          {/* AI Triage All Button (Option A: Solid Accent) */}
           {unsortedCount > 0 && (
             <button
               type="button"
               disabled={isBatchTriageLoading}
               onClick={handleBatchTriage}
-              className="flex items-center gap-1 py-1 px-2.5 rounded-lg bg-accent-primary/10 hover:bg-accent-primary/20 text-accent-primary border border-accent-primary/30 text-[11px] font-semibold transition-all cursor-pointer disabled:opacity-50 shadow-2xs whitespace-nowrap shrink-0"
+              className="flex items-center gap-1.5 py-1 px-3 rounded-lg bg-accent-primary hover:opacity-90 active:scale-95 text-accent-contrast text-[11px] font-semibold transition-all cursor-pointer disabled:opacity-50 shadow-xs whitespace-nowrap shrink-0"
             >
               {isBatchTriageLoading ? (
                 <>
-                  <Loader2 size={11} className="animate-spin" />
+                  <Loader2 size={12} className="animate-spin" />
                   <span>Menganalisis...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles size={11} />
+                  <Sparkles size={12} />
                   <span>AI Triage All</span>
                 </>
               )}
@@ -375,7 +375,7 @@ export const InboxTriageView: React.FC<InboxTriageViewProps> = ({
               type="button"
               onClick={handleApplyAllRecommendations}
               title={`Terapkan ${pendingRecommendations} rekomendasi AI`}
-              className="flex items-center gap-1 py-1 px-2 rounded-lg bg-status-success-bg text-status-success border border-status-success-border text-[11px] font-medium hover:bg-status-success hover:text-white transition-all cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              className="flex items-center gap-1 py-1 px-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-medium transition-all cursor-pointer shadow-xs whitespace-nowrap shrink-0"
             >
               <CheckCheck size={11} />
               <span>Auto-Move ({pendingRecommendations})</span>
@@ -384,7 +384,7 @@ export const InboxTriageView: React.FC<InboxTriageViewProps> = ({
         </div>
 
         {unsortedCount === 0 && totalInboxCount > 0 && (
-          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-medium shrink-0">
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 text-[11px] font-medium shrink-0">
             <CheckCircle2 size={12} />
             <span className="hidden sm:inline">Inbox Zero</span>
           </div>

@@ -68,11 +68,11 @@ export const LocalGraphHeader: React.FC<LocalGraphHeaderProps> = ({
   }, [isFilterOpen, onCloseFilter]);
 
   return (
-    <div className="relative flex items-center justify-between px-3 py-2 bg-bg-secondary border-t border-border-subtle select-none">
+    <div className="relative flex items-center justify-between px-3 py-2 bg-bg-secondary select-none">
       {/* Left: Depth Quick Selector */}
       <div className="flex items-center gap-1.5">
         <span className="text-[11px] text-text-muted font-medium">Depth</span>
-        <div className="flex items-center gap-1 bg-bg-quaternary p-0.5 rounded-lg border border-border-default">
+        <div className="flex items-center gap-1 bg-bg-primary p-0.5 rounded-lg">
           {([1, 2, 3] as LocalGraphDepth[]).map((d) => (
             <button
               key={d}
@@ -81,7 +81,7 @@ export const LocalGraphHeader: React.FC<LocalGraphHeaderProps> = ({
               className={twMerge(
                 'px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer',
                 filters.depth === d
-                  ? 'bg-accent-primary text-accent-contrast shadow-xs font-bold'
+                  ? 'bg-accent-primary text-accent-contrast font-bold'
                   : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
               )}
             >
@@ -99,10 +99,10 @@ export const LocalGraphHeader: React.FC<LocalGraphHeaderProps> = ({
           type="button"
           onClick={onToggleFilter}
           className={twMerge(
-            'p-1 rounded text-xs transition-colors flex items-center justify-center border cursor-pointer',
+            'p-1.5 rounded-lg text-xs transition-colors flex items-center justify-center cursor-pointer',
             isFilterOpen || !filters.showOutgoing || !filters.showBacklinks || !filters.showTags
-              ? 'bg-accent-primary/15 text-accent-primary border-accent-primary/30'
-              : 'bg-bg-quaternary text-icon-secondary hover:text-text-primary border-border-default hover:bg-bg-hover'
+              ? 'bg-accent-primary/15 text-accent-primary'
+              : 'bg-bg-primary text-icon-secondary hover:text-text-primary hover:bg-bg-hover'
           )}
           title="Connection Filters"
         >
@@ -110,7 +110,7 @@ export const LocalGraphHeader: React.FC<LocalGraphHeaderProps> = ({
         </button>
 
         {/* Zoom Controls */}
-        <div className="flex items-center gap-0.5 bg-bg-quaternary p-0.5 rounded-lg border border-border-default">
+        <div className="flex items-center gap-0.5 bg-bg-primary p-0.5 rounded-lg">
           <button
             type="button"
             onClick={onZoomIn}
@@ -127,7 +127,7 @@ export const LocalGraphHeader: React.FC<LocalGraphHeaderProps> = ({
           >
             <ZoomOut size={13} />
           </button>
-          <div className="w-[1px] h-3 bg-border-default mx-0.5" />
+          <div className="w-[1px] h-3 bg-border-subtle mx-0.5" />
           <button
             type="button"
             onClick={onResetZoom}
@@ -143,7 +143,7 @@ export const LocalGraphHeader: React.FC<LocalGraphHeaderProps> = ({
       {isFilterOpen && (
         <div
           ref={filterDropdownRef}
-          className="absolute bottom-full right-3 mb-2 w-56 z-40 bg-bg-primary border border-border-default rounded-xl shadow-xl p-2.5 space-y-1.5 animate-in fade-in slide-in-from-bottom-2 duration-150"
+          className="absolute bottom-full right-3 mb-2 w-56 z-40 bg-bg-primary rounded-xl shadow-xl p-2.5 space-y-1.5 animate-in fade-in slide-in-from-bottom-2 duration-150"
         >
           <div className="text-[10px] font-bold uppercase tracking-wider text-text-muted px-1">
             Connection Filters

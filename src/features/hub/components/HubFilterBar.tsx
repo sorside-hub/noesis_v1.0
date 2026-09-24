@@ -154,10 +154,10 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
     <div className="flex flex-col gap-2 w-full text-xs">
       {/* Active Filters & Add Button Row */}
       {!isAdding && (
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none pb-0.5 w-full">
           {filters.length > 0 && (
-            <span className="hidden sm:flex text-[11px] font-medium text-text-muted items-center gap-1.5 shrink-0">
-              <Filter size={12} className="text-accent-primary" /> Active Filters:
+            <span className="hidden sm:inline-flex text-[11px] font-medium text-text-muted items-center gap-1 shrink-0 mr-0.5">
+              <Filter size={11} className="text-text-muted" /> Filters:
             </span>
           )}
 
@@ -169,56 +169,48 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
             return (
               <div
                 key={filter.id}
-                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border text-[10px] sm:text-xs shadow-xs transition-all shrink-0 ${
-                  isAnalysis
-                    ? 'bg-purple-500/10 border-purple-500/25 text-purple-300'
-                    : isCore
-                    ? 'bg-accent-primary/10 border-accent-primary/25 text-accent-primary'
-                    : 'bg-blue-500/10 border-blue-500/25 text-blue-300'
-                }`}
+                className="group flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 rounded-md text-[11px] sm:text-xs bg-bg-secondary hover:bg-bg-hover/80 text-text-primary transition-all shrink-0 cursor-default"
               >
-                {isAnalysis && <Sparkles size={10} className="text-purple-400 shrink-0" />}
-                {isCore && <Sliders size={10} className="text-accent-primary shrink-0" />}
-                {!isAnalysis && !isCore && <Database size={10} className="text-blue-400 shrink-0" />}
+                {isAnalysis && <Sparkles size={11} className="text-purple-400 shrink-0" />}
+                {isCore && <Sliders size={11} className="text-accent-primary shrink-0" />}
+                {!isAnalysis && !isCore && <Database size={11} className="text-blue-400 shrink-0" />}
                 
-                <span className="font-semibold">{label}:</span>
-                <span className="opacity-90">{filter.value}</span>
+                <span className="text-text-muted font-normal">{label}</span>
+                <span className="text-text-muted/40 font-mono text-[10px]">:</span>
+                <span className="font-medium text-text-primary">{filter.value}</span>
                 <button
                   onClick={() => removeFilter(filter.id)}
-                  className="text-text-muted hover:text-red-400 ml-0.5 sm:ml-1 cursor-pointer transition-colors"
+                  className="text-text-muted/70 hover:text-red-400 hover:bg-bg-primary/50 p-0.5 rounded ml-0.5 cursor-pointer transition-colors"
                   title="Hapus Filter"
                 >
-                  <X size={10} className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <X size={11} />
                 </button>
               </div>
             );
           })}
 
+          <button
+            onClick={() => setIsAdding(true)}
+            className="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] sm:text-xs font-medium text-text-secondary hover:text-text-primary bg-bg-secondary hover:bg-bg-hover transition-colors cursor-pointer shrink-0"
+          >
+            <Plus size={12} className="text-text-muted group-hover:text-text-primary transition-colors" />
+            <span>{filters.length === 0 ? 'Add Filter' : 'Filter'}</span>
+          </button>
+
           {filters.length > 0 && (
             <button
               onClick={() => onChange([])}
-              className="text-[10px] text-text-muted hover:text-text-primary underline cursor-pointer shrink-0 mr-1"
+              className="text-[11px] font-medium text-text-muted hover:text-status-error transition-colors cursor-pointer shrink-0 ml-1 px-1 py-0.5 rounded"
             >
-              Clear All
+              Clear all
             </button>
           )}
-
-          <button
-            onClick={() => setIsAdding(true)}
-            className={`flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-medium text-text-secondary hover:text-text-primary rounded-lg bg-bg-surface hover:bg-bg-hover transition-all border border-border-default hover:border-border-hover cursor-pointer shrink-0 ${
-              filters.length > 0 ? 'p-1 sm:px-3 sm:py-1.5' : 'px-2 sm:px-3 py-0.5 sm:py-1.5'
-            }`}
-          >
-            <Plus size={12} className="text-accent-primary" />
-            <span className="hidden sm:inline">Add Custom Filter</span>
-            {filters.length === 0 && <span className="sm:hidden">Filter</span>}
-          </button>
         </div>
       )}
 
       {/* Add Filter Form */}
       {isAdding && (
-        <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-bg-surface border border-border-default shadow-md animate-in fade-in duration-150">
+        <div className="flex flex-wrap items-start sm:items-center gap-2 p-2.5 rounded-xl bg-bg-secondary transition-all animate-in fade-in duration-150 shadow-xs">
           {/* 3 Categories Property Select */}
           <div className="relative">
             <select
@@ -227,14 +219,14 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
                 setNewProp(e.target.value);
                 setNewVal('');
               }}
-              className="bg-bg-primary border border-border-default hover:border-border-hover focus:border-accent-primary rounded-lg px-3 py-1.5 text-xs text-text-primary focus:outline-none min-w-[160px] cursor-pointer"
+              className="bg-bg-primary hover:bg-bg-primary/90 focus:ring-1 focus:ring-accent-primary/50 rounded-xl px-3 py-2 text-xs text-text-primary focus:outline-none min-w-[155px] cursor-pointer transition-all shadow-2xs"
             >
               <option value="" className="bg-bg-primary text-text-muted">
                 -- Pilih Properti --
               </option>
 
               {/* 1. Core Properties */}
-              <optgroup label="1. Core Properties" className="bg-bg-primary text-accent-primary font-semibold">
+              <optgroup label="Core Properties" className="bg-bg-primary text-accent-primary font-semibold">
                 {CORE_PROPERTIES.map(p => (
                   <option key={p.key} value={p.key} className="bg-bg-primary text-text-primary font-normal">
                     {p.label}
@@ -244,7 +236,7 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
 
               {/* 2. Custom Properties */}
               {customKeys.length > 0 && (
-                <optgroup label="2. Custom Properties" className="bg-bg-primary text-blue-400 font-semibold">
+                <optgroup label="Custom Properties" className="bg-bg-primary text-blue-400 font-semibold">
                   {customKeys.map(k => (
                     <option key={k} value={k} className="bg-bg-primary text-text-primary font-normal">
                       {k}
@@ -253,8 +245,8 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
                 </optgroup>
               )}
 
-              {/* 3. Analysis Properties (Supabase note_metadata) */}
-              <optgroup label="3. Analysis Properties (AI)" className="bg-bg-primary text-purple-400 font-semibold">
+              {/* 3. Analysis Properties (AI) */}
+              <optgroup label="AI Properties" className="bg-bg-primary text-purple-400 font-semibold">
                 {ANALYSIS_PROPERTIES.map(p => (
                   <option key={p.key} value={p.key} className="bg-bg-primary text-text-primary font-normal">
                     {p.label}
@@ -264,9 +256,12 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
             </select>
           </div>
 
-          {/* Dynamic Auto-complete Value Input */}
+          {/* Dynamic Auto-complete Value Input with Unified Integrated Popup */}
           {newProp && (
-            <div className="relative flex-1 min-w-[160px]" ref={dropdownRef}>
+            <div 
+              className="relative flex-1 min-w-[170px] bg-bg-primary rounded-xl transition-all focus-within:ring-1 focus-within:ring-accent-primary/50 overflow-hidden shadow-2xs" 
+              ref={dropdownRef}
+            >
               <div className="relative flex items-center">
                 <input
                   type="text"
@@ -283,49 +278,55 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
                     }
                   }}
                   placeholder={`Ketik nilai ${getPropertyLabel(newProp)}...`}
-                  className="w-full bg-bg-primary border border-border-default hover:border-border-hover focus:border-accent-primary rounded-lg pl-3 pr-8 py-1.5 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
+                  className="w-full bg-transparent pl-3 pr-8 py-2 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
                   autoFocus
                 />
                 <button
+                  type="button"
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="absolute right-2 text-text-muted hover:text-text-primary"
+                  className="absolute right-2.5 text-text-muted hover:text-text-primary cursor-pointer p-0.5"
                 >
-                  <ChevronDown size={14} className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={13} className={`transition-transform duration-150 ${showDropdown ? 'rotate-180' : ''}`} />
                 </button>
               </div>
 
               {showDropdown && propertyValues.length > 0 && (
-                <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-bg-surface border border-border-default rounded-lg shadow-xl flex flex-col py-1">
-                  {propertyValues
-                    .filter(v => v.toLowerCase().includes(newVal.toLowerCase()))
-                    .map(v => (
-                      <button
-                        key={v}
-                        onClick={() => {
-                          setNewVal(v);
-                          setShowDropdown(false);
-                        }}
-                        className="w-full text-left px-3 py-1.5 text-xs text-text-primary hover:bg-bg-hover hover:text-accent-primary transition-colors cursor-pointer"
-                      >
-                        {v}
-                      </button>
-                    ))}
-                  {propertyValues.filter(v => v.toLowerCase().includes(newVal.toLowerCase())).length === 0 && (
-                    <div className="px-3 py-2 text-xs text-text-muted text-center italic">
-                      Tidak ada opsi yang cocok
-                    </div>
-                  )}
+                <div className="animate-in fade-in duration-150">
+                  <div className="mx-2.5 h-px bg-border-default/30 my-0.5" />
+                  <div className="max-h-40 overflow-y-auto px-1 pb-1 space-y-0.5 custom-scrollbar">
+                    {propertyValues
+                      .filter(v => v.toLowerCase().includes(newVal.toLowerCase()))
+                      .map(v => (
+                        <button
+                          key={v}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setNewVal(v);
+                            setShowDropdown(false);
+                          }}
+                          className="w-full text-left px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover hover:text-accent-primary rounded-lg transition-colors cursor-pointer"
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    {propertyValues.filter(v => v.toLowerCase().includes(newVal.toLowerCase())).length === 0 && (
+                      <div className="px-3 py-2 text-xs text-text-muted text-center italic">
+                        Tidak ada opsi yang cocok
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-1.5 ml-auto">
+          <div className="flex items-center gap-1.5 ml-auto self-center">
             <button
               onClick={addFilter}
               disabled={!newProp || !newVal.trim()}
-              className="px-3 py-1.5 rounded-lg bg-accent-primary text-accent-contrast font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-accent-primary text-accent-contrast font-medium text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
             >
               Add
             </button>
@@ -335,7 +336,7 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
                 setNewProp('');
                 setNewVal('');
               }}
-              className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
               title="Batal"
             >
               <X size={14} />

@@ -52,7 +52,7 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
 
       {/* Progress Bar */}
       {totalCount > 0 && (
-        <div className="p-3 bg-bg-primary border border-border-default rounded-xl space-y-1.5">
+        <div className="p-3 bg-bg-primary rounded-xl space-y-1.5">
           <div className="flex items-center justify-between text-xs">
             <span className="font-medium text-text-secondary">
               Progress ({completedCount}/{totalCount})
@@ -61,7 +61,7 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
               {completionPercentage}%
             </span>
           </div>
-          <div className="w-full h-1.5 bg-bg-quaternary rounded-full overflow-hidden border border-border-subtle">
+          <div className="w-full h-1.5 bg-bg-secondary rounded-full overflow-hidden">
             <div
               className="h-full bg-accent-primary transition-all duration-300 rounded-full"
               style={{ width: `${completionPercentage}%` }}

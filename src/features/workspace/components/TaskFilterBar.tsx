@@ -25,14 +25,14 @@ export const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
   return (
     <div className="space-y-2">
       {/* Filter Pills */}
-      <div className="flex items-center gap-1 p-1 bg-bg-quaternary border border-border-default rounded-xl text-xs">
+      <div className="flex items-center gap-1 p-1 bg-bg-primary rounded-xl text-xs">
         <button
           type="button"
           onClick={() => setFilterMode('ALL')}
           className={twMerge(
             'flex-1 py-1 px-2 rounded-lg font-medium transition-all text-center cursor-pointer',
             filterMode === 'ALL'
-              ? 'bg-bg-secondary text-text-primary shadow-xs font-semibold'
+              ? 'bg-bg-secondary text-text-primary shadow-2xs font-semibold'
               : 'text-text-muted hover:text-text-secondary'
           )}
         >
@@ -44,7 +44,7 @@ export const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
           className={twMerge(
             'flex-1 py-1 px-2 rounded-lg font-medium transition-all text-center cursor-pointer',
             filterMode === 'PENDING'
-              ? 'bg-bg-secondary text-status-warning shadow-xs font-semibold'
+              ? 'bg-bg-secondary text-status-warning shadow-2xs font-semibold'
               : 'text-text-muted hover:text-text-secondary'
           )}
         >
@@ -56,7 +56,7 @@ export const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
           className={twMerge(
             'flex-1 py-1 px-2 rounded-lg font-medium transition-all text-center cursor-pointer',
             filterMode === 'COMPLETED'
-              ? 'bg-bg-secondary text-status-success shadow-xs font-semibold'
+              ? 'bg-bg-secondary text-status-success shadow-2xs font-semibold'
               : 'text-text-muted hover:text-text-secondary'
           )}
         >
@@ -73,7 +73,7 @@ export const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari tugas..."
-            className="w-full pl-8 pr-3 py-1.5 bg-bg-primary border border-border-default rounded-lg text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
+            className="w-full pl-8 pr-3 py-1.5 bg-bg-primary rounded-lg text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent-primary transition-colors"
           />
         </div>
       )}

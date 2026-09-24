@@ -16,7 +16,9 @@ interface NoteEditorProps {
 }
 
 export const NoteEditor: React.FC<NoteEditorProps> = ({ vaultState: externalVaultState }) => {
+  // If external vaultState is passed from parent (e.g. App.tsx), avoid running redundant hook instantiations
   const internalVaultState = useVault();
+  const stateToUse = externalVaultState || internalVaultState;
   const {
     vault,
     activeNode,
@@ -32,7 +34,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ vaultState: externalVaul
     setNodeBookmark,
     moveNode,
     deleteNode,
-  } = externalVaultState || internalVaultState;
+  } = stateToUse;
 
   const {
     isMobileSidebarOpen,
@@ -80,6 +82,16 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ vaultState: externalVaul
     closeMobileRightSidebar,
   });
 
+  // Safe fallback if vault has not loaded yet
+  const safeVault = vault || {
+    id: 'default',
+    name: 'Vault',
+    nodes: {},
+    rootNodes: [],
+    openTabs: [],
+    activeTabId: null,
+  };
+
   // Scroll synchronization, wikilinks, headings, and title/content logic
   const {
     isDesktopSidebarOpen,
@@ -99,7 +111,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ vaultState: externalVaul
     handleLeftHeaderToggle,
     handleRightHeaderToggle,
   } = useNoteEditorLogic({
-    vault,
+    vault: safeVault,
     activeNode,
     updateNodeTitle,
     updateNoteContent,
@@ -131,7 +143,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ vaultState: externalVaul
     getAvailableFolders,
   } = useNoteModals({
     activeNode,
-    nodes: vault.nodes,
+    nodes: safeVault.nodes,
     moveNode,
     deleteNode,
   });
@@ -155,6 +167,14 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ vaultState: externalVaul
     }
   };
 
+  if (!vault) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-bg-primary text-text-muted">
+        <span className="text-xs">Memuat Vault...</span>
+      </div>
+    );
+  }
+
   return (
     <div
       onTouchStart={handleTouchStart}
@@ -167,7 +187,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ vaultState: externalVaul
       {/* 1. DESKTOP LEFT SIDEBAR */}
       <DesktopLeftSidebar
         isOpen={isDesktopSidebarOpen}
-        vault={vault}
+        vault={safeVault}
         onSelectFile={handleSelectFile}
         openInNewTab={openInNewTab}
         onCreateNote={handleCreateNewNote}

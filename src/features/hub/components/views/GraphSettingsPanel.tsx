@@ -87,7 +87,7 @@ export const GraphSettingsPanel: React.FC<GraphSettingsPanelProps> = ({
   if (!showSettings) return null;
 
   return (
-    <div className="absolute top-4 left-16 right-4 sm:right-auto sm:w-80 z-20 rounded-2xl bg-bg-surface/95 backdrop-blur-2xl border border-border-default shadow-[0_16px_64px_rgba(0,0,0,0.8)] flex flex-col max-h-[calc(100%-2rem)] overflow-hidden">
+    <div className="absolute top-4 left-16 right-4 sm:right-auto sm:w-80 z-20 rounded-2xl bg-bg-surface/95 backdrop-blur-2xl border border-border-default flex flex-col max-h-[calc(100%-2rem)] overflow-hidden">
       {/* Header */}
       <div className="flex-none flex items-center justify-between px-4 pt-4 pb-3 border-b border-border-subtle z-10 bg-bg-surface/80">
         <div className="flex items-center gap-2">

@@ -91,10 +91,10 @@ export const InboxTriageCard: React.FC<InboxTriageCardProps> = ({
           onOpenNote(note.id);
         }
       }}
-      className={`group relative flex flex-col gap-2.5 p-3.5 rounded-xl bg-bg-surface/90 border transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${
+      className={`group relative flex flex-col gap-2.5 p-3.5 rounded-xl bg-bg-primary transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${
         isDragging
-          ? 'border-accent-primary ring-2 ring-accent-primary/20 shadow-xl touch-none'
-          : 'border-border-default hover:border-border-hover hover:shadow-md'
+          ? 'ring-2 ring-accent-primary/50 shadow-xl touch-none'
+          : 'shadow-2xs hover:shadow-md hover:bg-bg-hover/70'
       }`}
     >
       {/* Header: Title & Quick Move / Trash */}

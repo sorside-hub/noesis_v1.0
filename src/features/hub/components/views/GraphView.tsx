@@ -118,20 +118,30 @@ export const GraphView: React.FC<GraphViewProps> = ({ notes, onOpenNote }) => {
   // Responsive container sizing
   useEffect(() => {
     if (!containerRef.current) return;
+    let rAF: number | null = null;
     const observer = new ResizeObserver((entries) => {
       if (entries[0]) {
         const { width, height } = entries[0].contentRect;
-        setDimensions({ width, height });
-        
-        // When the container is hidden (e.g. navigated away), clear any lingering interactions
-        if (width === 0 || height === 0) {
-          setHoverNode(null);
-          setDragNode(null);
-        }
+        if (rAF) cancelAnimationFrame(rAF);
+        rAF = requestAnimationFrame(() => {
+          setDimensions((prev) => {
+            if (prev.width === width && prev.height === height) return prev;
+            return { width, height };
+          });
+          
+          // When the container is hidden (e.g. navigated away), clear any lingering interactions
+          if (width === 0 || height === 0) {
+            setHoverNode(null);
+            setDragNode(null);
+          }
+        });
       }
     });
     observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    return () => {
+      if (rAF) cancelAnimationFrame(rAF);
+      observer.disconnect();
+    };
   }, []);
 
   // Ensure hover/drag state is clean on mount and container mouseleave

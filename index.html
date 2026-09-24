@@ -28,6 +28,52 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
 
+    <!-- Early ResizeObserver benign notification interceptor & safe batching wrapper -->
+    <script>
+      (function() {
+        var isResizeObserverError = function(e) {
+          if (!e) return false;
+          var msg = typeof e === 'string' ? e : (e.message || (e.reason && (e.reason.message || String(e.reason))) || '');
+          return /ResizeObserver loop (completed with undelivered notifications|limit exceeded)/i.test(msg);
+        };
+
+        window.addEventListener('error', function(event) {
+          if (isResizeObserverError(event.message) || isResizeObserverError(event.error)) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(event) {
+          if (isResizeObserverError(event.reason)) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+
+        if (typeof window.ResizeObserver !== 'undefined') {
+          var OriginalResizeObserver = window.ResizeObserver;
+          window.ResizeObserver = class PatchedResizeObserver extends OriginalResizeObserver {
+            constructor(callback) {
+              super(function(entries, observer) {
+                window.requestAnimationFrame(function() {
+                  try {
+                    callback(entries, observer);
+                  } catch (err) {
+                    if (!isResizeObserverError(err)) {
+                      console.error(err);
+                    }
+                  }
+                });
+              });
+            }
+          };
+        }
+      })();
+    </script>
+
     <!-- Default Unified Dark Theme Script -->
     <script>
       (function() {

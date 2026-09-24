@@ -138,6 +138,8 @@ export const ChipInput: React.FC<ChipInputProps> = ({
     }, 0);
   };
 
+  const isSuggestionsOpen = showSuggestions && filteredSuggestions.length > 0;
+
   return (
     <div className="space-y-1.5" ref={containerRef}>
       <div className="flex items-center gap-1.5">
@@ -150,16 +152,16 @@ export const ChipInput: React.FC<ChipInputProps> = ({
           </span>
         )}
       </div>
-      <div className="relative">
+      <div className="relative w-full bg-bg-primary rounded-xl transition-all focus-within:ring-1 focus-within:ring-accent-primary/50 overflow-hidden">
         <div
           onClick={() => inputRef.current?.focus()}
-          className="min-h-[34px] px-2.5 py-1 bg-bg-primary focus-within:ring-1 focus-within:ring-accent-primary/50 rounded-xl flex flex-wrap gap-1 items-center cursor-text transition-all shadow-2xs"
+          className="min-h-[34px] px-2.5 py-1 flex flex-wrap gap-1 items-center cursor-text"
         >
           {items.map((item) => (
             <span
               key={item}
               className={twMerge(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium shadow-2xs transition-all',
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all',
                 chipColorClass
               )}
             >
@@ -217,21 +219,33 @@ export const ChipInput: React.FC<ChipInputProps> = ({
           </div>
         </div>
         
-        {/* Suggestions Dropdown */}
-        {showSuggestions && filteredSuggestions.length > 0 && (
-          <div className="absolute z-[100] w-full mt-1 bg-bg-elevated border border-border-default rounded-xl shadow-xl max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">
-            {filteredSuggestions.map((suggestion, index) => (
-              <button
-                key={suggestion}
-                onClick={() => commitValue(suggestion)}
-                className={twMerge(
-                  'w-full text-left px-3 py-2 text-xs text-text-primary hover:bg-bg-hover transition-colors cursor-pointer',
-                  index === activeIndex ? 'bg-bg-hover' : ''
-                )}
-              >
-                {prefix}{suggestion}
-              </button>
-            ))}
+        {/* In-flow Suggestions list inside the unified expanding container */}
+        {isSuggestionsOpen && (
+          <div className="animate-in fade-in duration-150">
+            <div className="mx-2.5 h-px bg-border-default/30 my-0.5" />
+            <div className="max-h-48 overflow-y-auto px-1 pb-1 space-y-0.5">
+              {filteredSuggestions.map((suggestion, index) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    commitValue(suggestion);
+                  }}
+                  className={twMerge(
+                    'w-full text-left px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer',
+                    index === activeIndex ? 'bg-bg-hover' : ''
+                  )}
+                >
+                  {prefix && (
+                    <span className={twMerge('font-mono mr-0.5', prefixColorClass || 'text-text-muted')}>
+                      {prefix}
+                    </span>
+                  )}
+                  {suggestion}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

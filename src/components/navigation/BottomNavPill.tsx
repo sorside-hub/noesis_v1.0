@@ -54,7 +54,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
     >
       <nav
         aria-label="Main Navigation"
-        className={`p-0.5 sm:p-1 rounded-full bg-bg-quaternary shadow-2xl ${
+        className={`p-0.5 sm:p-1 rounded-full bg-bg-quaternary ${
           isChatView ? 'flex flex-col items-center gap-1' : 'flex flex-row items-center gap-1'
         }`}
       >
@@ -65,7 +65,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           onClick={() => handleTabChange('vault')}
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'vault'
-              ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
+              ? 'bg-accent-primary text-accent-contrast font-semibold'
               : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
@@ -79,7 +79,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           onClick={() => handleTabChange('hub')}
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'hub'
-              ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
+              ? 'bg-accent-primary text-accent-contrast font-semibold'
               : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
@@ -93,7 +93,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           onClick={() => handleTabChange('chat')}
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'chat'
-              ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
+              ? 'bg-accent-primary text-accent-contrast font-semibold'
               : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
@@ -107,7 +107,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           onClick={() => handleTabChange('media')}
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'media'
-              ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
+              ? 'bg-accent-primary text-accent-contrast font-semibold'
               : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
@@ -121,7 +121,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           onClick={() => handleTabChange('sorside')}
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'sorside'
-              ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
+              ? 'bg-accent-primary text-accent-contrast font-semibold'
               : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >
@@ -135,7 +135,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           onClick={() => handleTabChange('settings')}
           className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
             activeTab === 'settings'
-              ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
+              ? 'bg-accent-primary text-accent-contrast font-semibold'
               : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
         >

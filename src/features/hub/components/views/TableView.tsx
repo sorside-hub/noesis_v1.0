@@ -21,8 +21,8 @@ export const TableView: React.FC<TableViewProps> = ({ notes, filters = [], onOpe
 
   if (notes.length === 0) {
     return (
-      <div className="w-full flex flex-col items-center justify-center p-12 text-text-muted border border-border-default border-dashed rounded-2xl">
-        <FileText size={32} className="mb-3 opacity-50" />
+      <div className="w-full flex flex-col items-center justify-center p-12 text-text-muted bg-bg-surface/40 rounded-2xl shadow-2xs">
+        <FileText size={32} className="mb-3 opacity-40" />
         <p className="text-sm">Tidak ada catatan yang ditemukan.</p>
       </div>
     );
@@ -45,12 +45,12 @@ export const TableView: React.FC<TableViewProps> = ({ notes, filters = [], onOpe
       return (
         <div className="flex flex-wrap gap-1">
           {val.slice(0, 3).map((item, idx) => (
-            <span key={idx} className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-bg-hover text-text-secondary border border-border-subtle truncate max-w-[80px]">
+            <span key={idx} className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-bg-primary text-text-secondary shadow-2xs truncate max-w-[80px]">
               {String(item)}
             </span>
           ))}
           {val.length > 3 && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-hover text-text-muted border border-border-subtle">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-primary text-text-muted shadow-2xs">
               +{val.length - 3}
             </span>
           )}
@@ -64,13 +64,13 @@ export const TableView: React.FC<TableViewProps> = ({ notes, filters = [], onOpe
 
     if (prop === 'status') {
       return (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${
-          val === 'Completed' ? 'bg-status-success-bg text-status-success border-status-success-border' :
-          val === 'In Progress' ? 'bg-status-info-bg text-status-info border-status-info-border' :
-          val === 'Inbox' ? 'bg-status-warning-bg text-status-warning border-status-warning-border' :
-          val === 'Inbox (Refine)' ? 'bg-purple-500/15 text-purple-400 border-purple-500/30' :
-          val === 'Inbox (Keeper)' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
-          'bg-bg-hover text-text-muted border-border-subtle'
+        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium shadow-2xs ${
+          val === 'Completed' ? 'bg-status-success-bg text-status-success' :
+          val === 'In Progress' ? 'bg-status-info-bg text-status-info' :
+          val === 'Inbox' ? 'bg-status-warning-bg text-status-warning' :
+          val === 'Inbox (Refine)' ? 'bg-purple-500/15 text-purple-300' :
+          val === 'Inbox (Keeper)' ? 'bg-emerald-500/15 text-emerald-300' :
+          'bg-bg-primary text-text-muted'
         }`}>
           {String(val)}
         </span>
@@ -88,14 +88,15 @@ export const TableView: React.FC<TableViewProps> = ({ notes, filters = [], onOpe
           <div 
             key={note.id}
             onClick={() => onOpenNote(note.id)}
-            className="flex flex-col gap-2 p-3.5 bg-bg-surface border border-border-default rounded-xl hover:border-accent-primary/50 transition-colors cursor-pointer"
+            className="group flex flex-col gap-2 p-3.5 bg-bg-surface rounded-xl hover:bg-bg-hover/80 shadow-2xs hover:shadow-md transition-all cursor-pointer"
           >
-            <div className="flex items-start gap-2.5">
-              <div className="w-6 h-6 rounded flex items-center justify-center bg-bg-hover shrink-0 text-text-muted mt-0.5">
-                <FileText size={12} />
-              </div>
+            <div className="flex items-start gap-2">
+              <FileText 
+                size={15} 
+                className="text-text-muted mt-0.5 shrink-0 group-hover:text-accent-primary transition-colors" 
+              />
               <span className="font-semibold text-text-primary text-sm line-clamp-2 leading-tight">
-                {note.title}
+                {note.title || 'Tanpa Judul'}
               </span>
             </div>
             
@@ -104,7 +105,7 @@ export const TableView: React.FC<TableViewProps> = ({ notes, filters = [], onOpe
             </p>
             
             <div className="flex flex-wrap items-center gap-2 mt-1.5">
-              <div className="flex items-center gap-1 text-[10px] text-text-muted bg-bg-hover px-2 py-0.5 rounded-full border border-border-subtle">
+              <div className="flex items-center gap-1 text-[10px] text-text-muted bg-bg-primary px-2 py-0.5 rounded-md shadow-2xs">
                 <Clock size={10} className="opacity-70" />
                 <span>{formatDate(note.updatedAt)}</span>
               </div>
@@ -121,10 +122,10 @@ export const TableView: React.FC<TableViewProps> = ({ notes, filters = [], onOpe
       </div>
 
       {/* Desktop Table Layout (>= md) */}
-      <div className="hidden md:block w-full overflow-x-auto rounded-xl border border-border-default bg-bg-surface shadow-xs custom-scrollbar">
+      <div className="hidden md:block w-full overflow-x-auto rounded-xl bg-bg-surface shadow-xs custom-scrollbar">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
-            <tr className="bg-bg-primary/50 text-text-muted text-xs border-b border-border-default">
+            <tr className="bg-bg-secondary/40 text-text-muted text-xs border-b border-border-default/40">
               <th className="font-medium py-3 px-4 w-[25%] min-w-[200px]">Title</th>
               <th className="font-medium py-3 px-4 flex-1">AI Summary</th>
               <th className="font-medium py-3 px-4 w-[15%] min-w-[120px]">Updated</th>
@@ -135,7 +136,7 @@ export const TableView: React.FC<TableViewProps> = ({ notes, filters = [], onOpe
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border-default">
+          <tbody className="divide-y divide-border-default/30">
             {notes.map((note) => (
               <tr 
                 key={note.id} 
@@ -145,10 +146,11 @@ export const TableView: React.FC<TableViewProps> = ({ notes, filters = [], onOpe
                 {/* Title */}
                 <td className="py-3 px-4 align-top">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded flex items-center justify-center bg-bg-hover shrink-0 text-text-muted group-hover:text-accent-primary transition-colors">
-                      <FileText size={12} />
-                    </div>
-                    <span className="font-medium text-text-primary truncate" title={note.title}>{note.title}</span>
+                    <FileText 
+                      size={15} 
+                      className="text-text-muted shrink-0 group-hover:text-accent-primary transition-colors" 
+                    />
+                    <span className="font-medium text-text-primary truncate" title={note.title}>{note.title || 'Tanpa Judul'}</span>
                   </div>
                 </td>
                 
@@ -159,10 +161,10 @@ export const TableView: React.FC<TableViewProps> = ({ notes, filters = [], onOpe
                   </div>
                 </td>
                 
-                {/* Updated At */}
+                {/* Updated At with bg-bg-primary badge */}
                 <td className="py-3 px-4 text-xs text-text-muted align-top">
-                  <div className="flex items-center gap-1.5 pt-0.5">
-                    <Clock size={12} className="opacity-70 shrink-0" />
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-bg-primary shadow-2xs">
+                    <Clock size={11} className="opacity-70 shrink-0" />
                     <span>{formatDate(note.updatedAt)}</span>
                   </div>
                 </td>

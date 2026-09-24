@@ -112,7 +112,7 @@ export const TagAutocompletePopup: React.FC<TagAutocompletePopupProps> = ({
         top: `${adjustedPos.top}px`,
         left: `${adjustedPos.left}px`,
       }}
-      className="z-50 w-64 max-w-[calc(100vw-24px)] max-h-60 overflow-y-auto bg-bg-surface border border-border-default rounded-xl shadow-2xl p-1.5 animate-in fade-in zoom-in-95 duration-100 select-none custom-scrollbar"
+      className="z-50 w-64 max-w-[calc(100vw-24px)] max-h-60 overflow-y-auto bg-bg-primary rounded-xl p-1.5 animate-in fade-in zoom-in-95 duration-100 select-none custom-scrollbar"
     >
       <div className="px-2 py-1 flex items-center justify-between text-[10px] font-bold text-text-muted uppercase tracking-wider border-b border-border-default/40 pb-1 mb-1">
         <span className="flex items-center gap-1">

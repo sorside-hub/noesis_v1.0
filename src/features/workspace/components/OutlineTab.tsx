@@ -37,29 +37,32 @@ export const OutlineTab: React.FC<OutlineTabProps> = ({
           </p>
         </div>
         {outlineHeadings.some((h) => h.hasChildren) && (
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => {
-                const allParentIndices = outlineHeadings
-                  .filter((h) => h.hasChildren)
-                  .map((h) => h.lineIndex);
+          <button
+            type="button"
+            onClick={() => {
+              const allParentIndices = outlineHeadings
+                .filter((h) => h.hasChildren)
+                .map((h) => h.lineIndex);
+              
+              const isAllCollapsed = allParentIndices.every((idx) => collapsedHeadingIndices.has(idx));
+
+              if (isAllCollapsed) {
+                setCollapsedHeadingIndices(new Set());
+              } else {
                 setCollapsedHeadingIndices(new Set(allParentIndices));
-              }}
-              className="text-[10px] font-medium text-text-muted hover:text-text-primary px-1.5 py-0.5 rounded hover:bg-bg-hover transition-colors cursor-pointer"
-              title="Collapse All Sub-headings"
-            >
-              Collapse All
-            </button>
-            <button
-              type="button"
-              onClick={() => setCollapsedHeadingIndices(new Set())}
-              className="text-[10px] font-medium text-text-muted hover:text-text-primary px-1.5 py-0.5 rounded hover:bg-bg-hover transition-colors cursor-pointer"
-              title="Expand All Sub-headings"
-            >
-              Expand All
-            </button>
-          </div>
+              }
+            }}
+            className="text-[10px] font-semibold text-text-muted hover:text-text-primary px-2 py-1 rounded bg-bg-primary hover:bg-bg-hover transition-colors cursor-pointer shrink-0"
+            title={
+              outlineHeadings.filter((h) => h.hasChildren).every((h) => collapsedHeadingIndices.has(h.lineIndex))
+                ? 'Expand All Sub-headings'
+                : 'Collapse All Sub-headings'
+            }
+          >
+            {outlineHeadings.filter((h) => h.hasChildren).every((h) => collapsedHeadingIndices.has(h.lineIndex))
+              ? 'Expand All'
+              : 'Collapse All'}
+          </button>
         )}
       </div>
 

@@ -75,12 +75,14 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const isSuggestionsOpen = showNoteTypeSuggestions && filteredNoteTypes.length > 0;
+
   return (
     <div className="space-y-1.5" ref={noteTypeContainerRef}>
       <label className="text-[11px] font-semibold text-text-muted tracking-wider uppercase">
         Note Type
       </label>
-      <div className="relative">
+      <div className="relative w-full bg-bg-primary rounded-xl transition-all focus-within:ring-1 focus-within:ring-accent-primary/50 overflow-hidden">
         <input
           type="text"
           value={localNoteType}
@@ -88,20 +90,26 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
           onBlur={handleInputBlur}
           onFocus={() => setShowNoteTypeSuggestions(true)}
           placeholder="e.g. Daily, Project, Concept"
-          className="w-full px-3 py-2 bg-bg-primary focus:ring-1 focus:ring-accent-primary/50 rounded-xl text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none transition-all shadow-2xs"
+          className="w-full px-3 py-2 bg-transparent text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
         />
-        {showNoteTypeSuggestions && filteredNoteTypes.length > 0 && (
-          <div className="absolute z-[100] w-full mt-1 bg-bg-elevated border border-border-default rounded-xl shadow-xl max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">
-            {filteredNoteTypes.map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => handleSelectSuggestion(type)}
-                className="w-full text-left px-3 py-2 text-xs text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
-              >
-                {type}
-              </button>
-            ))}
+        {isSuggestionsOpen && (
+          <div className="animate-in fade-in duration-150">
+            <div className="mx-2.5 h-px bg-border-default/30 my-0.5" />
+            <div className="max-h-48 overflow-y-auto px-1 pb-1 space-y-0.5">
+              {filteredNoteTypes.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSelectSuggestion(type);
+                  }}
+                  className="w-full text-left px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

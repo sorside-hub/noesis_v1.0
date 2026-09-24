@@ -29,6 +29,7 @@ import { ConceptsView } from './views/ConceptsView';
 
 import { GraphView } from './views/GraphView';
 import { HubFilterBar, DynamicFilter } from './HubFilterBar';
+import { HubMobileDrawerDock } from './HubMobileDrawerDock';
 import { isSameOrDescendantTag } from '../../workspace/utils/tagUtils';
 import { classifyNoteTriageStatus } from '../utils/triageUtils';
 
@@ -241,13 +242,13 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
       {/* 1. Desktop Left Hub Sidebar */}
       <div className="hidden lg:flex flex-col w-64 border-r border-border-default bg-bg-surface/70 shrink-0 select-none">
         {/* Hub Header */}
-        <div className="p-4 border-b border-border-default flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-accent-primary/10 border border-accent-primary/30 flex items-center justify-center text-accent-primary">
-            <Database size={16} strokeWidth={2.2} />
+        <div className="px-3.5 py-2.5 border-b border-border-default flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-accent-primary/10 border border-accent-primary/30 flex items-center justify-center text-accent-primary shrink-0">
+            <Database size={15} strokeWidth={2.2} />
           </div>
           <div>
-            <h2 className="text-sm font-semibold tracking-tight text-text-heading">HUB Directory</h2>
-            <p className="text-[11px] text-text-muted">Knowledge Matrix & Views</p>
+            <h2 className="text-xs font-semibold tracking-tight text-text-heading">HUB Directory</h2>
+            <p className="text-[10px] text-text-muted">Knowledge Matrix & Views</p>
           </div>
         </div>
 
@@ -329,42 +330,47 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
       </div>
 
       {/* 2. Main Workspace / Canvas */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {/* Mobile Collapsible Side Edge Drawer Dock */}
+        <HubMobileDrawerDock
+          activeSubView={activeSubView}
+          setActiveSubView={setActiveSubView}
+          navItems={navItems}
+          inboxCount={stats.inboxCount}
+        />
+
         {/* Top Header / Action Bar */}
-        <div className="relative z-30 px-4 lg:px-6 py-3 border-b border-border-default bg-bg-surface/50 backdrop-blur-md flex flex-row items-center justify-between gap-3 shrink-0">
+        <div className="relative z-30 px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 border-b border-border-default bg-bg-primary flex flex-row items-center justify-between gap-2.5 shrink-0 min-h-[42px]">
           {/* Title - Hidden on mobile if search is open */}
           <div className={`flex items-center gap-2 ${isMobileSearchOpen ? 'hidden sm:flex' : 'flex'}`}>
-            <h1 className="text-base font-semibold text-text-heading capitalize">
+            <h1 className="text-sm sm:text-base font-semibold text-text-heading capitalize">
               {navItems.find(i => i.id === activeSubView)?.label || 'HUB View'}
             </h1>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
-              {allFiles.length} item
-            </span>
           </div>
 
           {/* Right Header Actions: Column settings (Board on mobile) + Search */}
           {activeSubView !== 'graph' && (
-            <div className={`flex items-center justify-end gap-2 ${isMobileSearchOpen ? 'w-full sm:w-auto' : ''}`}>
+            <div className={`flex items-center justify-end gap-1.5 sm:gap-2 ${isMobileSearchOpen ? 'w-full sm:w-auto' : ''}`}>
               {/* Mobile Column Settings Dropdown (Only on Board view, hidden when mobile search is open) */}
               {activeSubView === 'board' && !isMobileSearchOpen && (
                 <div className="lg:hidden relative z-50" ref={boardColDropdownRef}>
                   <button
                     type="button"
                     onClick={() => setIsBoardColDropdownOpen(!isBoardColDropdownOpen)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border-default text-[11px] font-medium text-text-secondary hover:text-text-primary hover:border-accent-primary/40 transition-colors shadow-xs"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-bg-secondary text-[11px] font-medium text-text-secondary hover:text-text-primary transition-colors shadow-2xs cursor-pointer"
                     title="Column Visibility"
                   >
-                    <Eye size={13} className="text-accent-primary" />
+                    <Eye size={12} className="text-accent-primary" />
                     <span>{boardVisibleColumns.size}/{allBoardColumns.length}</span>
-                    <ChevronDown size={12} className={`transition-transform duration-150 ${isBoardColDropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={11} className={`transition-transform duration-150 ${isBoardColDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {isBoardColDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-52 bg-bg-surface border border-border-default rounded-xl shadow-2xl z-50 flex flex-col py-1 animate-in fade-in slide-in-from-top-2 duration-150 backdrop-blur-md">
+                    <div className="absolute top-full right-0 mt-1.5 w-52 bg-bg-secondary rounded-xl shadow-2xl z-50 flex flex-col py-1 animate-in fade-in slide-in-from-top-2 duration-150 border border-bg-elevated/40">
                       <button
                         type="button"
                         onClick={toggleAllBoardColumns}
-                        className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-text-primary hover:bg-bg-hover transition-colors border-b border-border-subtle"
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-text-primary hover:bg-bg-hover transition-colors border-b border-border-default/40 cursor-pointer"
                       >
                         {boardVisibleColumns.size === allBoardColumns.length ? (
                           <CheckSquare size={14} className="text-accent-primary" />
@@ -382,7 +388,7 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
                               key={col}
                               type="button"
                               onClick={() => toggleBoardColumn(col)}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors text-left"
+                              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors text-left cursor-pointer"
                             >
                               {isVisible ? (
                                 <CheckSquare size={14} className="text-accent-primary shrink-0" />
@@ -407,30 +413,30 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
                     <button 
                       type="button"
                       onClick={() => setIsMobileSearchOpen(true)}
-                      className="sm:hidden p-2 rounded-lg text-text-muted hover:bg-bg-hover hover:text-text-primary transition-colors cursor-pointer"
+                      className="sm:hidden p-1.5 rounded-md text-text-muted hover:bg-bg-hover hover:text-text-primary transition-colors cursor-pointer"
                       title="Search"
                     >
-                      <Search size={16} />
+                      <Search size={15} />
                     </button>
 
                     {/* Desktop: Standard Search Input */}
-                    <div className="hidden sm:block relative w-48 focus-within:w-64 transition-all duration-200">
-                      <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                    <div className="hidden sm:block relative w-44 focus-within:w-60 transition-all duration-200">
+                      <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                       <input
                         type="text"
                         value={tabSearchQueries[activeSubView] || ''}
                         onChange={(e) => setTabSearchQueries(prev => ({ ...prev, [activeSubView]: e.target.value }))}
                         placeholder={`Search ${activeSubView}...`}
-                        className="w-full pl-8 pr-8 py-1.5 text-xs bg-bg-surface border border-border-default rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-all"
+                        className="w-full pl-7 pr-7 py-1 text-xs bg-bg-surface border border-border-default rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-all"
                       />
                       {tabSearchQueries[activeSubView] && (
                         <button 
                           type="button"
                           onClick={() => setTabSearchQueries(prev => ({ ...prev, [activeSubView]: '' }))}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary cursor-pointer transition-colors"
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 text-text-muted hover:text-text-primary cursor-pointer transition-colors"
                           title="Clear search"
                         >
-                          <X size={12} />
+                          <X size={11} />
                         </button>
                       )}
                     </div>
@@ -438,14 +444,14 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
                 ) : (
                   /* Mobile: Expanded Search Input with Right-aligned Close Button */
                   <div className="flex sm:hidden relative w-full items-center animate-in fade-in zoom-in-95 duration-150">
-                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                    <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
                     <input
                       type="text"
                       value={tabSearchQueries[activeSubView] || ''}
                       onChange={(e) => setTabSearchQueries(prev => ({ ...prev, [activeSubView]: e.target.value }))}
                       placeholder={`Search ${activeSubView}...`}
                       autoFocus
-                      className="w-full pl-8 pr-8 py-1.5 text-xs bg-bg-surface border border-border-default rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-all"
+                      className="w-full pl-7 pr-7 py-1 text-xs bg-bg-surface border border-border-default rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-all"
                     />
                     <button 
                       type="button"
@@ -453,10 +459,10 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
                         setTabSearchQueries(prev => ({ ...prev, [activeSubView]: '' }));
                         setIsMobileSearchOpen(false);
                       }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary cursor-pointer transition-colors"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 text-text-muted hover:text-text-primary cursor-pointer transition-colors"
                       title="Close search"
                     >
-                      <X size={14} />
+                      <X size={13} />
                     </button>
                   </div>
                 )}
@@ -465,32 +471,9 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
           )}
         </div>
         
-        {/* Mobile Horizontal Sub-Navigation Tab Bar */}
-        <div className="flex lg:hidden p-2 gap-1.5 border-b border-border-default bg-bg-surface/80 shrink-0">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeSubView === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                title={item.label}
-                onClick={() => setActiveSubView(item.id)}
-                className={`relative flex-1 flex items-center justify-center py-2 rounded-lg transition-all duration-150 ${
-                  isActive
-                    ? 'bg-accent-primary text-accent-contrast shadow-xs'
-                    : 'bg-bg-hover text-text-muted hover:text-text-primary'
-                }`}
-              >
-                <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
-              </button>
-            );
-          })}
-        </div>
-
         {/* Independent Tab Filter Bar */}
         {activeSubView !== 'graph' && activeSubView !== 'inbox' && (
-          <div className="px-4 lg:px-6 py-2 border-b border-border-default bg-bg-surface/30">
+          <div className="px-3 sm:px-4 lg:px-5 py-1.5 border-b border-border-default bg-bg-primary">
             <HubFilterBar 
               notes={allFiles} 
               filters={tabFilters[activeSubView] || []} 

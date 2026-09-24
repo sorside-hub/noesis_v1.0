@@ -337,19 +337,19 @@ export const BoardView: React.FC<BoardViewProps> = ({
     <div className="w-full h-full flex flex-col gap-4 overflow-hidden">
       
       {/* Desktop: Quick Toggle Pills */}
-      <div className="hidden lg:flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
+      <div className="hidden lg:flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
         <button
           onClick={toggleAll}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border cursor-pointer ${
+          className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer shadow-2xs ${
             visibleColumns.size === allColumns.length
-              ? 'bg-accent-primary/20 text-accent-primary border-accent-primary/50'
-              : 'bg-bg-surface text-text-muted border-border-default hover:text-text-primary hover:bg-bg-hover'
+              ? 'bg-accent-primary text-accent-contrast'
+              : 'bg-bg-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover'
           }`}
         >
           All
         </button>
         
-        <div className="w-px h-4 bg-border-default mx-1" />
+        <div className="w-px h-3.5 bg-border-default/40 mx-0.5" />
         
         {allColumns.map(col => {
           const isVisible = visibleColumns.has(col);
@@ -358,10 +358,10 @@ export const BoardView: React.FC<BoardViewProps> = ({
             <button
               key={col}
               onClick={() => toggleColumn(col)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5 shadow-2xs ${
                 isVisible
-                  ? 'bg-bg-surface text-text-primary border-border-default shadow-xs hover:border-text-muted'
-                  : 'bg-bg-surface/40 text-text-muted/60 border-border-default/40 hover:text-text-muted hover:bg-bg-hover opacity-60'
+                  ? 'bg-bg-secondary text-text-primary hover:bg-bg-hover'
+                  : 'bg-bg-secondary/40 text-text-muted/60 hover:text-text-muted hover:bg-bg-hover opacity-60'
               }`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${isVisible ? theme.dot : 'bg-text-muted/40'}`} />

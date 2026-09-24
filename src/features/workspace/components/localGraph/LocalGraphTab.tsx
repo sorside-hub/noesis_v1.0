@@ -55,14 +55,24 @@ export const LocalGraphTab: React.FC<LocalGraphTabProps> = ({
   // 4. Responsive Container Observer
   useEffect(() => {
     if (!containerRef.current) return;
+    let rAF: number | null = null;
     const observer = new ResizeObserver((entries) => {
       if (entries[0]) {
         const { width, height } = entries[0].contentRect;
-        setDimensions({ width, height });
+        if (rAF) cancelAnimationFrame(rAF);
+        rAF = requestAnimationFrame(() => {
+          setDimensions((prev) => {
+            if (prev.width === width && prev.height === height) return prev;
+            return { width, height };
+          });
+        });
       }
     });
     observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    return () => {
+      if (rAF) cancelAnimationFrame(rAF);
+      observer.disconnect();
+    };
   }, []);
 
   if (!activeNode) {
@@ -77,12 +87,12 @@ export const LocalGraphTab: React.FC<LocalGraphTabProps> = ({
   return (
     <div className="w-full h-full flex flex-col overflow-hidden bg-bg-secondary">
       {/* 1. Header (Top) */}
-      <div className="flex items-center justify-between px-3 py-2 bg-bg-secondary border-b border-border-subtle select-none">
+      <div className="flex items-center justify-between px-3 py-2 bg-bg-secondary select-none">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-text-primary">
           <Layers size={14} className="text-accent-primary" />
           <span>Local Graph</span>
         </div>
-        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-accent-soft text-accent-primary rounded-full border border-border-default">
+        <span className="px-2 py-0.5 text-[10px] font-semibold bg-accent-soft text-accent-primary rounded-full">
           {stats.totalNodes} {stats.totalNodes === 1 ? 'node' : 'nodes'}
         </span>
       </div>

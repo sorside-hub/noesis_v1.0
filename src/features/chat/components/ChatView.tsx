@@ -194,7 +194,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ vault, vaultState }) => {
           />
         )}
         <div
-          className={`fixed inset-y-0 left-0 w-72 max-w-[85vw] h-full bg-bg-secondary z-50 overflow-hidden flex flex-col transition-transform duration-300 ease-out shadow-2xl ${
+          className={`fixed inset-y-0 left-0 w-72 max-w-[85vw] h-full bg-bg-secondary z-50 overflow-hidden flex flex-col transition-transform duration-300 ease-out ${
             isLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
           }`}
         >
@@ -221,7 +221,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ vault, vaultState }) => {
             type="button"
             onClick={handleLeftToggle}
             title="Riwayat Percakapan"
-            className="pointer-events-auto flex items-center gap-2 p-1.5 px-3 rounded-full bg-bg-quaternary shadow-2xl hover:bg-bg-hover text-text-primary transition-all cursor-pointer"
+            className="pointer-events-auto flex items-center gap-2 p-1.5 px-3 rounded-full bg-bg-quaternary hover:bg-bg-hover text-text-primary transition-all cursor-pointer"
           >
             <PanelLeft size={16} className="text-text-primary shrink-0" />
             <span className="text-xs font-semibold text-text-primary truncate max-w-[140px] sm:max-w-xs">
@@ -234,7 +234,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ vault, vaultState }) => {
             type="button"
             onClick={handleRightToggle}
             title="Pengaturan Chat"
-            className="pointer-events-auto p-2 rounded-full bg-bg-quaternary shadow-2xl hover:bg-bg-hover text-text-primary transition-all cursor-pointer"
+            className="pointer-events-auto p-2 rounded-full bg-bg-quaternary hover:bg-bg-hover text-text-primary transition-all cursor-pointer"
           >
             <SlidersHorizontal size={16} className="text-text-primary shrink-0" />
           </button>
@@ -298,7 +298,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ vault, vaultState }) => {
           />
         )}
         <div
-          className={`fixed inset-y-0 right-0 w-72 max-w-[85vw] h-full bg-bg-secondary z-50 overflow-hidden flex flex-col transition-transform duration-300 ease-out shadow-2xl ${
+          className={`fixed inset-y-0 right-0 w-72 max-w-[85vw] h-full bg-bg-secondary z-50 overflow-hidden flex flex-col transition-transform duration-300 ease-out ${
             isRightSidebarOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
           }`}
         >

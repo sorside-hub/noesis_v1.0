@@ -50,7 +50,7 @@ export const LinksTab: React.FC<LinksTabProps> = ({
                 key={node.id}
                 type="button"
                 onClick={() => onSelectFile(node.id)}
-                className="w-full p-2.5 bg-bg-primary hover:bg-bg-hover border border-border-default hover:border-link-primary/50 rounded-xl text-left transition-colors flex items-center justify-between group cursor-pointer"
+                className="w-full p-2.5 bg-bg-primary hover:bg-bg-hover rounded-xl text-left transition-colors flex items-center justify-between group cursor-pointer"
               >
                 <div className="flex items-center gap-2 truncate min-w-0">
                   <FileText size={14} className="text-icon-secondary shrink-0 group-hover:text-link-primary" />
@@ -90,7 +90,7 @@ export const LinksTab: React.FC<LinksTabProps> = ({
                 key={node.id}
                 type="button"
                 onClick={() => onSelectFile(node.id)}
-                className="w-full p-2.5 bg-bg-primary hover:bg-bg-hover border border-border-default hover:border-link-primary/50 rounded-xl text-left transition-colors flex items-center justify-between group cursor-pointer"
+                className="w-full p-2.5 bg-bg-primary hover:bg-bg-hover rounded-xl text-left transition-colors flex items-center justify-between group cursor-pointer"
               >
                 <div className="flex items-center gap-2 truncate min-w-0">
                   <FileText size={14} className="text-icon-secondary shrink-0 group-hover:text-link-primary" />
@@ -121,7 +121,7 @@ export const LinksTab: React.FC<LinksTabProps> = ({
 
         {outgoingLinks.length === 0 ? (
           <div className="py-8 text-center text-xs text-text-muted border border-dashed border-border-default rounded-xl">
-            Tidak ada tautan wiki-link <span className="font-mono text-link-primary bg-accent-soft px-1.5 py-0.5 rounded border border-border-default">[[...]]</span> ditemukan.
+            Tidak ada tautan wiki-link <span className="font-mono text-link-primary bg-accent-soft px-1.5 py-0.5 rounded">[[...]]</span> ditemukan.
           </div>
         ) : (
           <div className="space-y-1.5">
@@ -132,10 +132,10 @@ export const LinksTab: React.FC<LinksTabProps> = ({
                 disabled={!item.matchedNode}
                 onClick={() => item.matchedNode && onSelectFile(item.matchedNode.id)}
                 className={twMerge(
-                  'w-full p-2.5 bg-bg-primary border border-border-default hover:border-link-primary/50 rounded-xl text-left transition-colors flex items-center justify-between group',
+                  'w-full p-2.5 bg-bg-primary rounded-xl text-left transition-colors flex items-center justify-between group',
                   item.matchedNode
                     ? 'hover:bg-bg-hover cursor-pointer'
-                    : 'opacity-60 cursor-default hover:border-border-default'
+                    : 'opacity-60 cursor-default'
                 )}
               >
                 <div className="flex items-center gap-2 truncate min-w-0">

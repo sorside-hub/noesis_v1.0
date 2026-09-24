@@ -60,7 +60,7 @@ export const DistilTab: React.FC<DistilTabProps> = ({
       </button>
 
       {distilError && !isDistiling && (
-        <div className="p-3 bg-status-error-bg border border-status-error-border rounded-xl text-xs text-status-error">
+        <div className="p-3 bg-status-error-bg rounded-xl text-xs text-status-error">
           <strong className="block mb-1 font-semibold">Error:</strong>
           {distilError}
         </div>
@@ -90,7 +90,7 @@ export const DistilTab: React.FC<DistilTabProps> = ({
           </div>
 
           {showLog && distilLog ? (
-            <div className="p-3 bg-bg-primary border border-border-default rounded-xl space-y-3 max-h-[60vh] overflow-y-auto">
+            <div className="p-3 bg-bg-primary rounded-xl space-y-3 max-h-[60vh] overflow-y-auto">
               {distilLog.map((attempt: any, idx: number) => (
                 <div key={idx} className="flex gap-2.5 text-xs">
                   <div className="mt-0.5">
@@ -107,7 +107,7 @@ export const DistilTab: React.FC<DistilTabProps> = ({
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-text-primary">{attempt.modelTried}</span>
-                      <span className="text-[9px] text-text-muted px-1.5 py-0.5 rounded bg-bg-quaternary uppercase tracking-wider">{attempt.slotId}</span>
+                      <span className="text-[9px] text-text-muted px-1.5 py-0.5 rounded bg-bg-secondary uppercase tracking-wider">{attempt.slotId}</span>
                     </div>
                     {attempt.error && (
                       <p className="text-status-error text-[10px] leading-relaxed break-words">{attempt.error}</p>
@@ -118,7 +118,7 @@ export const DistilTab: React.FC<DistilTabProps> = ({
             </div>
           ) : distilResult ? (
             <div
-              className="prose dark:prose-invert prose-zinc max-w-none text-xs leading-relaxed p-3.5 bg-bg-primary border border-border-default rounded-xl [&_a]:text-link-primary hover:[&_a]:underline"
+              className="prose dark:prose-invert prose-zinc max-w-none text-xs leading-relaxed p-3.5 bg-bg-primary rounded-xl [&_a]:text-link-primary hover:[&_a]:underline"
               dangerouslySetInnerHTML={{ __html: distilHtml }}
               onClick={onDistilClick}
             />

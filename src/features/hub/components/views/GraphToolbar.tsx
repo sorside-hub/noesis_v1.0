@@ -21,7 +21,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
   onToggleSettings,
 }) => {
   return (
-    <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 p-1 rounded-xl bg-bg-surface/85 backdrop-blur-xl border border-border-default shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+    <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 p-1 rounded-xl bg-bg-surface/85 backdrop-blur-xl border border-border-default">
       <button
         onClick={onZoomIn}
         className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"

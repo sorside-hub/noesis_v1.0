@@ -313,7 +313,7 @@ export const ChatMessageFeed: React.FC<ChatMessageFeedProps> = ({
                   <div className="w-full space-y-3 pt-1">
                     {!msg.content || msg.content.trim().length === 0 ? (
                       /* Dynamic Real-time Status Badge */
-                      <div className="inline-flex items-center gap-2.5 py-2 px-3.5 rounded-xl bg-bg-surface border border-border-default shadow-xs text-xs text-text-muted animate-in fade-in duration-200">
+                      <div className="inline-flex items-center gap-2.5 py-2 px-3.5 rounded-xl bg-bg-secondary shadow-xs text-xs text-text-muted animate-in fade-in duration-200">
                         {processingPhase === 'rag' ? (
                           <>
                             <Search size={13} className="text-accent-primary animate-pulse shrink-0" />

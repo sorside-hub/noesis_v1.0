@@ -52,10 +52,10 @@ export const TaskList: React.FC<TaskListProps> = ({
         <div
           key={task.id}
           className={twMerge(
-            'group flex items-start gap-2.5 p-2 rounded-xl border transition-all text-xs cursor-pointer',
+            'group flex items-start gap-2.5 p-2 rounded-xl transition-all text-xs cursor-pointer',
             task.isCompleted
-              ? 'bg-bg-hover/40 border-border-subtle opacity-75'
-              : 'bg-bg-primary border-border-default hover:border-border-default shadow-xs'
+              ? 'bg-bg-hover/40 opacity-75'
+              : 'bg-bg-primary'
           )}
           style={{ marginLeft: `${Math.min(task.indent * 12, 36)}px` }}
         >

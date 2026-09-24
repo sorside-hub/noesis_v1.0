@@ -274,7 +274,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
                 className={`max-w-[90%] rounded-xl px-3 py-2 text-sm select-text ${
                   msg.role === 'user'
                     ? 'bg-accent-primary text-accent-contrast font-medium rounded-br-none'
-                    : 'bg-bg-elevated border border-border-default text-text-primary rounded-bl-none [&_a]:text-link-primary hover:[&_a]:underline'
+                    : 'bg-bg-primary text-text-primary rounded-bl-none [&_a]:text-link-primary hover:[&_a]:underline'
                 }`}
               >
                 {msg.role === 'user' ? (
@@ -313,7 +313,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
         
         {isLoading && (
           <div className="flex items-start">
-            <div className="bg-bg-elevated border border-border-default text-text-primary rounded-xl rounded-bl-none px-4 py-3 flex items-center gap-2">
+            <div className="bg-bg-primary text-text-primary rounded-xl rounded-bl-none px-4 py-3 flex items-center gap-2">
               <Loader2 size={14} className="animate-spin text-accent-primary" />
               <span className="text-xs text-text-muted">AI is thinking...</span>
             </div>
@@ -321,7 +321,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
         )}
 
         {error && !isLoading && !messages.some(m => m.content.includes('Oops! An error occurred')) && (
-          <div className="text-xs text-status-error bg-status-error-bg p-2.5 rounded-xl border border-status-error-border">
+          <div className="text-xs text-status-error bg-status-error-bg p-2.5 rounded-xl">
             {error}
           </div>
         )}
@@ -331,7 +331,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
       {showScrollBtn && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-[60px] right-3 z-40 p-1.5 rounded-full bg-bg-primary border border-border-default text-text-primary shadow-lg hover:border-accent-primary hover:text-accent-primary transition-all animate-in fade-in slide-in-from-bottom-2 cursor-pointer flex items-center justify-center"
+          className="absolute bottom-[60px] right-3 z-40 p-1.5 rounded-full bg-bg-primary text-text-primary shadow-lg hover:text-accent-primary transition-all animate-in fade-in slide-in-from-bottom-2 cursor-pointer flex items-center justify-center"
           title="Scroll to bottom"
         >
           <ArrowDown size={14} />
@@ -342,7 +342,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
       <div className="pt-2 border-t border-border-subtle">
         <form 
           onSubmit={handleSend}
-          className="relative flex items-center bg-bg-primary border border-border-default rounded-xl focus-within:border-accent-primary transition-colors"
+          className="relative flex items-center gap-2 bg-bg-primary focus-within:ring-1 focus-within:ring-accent-primary/50 rounded-2xl p-2 px-3 transition-all"
         >
           <textarea
             ref={textareaRef}
@@ -350,16 +350,16 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Tanyakan sesuatu tentang catatan ini..."
-            className="w-full bg-transparent border-none resize-none pl-3.5 pr-10 py-2.5 text-sm leading-normal text-text-primary placeholder:text-text-muted outline-none max-h-32 min-h-[40px] custom-scrollbar block"
+            className="w-full bg-transparent border-0 outline-none text-sm leading-relaxed text-text-primary placeholder:text-text-muted resize-none max-h-32 min-h-[36px] py-2 custom-scrollbar block font-sans"
             rows={1}
             disabled={isLoading}
           />
           <button
             type="submit"
-            disabled={isLoading}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-accent-primary text-accent-contrast disabled:opacity-50 disabled:bg-bg-secondary disabled:text-text-muted hover:opacity-90 transition-colors cursor-pointer flex items-center justify-center"
+            disabled={isLoading || !input.trim()}
+            className="p-2 rounded-xl bg-accent-primary text-accent-contrast disabled:opacity-40 disabled:bg-bg-hover disabled:text-text-muted hover:opacity-90 transition-all cursor-pointer flex items-center justify-center shrink-0"
           >
-            <Send size={14} className="text-accent-contrast" />
+            <Send size={15} strokeWidth={2.2} className="text-accent-contrast" />
           </button>
         </form>
       </div>

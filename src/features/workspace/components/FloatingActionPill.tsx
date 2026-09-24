@@ -45,7 +45,7 @@ export const FloatingActionPill: React.FC<FloatingActionPillProps> = ({
           : 'opacity-100 translate-y-0 pointer-events-auto'
       )}
     >
-      <div className="flex items-center gap-1 px-2.5 py-1.5 bg-bg-quaternary rounded-full text-text-secondary transition-all shadow-xl">
+      <div className="flex items-center gap-1 px-2.5 py-1.5 bg-bg-quaternary rounded-full text-text-secondary transition-all">
         {/* TAB: BOOKMARKS */}
         {activeTab === 'bookmarks' ? (
           <>

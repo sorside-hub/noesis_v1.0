@@ -56,18 +56,23 @@ export const BoardCard: React.FC<BoardCardProps> = ({
            onOpenNote(note.id);
         }
       }}
-      className={`group p-2.5 rounded-lg bg-bg-primary border ${isDragging ? 'border-accent-primary shadow-lg ring-1 ring-accent-primary' : 'border-border-default shadow-xs hover:border-accent-primary/50'} transition-colors cursor-grab active:cursor-grabbing flex flex-col gap-2 relative select-none touch-none`}
+      className={`group p-3 rounded-xl bg-bg-primary transition-all cursor-grab active:cursor-grabbing flex flex-col gap-2 relative select-none touch-none ${
+        isDragging
+          ? 'ring-2 ring-accent-primary/50 shadow-xl'
+          : 'shadow-2xs hover:shadow-md hover:bg-bg-hover/70'
+      }`}
     >
       <div className="flex items-start gap-2">
         <FileText size={14} className="text-text-muted mt-0.5 shrink-0 group-hover:text-accent-primary transition-colors" />
-        <h4 className="text-sm font-medium text-text-primary leading-snug line-clamp-2">
-          {note.title}
+        <h4 className="text-xs font-semibold text-text-primary leading-snug line-clamp-2">
+          {note.title || 'Tanpa Judul'}
         </h4>
       </div>
       
-      {/* Dynamic Active Filter Badges */}
-      {dynamicProperties.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 pl-5">
+      {/* Footer: Dynamic Property Info + Updated Date */}
+      <div className="flex items-center justify-between gap-2 pl-5 pt-1.5 border-t border-border-default/30 text-[10px]">
+        {/* Dynamic Active Filter Text (Clean & Unboxed) */}
+        <div className="flex flex-wrap items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
           {dynamicProperties.map(prop => {
             const val = getPropertyValue(note, prop);
             if (val === undefined || val === null || val === '') return null;
@@ -75,20 +80,19 @@ export const BoardCard: React.FC<BoardCardProps> = ({
             return (
               <span 
                 key={prop} 
-                className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded bg-accent-primary/10 text-accent-primary border border-accent-primary/20 truncate max-w-[140px]"
+                className="inline-flex items-center gap-1 text-[10px] text-text-muted truncate max-w-[140px]"
                 title={`${getPropertyLabel(prop)}: ${displayVal}`}
               >
-                <span className="opacity-70">{getPropertyLabel(prop)}:</span>
-                <span className="font-semibold truncate">{displayVal}</span>
+                <span className="opacity-60">{getPropertyLabel(prop)}:</span>
+                <span className="font-medium text-text-secondary truncate">{displayVal}</span>
               </span>
             );
           })}
         </div>
-      )}
-      
-      <div className="flex items-center justify-end pl-5 pt-1.5 border-t border-border-subtle/40">
-        <div className="flex items-center gap-1 text-[10px] text-text-muted shrink-0">
-          <Clock size={10} />
+
+        {/* Date */}
+        <div className="flex items-center gap-1 text-text-muted shrink-0 ml-auto">
+          <Clock size={10} className="opacity-60" />
           <span>{formatDate(note.updatedAt)}</span>
         </div>
       </div>

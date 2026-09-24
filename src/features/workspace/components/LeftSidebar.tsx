@@ -225,7 +225,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       {/* SHARED SEARCH BAR (Context-aware: Files, Tags, Bookmarks) */}
       {/* ----------------------------------------------------------- */}
       {isTreeSearchOpen && (
-        <div ref={searchContainerRef} className="px-2.5 pt-2 pb-1.5 border-b border-border-subtle bg-bg-secondary shadow-xs z-10">
+        <div ref={searchContainerRef} className="px-2.5 pt-2 pb-1.5 border-b border-border-subtle bg-bg-secondary z-10">
           <div className="relative">
             <Search
               size={13}
@@ -255,7 +255,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   ? "Cari tag / catatan..."
                   : "Cari file & folder..."
               }
-              className="w-full pl-7 pr-6 py-1.5 bg-bg-surface border border-border-default rounded-lg text-xs text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/40 focus:border-accent-primary/60 transition-colors"
+              className="w-full pl-7 pr-6 py-1.5 bg-bg-primary rounded-lg text-xs text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/40 transition-colors"
             />
             <button
               type="button"
