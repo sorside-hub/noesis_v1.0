@@ -265,14 +265,6 @@ export const ChatMessageFeed: React.FC<ChatMessageFeedProps> = ({
     >
       {uniqueMessages.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center select-none py-8 relative">
-          <div
-            className="absolute inset-0 opacity-[0.03] pointer-events-none"
-            style={{
-              backgroundImage: 'radial-gradient(var(--accent-primary) 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
-            }}
-          />
-
           <div className="relative z-10 flex flex-col items-center">
             {/* CSS Geometric Diamond Logo */}
             <div className="w-16 h-16 bg-accent-primary rounded-md flex items-center justify-center rotate-45 shadow-md shadow-black/25 mb-6">

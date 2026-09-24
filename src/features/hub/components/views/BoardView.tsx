@@ -340,7 +340,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
       <div className="hidden lg:flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
         <button
           onClick={toggleAll}
-          className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer shadow-2xs ${
+          className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
             visibleColumns.size === allColumns.length
               ? 'bg-accent-primary text-accent-contrast'
               : 'bg-bg-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover'
@@ -358,7 +358,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
             <button
               key={col}
               onClick={() => toggleColumn(col)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5 shadow-2xs ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 isVisible
                   ? 'bg-bg-secondary text-text-primary hover:bg-bg-hover'
                   : 'bg-bg-secondary/40 text-text-muted/60 hover:text-text-muted hover:bg-bg-hover opacity-60'

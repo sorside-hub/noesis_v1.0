@@ -195,19 +195,9 @@ export const GraphView: React.FC<GraphViewProps> = ({ notes, onOpenNote }) => {
 
   return (
     <div
-      className="flex-1 w-full flex flex-col relative rounded-xl border border-border-default overflow-hidden bg-bg-primary min-h-[400px]"
+      className="flex-1 w-full h-full flex flex-col relative overflow-hidden bg-bg-primary min-h-[400px]"
       ref={containerRef}
     >
-      {/* Background Texture (Dark Dot Grid) */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-25"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at center, rgba(255, 255, 255, 0.25) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-
       {/* Floating Action Toolbar */}
       <GraphToolbar
         onZoomIn={handleZoomIn}
@@ -298,7 +288,7 @@ export const GraphView: React.FC<GraphViewProps> = ({ notes, onOpenNote }) => {
       )}
 
       {/* State Indicator */}
-      <div className="absolute top-4 right-4 pointer-events-none px-3 py-1.5 rounded-lg bg-bg-surface/50 backdrop-blur-md border border-border-subtle text-[10px] text-text-muted flex items-center gap-2">
+      <div className="absolute top-4 right-4 pointer-events-none px-3 py-1.5 rounded-lg bg-bg-secondary/90 backdrop-blur-md text-[10px] text-text-muted flex items-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-accent-primary animate-pulse" />
         {renderedGraphData.nodes.length} Nodes &bull; {renderedGraphData.links.length} Links
       </div>

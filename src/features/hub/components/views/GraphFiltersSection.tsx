@@ -42,14 +42,14 @@ export const GraphFiltersSection: React.FC<GraphFiltersSectionProps> = ({
   setDisplaySettings,
 }) => {
   return (
-    <div className="bg-bg-primary/50 border border-border-default rounded-xl overflow-hidden transition-all duration-300">
+    <div className="bg-bg-primary rounded-xl overflow-hidden transition-all duration-300">
       <button
         type="button"
         onClick={onToggle}
         className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-bg-hover transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-md bg-bg-surface border border-border-default flex items-center justify-center text-text-muted">
+          <div className="w-5 h-5 rounded-md bg-bg-secondary flex items-center justify-center text-text-muted">
             <Filter size={12} />
           </div>
           <span className="text-xs font-semibold text-text-primary tracking-wide">
@@ -58,7 +58,7 @@ export const GraphFiltersSection: React.FC<GraphFiltersSectionProps> = ({
         </div>
         <div className="flex items-center gap-2">
           {customFilters.length > 0 && (
-            <span className="text-[10px] text-text-muted px-1.5 py-0.5 rounded bg-bg-hover font-mono">
+            <span className="text-[10px] text-text-muted px-1.5 py-0.5 rounded bg-bg-secondary font-mono">
               {customFilters.length}
             </span>
           )}
@@ -71,11 +71,11 @@ export const GraphFiltersSection: React.FC<GraphFiltersSectionProps> = ({
       </button>
 
       {isOpen && (
-        <div className="px-3 pb-3 pt-2 border-t border-border-subtle/50 space-y-3">
+        <div className="px-3 pb-3 pt-1 space-y-3">
           {customFilters.length > 1 && (
-            <div className="flex items-center justify-between px-2 py-1.5 bg-black/20 rounded-md">
+            <div className="flex items-center justify-between px-2 py-1.5 bg-bg-secondary rounded-lg">
               <span className="text-[10px] text-text-muted font-medium">Logika Kombinasi:</span>
-              <div className="flex items-center gap-1 bg-bg-surface p-0.5 rounded border border-border-subtle">
+              <div className="flex items-center gap-1 bg-bg-primary p-0.5 rounded-md">
                 <button
                   type="button"
                   onClick={() => setDisplaySettings({ ...displaySettings, filterMatchMode: 'all' })}
@@ -104,7 +104,7 @@ export const GraphFiltersSection: React.FC<GraphFiltersSectionProps> = ({
 
           {/* Pills List */}
           {customFilters.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {customFilters.map((filter) => {
                 const label =
                   availableProperties.find((p) => p.key === filter.property)?.label ||
@@ -112,7 +112,7 @@ export const GraphFiltersSection: React.FC<GraphFiltersSectionProps> = ({
                 return (
                   <div
                     key={filter.id}
-                    className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-border-default bg-black/40 text-[10px]"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bg-secondary text-[10px]"
                   >
                     <span className="text-text-muted font-medium">{label}:</span>
                     <span className="text-text-primary font-semibold truncate max-w-[100px]">
@@ -141,7 +141,7 @@ export const GraphFiltersSection: React.FC<GraphFiltersSectionProps> = ({
 
           {/* Add Filter Form */}
           {isAddingFilter ? (
-            <div className="p-2.5 rounded-xl bg-bg-surface border border-border-default shadow-md space-y-2.5 animate-in fade-in duration-150">
+            <div className="p-2.5 rounded-xl bg-bg-secondary space-y-2 animate-in fade-in duration-150">
               <div className="flex items-center gap-2">
                 <select
                   value={newFilterProp}
@@ -149,7 +149,7 @@ export const GraphFiltersSection: React.FC<GraphFiltersSectionProps> = ({
                     setNewFilterProp(e.target.value);
                     setNewFilterVal('');
                   }}
-                  className="flex-1 bg-bg-primary border border-border-default rounded-md px-2 py-1.5 text-[11px] text-text-primary focus:outline-none focus:border-accent-primary"
+                  className="flex-1 bg-bg-primary rounded-md px-2 py-1.5 text-[11px] text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary/40"
                 >
                   <option value="any">Semua Properti</option>
                   <optgroup label="Core Properties">
@@ -197,11 +197,11 @@ export const GraphFiltersSection: React.FC<GraphFiltersSectionProps> = ({
                     }
                   }}
                   placeholder="Ketik nilai..."
-                  className="w-full px-2.5 py-1.5 text-[11px] bg-bg-primary border border-border-default hover:border-border-hover focus:border-accent-primary rounded-md text-text-primary placeholder:text-text-muted/60 focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-[11px] bg-bg-primary rounded-md text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/40"
                 />
                 {showFilterDropdown &&
                   (propertyValuesMap[newFilterProp] || propertyValuesMap.any || []).length > 0 && (
-                    <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-32 overflow-y-auto bg-bg-surface border border-border-default rounded-md shadow-xl py-1 custom-scrollbar">
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-32 overflow-y-auto bg-bg-secondary rounded-md py-1 custom-scrollbar">
                       {(propertyValuesMap[newFilterProp] || propertyValuesMap.any || [])
                         .filter((v: string) =>
                           v.toLowerCase().includes(newFilterVal.toLowerCase())
@@ -249,7 +249,7 @@ export const GraphFiltersSection: React.FC<GraphFiltersSectionProps> = ({
             <button
               type="button"
               onClick={() => setIsAddingFilter(true)}
-              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-[11px] rounded-lg bg-bg-surface hover:bg-bg-hover text-text-secondary hover:text-text-primary transition-all cursor-pointer border border-border-default border-dashed hover:border-border-hover"
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-[11px] rounded-lg bg-bg-secondary hover:bg-bg-hover text-text-secondary hover:text-text-primary transition-all cursor-pointer"
             >
               <Plus size={14} className="text-accent-primary" /> Tambah Filter
             </button>

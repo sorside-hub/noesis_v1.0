@@ -87,9 +87,9 @@ export const GraphSettingsPanel: React.FC<GraphSettingsPanelProps> = ({
   if (!showSettings) return null;
 
   return (
-    <div className="absolute top-4 left-16 right-4 sm:right-auto sm:w-80 z-20 rounded-2xl bg-bg-surface/95 backdrop-blur-2xl border border-border-default flex flex-col max-h-[calc(100%-2rem)] overflow-hidden">
+    <div className="absolute top-4 left-16 right-4 sm:right-auto sm:w-80 z-20 rounded-2xl bg-bg-secondary flex flex-col max-h-[calc(100%-2rem)] overflow-hidden">
       {/* Header */}
-      <div className="flex-none flex items-center justify-between px-4 pt-4 pb-3 border-b border-border-subtle z-10 bg-bg-surface/80">
+      <div className="flex-none flex items-center justify-between px-4 pt-4 pb-3 z-10 bg-bg-secondary">
         <div className="flex items-center gap-2">
           <Settings2 size={15} className="text-accent-primary" />
           <h3 className="text-xs font-bold text-text-primary tracking-wide">PENGATURAN GRAPH</h3>
@@ -98,7 +98,7 @@ export const GraphSettingsPanel: React.FC<GraphSettingsPanelProps> = ({
           <button
             type="button"
             onClick={handleResetSettings}
-            className="p-1 rounded text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
             title="Reset ke Default"
           >
             <RotateCcw size={13} />
@@ -106,7 +106,7 @@ export const GraphSettingsPanel: React.FC<GraphSettingsPanelProps> = ({
           <button
             type="button"
             onClick={() => setShowSettings(false)}
-            className="p-1 rounded text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
           >
             <X size={15} />
           </button>

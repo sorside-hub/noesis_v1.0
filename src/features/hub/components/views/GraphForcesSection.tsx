@@ -16,7 +16,7 @@ export const GraphForcesSection: React.FC<GraphForcesSectionProps> = ({
   setForceSettings,
 }) => {
   return (
-    <div className="rounded-xl bg-bg-surface border border-border-subtle overflow-hidden">
+    <div className="rounded-xl bg-bg-primary overflow-hidden transition-all duration-300">
       <button
         type="button"
         onClick={onToggle}
@@ -33,7 +33,7 @@ export const GraphForcesSection: React.FC<GraphForcesSectionProps> = ({
       </button>
 
       {isOpen && (
-        <div className="px-3 pb-3 pt-2 border-t border-border-subtle/50 space-y-3.5">
+        <div className="px-3 pb-3 pt-1 space-y-3.5">
           {/* Gaya Pusat (0.00 to 1.00, def: 0.52) */}
           <div className="space-y-1">
             <div className="flex justify-between items-center text-xs">
@@ -54,7 +54,7 @@ export const GraphForcesSection: React.FC<GraphForcesSectionProps> = ({
                   centerForce: parseFloat(e.target.value),
                 })
               }
-              className="w-full accent-accent-primary h-1.5 bg-bg-hover rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-accent-primary h-1.5 bg-bg-secondary rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
@@ -78,7 +78,7 @@ export const GraphForcesSection: React.FC<GraphForcesSectionProps> = ({
                   repelForce: parseFloat(e.target.value),
                 })
               }
-              className="w-full accent-accent-primary h-1.5 bg-bg-hover rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-accent-primary h-1.5 bg-bg-secondary rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
@@ -102,7 +102,7 @@ export const GraphForcesSection: React.FC<GraphForcesSectionProps> = ({
                   linkForce: parseFloat(e.target.value),
                 })
               }
-              className="w-full accent-accent-primary h-1.5 bg-bg-hover rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-accent-primary h-1.5 bg-bg-secondary rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
@@ -126,7 +126,7 @@ export const GraphForcesSection: React.FC<GraphForcesSectionProps> = ({
                   linkDistance: parseInt(e.target.value, 10),
                 })
               }
-              className="w-full accent-accent-primary h-1.5 bg-bg-hover rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-accent-primary h-1.5 bg-bg-secondary rounded-lg appearance-none cursor-pointer"
             />
           </div>
         </div>

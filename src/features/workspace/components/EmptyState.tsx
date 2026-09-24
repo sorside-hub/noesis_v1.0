@@ -12,8 +12,6 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onCreateNote, onQuickCap
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center bg-bg-primary px-6 text-center select-none relative">
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--accent-primary) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-      
       <div className="relative z-10 flex flex-col items-center w-full max-w-xl">
         {/* CSS Logo for Sophisticated Dark & Editorial Light */}
         <div className="w-16 h-16 bg-accent-primary rounded-md flex items-center justify-center rotate-45 shadow-md shadow-black/25 mb-8">

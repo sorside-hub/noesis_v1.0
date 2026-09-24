@@ -44,7 +44,7 @@ export const GraphGroupsSection: React.FC<GraphGroupsSectionProps> = ({
   groupMatchCounts,
 }) => {
   return (
-    <div className="rounded-xl bg-bg-surface border border-border-subtle overflow-hidden">
+    <div className="rounded-xl bg-bg-primary overflow-hidden transition-all duration-300">
       <button
         type="button"
         onClick={onToggle}
@@ -58,16 +58,16 @@ export const GraphGroupsSection: React.FC<GraphGroupsSectionProps> = ({
           )}
           Grup
         </span>
-        <span className="text-[10px] text-text-muted px-1.5 py-0.5 rounded bg-bg-hover font-mono">
+        <span className="text-[10px] text-text-muted px-1.5 py-0.5 rounded bg-bg-secondary font-mono">
           {customGroups.length}
         </span>
       </button>
 
       {isOpen && (
-        <div className="px-3 pb-3 pt-2 border-t border-border-subtle/50 space-y-3">
+        <div className="px-3 pb-3 pt-1 space-y-3">
           {/* Pills List */}
           {customGroups.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {customGroups.map((group) => {
                 const matchCount = groupMatchCounts[group.id] || 0;
                 const label =
@@ -76,10 +76,10 @@ export const GraphGroupsSection: React.FC<GraphGroupsSectionProps> = ({
                 return (
                   <div
                     key={group.id}
-                    className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-border-default bg-black/40 text-[10px]"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bg-secondary text-[10px]"
                   >
                     <span
-                      className="w-2.5 h-2.5 rounded-full"
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: group.color }}
                     />
                     <span className="text-text-muted font-medium">{label}:</span>
@@ -110,7 +110,7 @@ export const GraphGroupsSection: React.FC<GraphGroupsSectionProps> = ({
 
           {/* Add Group Form */}
           {isAddingGroup ? (
-            <div className="p-2.5 rounded-xl bg-bg-surface border border-border-default shadow-md space-y-2.5 animate-in fade-in duration-150">
+            <div className="p-2.5 rounded-xl bg-bg-secondary space-y-2 animate-in fade-in duration-150">
               <div className="flex items-center gap-2">
                 <select
                   value={newGroupProp}
@@ -118,7 +118,7 @@ export const GraphGroupsSection: React.FC<GraphGroupsSectionProps> = ({
                     setNewGroupProp(e.target.value);
                     setNewGroupVal('');
                   }}
-                  className="flex-1 bg-bg-primary border border-border-default rounded-md px-2 py-1.5 text-[11px] text-text-primary focus:outline-none focus:border-accent-primary"
+                  className="flex-1 bg-bg-primary rounded-md px-2 py-1.5 text-[11px] text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary/40"
                 >
                   <optgroup label="Core Properties">
                     {availableProperties
@@ -152,7 +152,7 @@ export const GraphGroupsSection: React.FC<GraphGroupsSectionProps> = ({
                 </select>
 
                 <div
-                  className="relative shrink-0 w-7 h-7 rounded-md overflow-hidden cursor-pointer border border-border-default"
+                  className="relative shrink-0 w-7 h-7 rounded-md overflow-hidden cursor-pointer bg-bg-primary"
                   title="Pilih Warna"
                 >
                   <input
@@ -177,12 +177,12 @@ export const GraphGroupsSection: React.FC<GraphGroupsSectionProps> = ({
                     }
                   }}
                   placeholder="Ketik nilai..."
-                  className="w-full px-2.5 py-1.5 text-[11px] bg-bg-primary border border-border-default hover:border-border-hover focus:border-accent-primary rounded-md text-text-primary placeholder:text-text-muted/60 focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-[11px] bg-bg-primary rounded-md text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/40"
                 />
 
                 {showGroupDropdown &&
                   (propertyValuesMap[newGroupProp] || propertyValuesMap.any || []).length > 0 && (
-                    <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-32 overflow-y-auto bg-bg-surface border border-border-default rounded-md shadow-xl py-1 custom-scrollbar">
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-32 overflow-y-auto bg-bg-secondary rounded-md py-1 custom-scrollbar">
                       {(propertyValuesMap[newGroupProp] || propertyValuesMap.any || [])
                         .filter((v: string) =>
                           v.toLowerCase().includes(newGroupVal.toLowerCase())
@@ -230,7 +230,7 @@ export const GraphGroupsSection: React.FC<GraphGroupsSectionProps> = ({
             <button
               type="button"
               onClick={() => setIsAddingGroup(true)}
-              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-[11px] rounded-lg bg-bg-surface hover:bg-bg-hover text-text-secondary hover:text-text-primary transition-all cursor-pointer border border-border-default border-dashed hover:border-border-hover"
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-[11px] rounded-lg bg-bg-secondary hover:bg-bg-hover text-text-secondary hover:text-text-primary transition-all cursor-pointer"
             >
               <Plus size={14} className="text-accent-primary" /> Tambah Grup
             </button>

@@ -13,6 +13,7 @@ import { handleChatGenerate, handleChatStream, ChatHistoryMessage } from './src/
 import { handleSummarizeChatMemory } from './src/api-core/chatMemoryHandler';
 import { handleVoiceToNote } from './src/api-core/voiceHandler';
 import { handleInboxTriage } from './src/api-core/inboxTriageHandler';
+import { handleExplainConnection } from './src/api-core/smartConnectionHandler';
 
 // Load environment variables from .env
 dotenv.config();
@@ -161,6 +162,25 @@ async function startServer() {
       res.json(result);
     } catch (error: unknown) {
       console.error('[API /api/inbox/triage Error]:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Internal Server Error' });
+    }
+  });
+
+  // POST /api/smart-connections/explain - AI Synthesis Bridge for Smart Connections
+  app.post('/api/smart-connections/explain', async (req, res) => {
+    try {
+      const { noteA, noteB, sharedConcepts, sharedKeywords, customKeys } = req.body;
+      if (!noteA || !noteB) {
+        return res.status(400).json({ error: 'noteA and noteB are required' });
+      }
+      const result = await handleExplainConnection(
+        { noteA, noteB, sharedConcepts, sharedKeywords, customKeys },
+        customKeys,
+        process.env
+      );
+      res.json(result);
+    } catch (error: unknown) {
+      console.error('[API /api/smart-connections/explain Error]:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Internal Server Error' });
     }
   });

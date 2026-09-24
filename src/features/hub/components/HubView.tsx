@@ -15,7 +15,8 @@ import {
   Eye,
   ChevronDown,
   CheckSquare,
-  Square
+  Square,
+  Sparkles
 } from 'lucide-react';
 import { VaultData, FileNode } from '../../../types/vault';
 import { useNavigation } from '../../../context/NavigationContext';
@@ -25,7 +26,7 @@ import { useHubData } from '../hooks/useHubData';
 import { TableView } from './views/TableView';
 import { BoardView, getBoardColumns, BOARD_COLUMNS_STORAGE_KEY } from './views/BoardView';
 import { InboxTriageView } from './views/InboxTriageView';
-import { ConceptsView } from './views/ConceptsView';
+import { SmartConnectionsView } from './views/SmartConnectionsView';
 
 import { GraphView } from './views/GraphView';
 import { HubFilterBar, DynamicFilter } from './HubFilterBar';
@@ -233,7 +234,7 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
     { id: 'inbox', label: 'Inbox Triage', icon: Inbox, category: 'metadata' },
     { id: 'table', label: 'Table Matrix', icon: Table2, category: 'metadata' },
     { id: 'board', label: 'Board / Kanban', icon: SquareKanban, category: 'metadata' },
-    { id: 'concepts', label: 'Peta Konsep', icon: Waypoints, category: 'metadata' },
+    { id: 'concepts', label: 'Smart Connections', icon: Sparkles, category: 'discovery' },
     { id: 'graph', label: 'Graph View', icon: Network, category: 'discovery' },
   ];
 
@@ -340,7 +341,8 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
         />
 
         {/* Top Header / Action Bar */}
-        <div className="relative z-30 px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 border-b border-border-default bg-bg-primary flex flex-row items-center justify-between gap-2.5 shrink-0 min-h-[42px]">
+        {activeSubView !== 'concepts' && (
+          <div className="relative z-30 px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 border-b border-border-default bg-bg-primary flex flex-row items-center justify-between gap-2.5 shrink-0 min-h-[42px]">
           {/* Title - Hidden on mobile if search is open */}
           <div className={`flex items-center gap-2 ${isMobileSearchOpen ? 'hidden sm:flex' : 'flex'}`}>
             <h1 className="text-sm sm:text-base font-semibold text-text-heading capitalize">
@@ -357,7 +359,7 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
                   <button
                     type="button"
                     onClick={() => setIsBoardColDropdownOpen(!isBoardColDropdownOpen)}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-bg-secondary text-[11px] font-medium text-text-secondary hover:text-text-primary transition-colors shadow-2xs cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-bg-secondary text-[11px] font-medium text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                     title="Column Visibility"
                   >
                     <Eye size={12} className="text-accent-primary" />
@@ -366,11 +368,11 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
                   </button>
 
                   {isBoardColDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-1.5 w-52 bg-bg-secondary rounded-xl shadow-2xl z-50 flex flex-col py-1 animate-in fade-in slide-in-from-top-2 duration-150 border border-bg-elevated/40">
+                    <div className="absolute top-full right-0 mt-1.5 w-52 bg-bg-secondary rounded-xl z-50 flex flex-col py-1 animate-in fade-in slide-in-from-top-2 duration-150">
                       <button
                         type="button"
                         onClick={toggleAllBoardColumns}
-                        className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-text-primary hover:bg-bg-hover transition-colors border-b border-border-default/40 cursor-pointer"
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
                       >
                         {boardVisibleColumns.size === allBoardColumns.length ? (
                           <CheckSquare size={14} className="text-accent-primary" />
@@ -470,9 +472,10 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
             </div>
           )}
         </div>
+      )}
         
         {/* Independent Tab Filter Bar */}
-        {activeSubView !== 'graph' && activeSubView !== 'inbox' && (
+        {activeSubView !== 'graph' && activeSubView !== 'inbox' && activeSubView !== 'concepts' && (
           <div className="px-3 sm:px-4 lg:px-5 py-1.5 bg-bg-primary">
             <HubFilterBar 
               notes={allFiles} 
@@ -483,12 +486,12 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
         )}
 
         {/* Sub-View Content Canvas Container */}
-        <div className={`flex-1 ${activeSubView === 'graph' || activeSubView === 'inbox' || activeSubView === 'board' ? 'overflow-hidden p-2 lg:p-4' : 'overflow-y-auto p-4 lg:p-6'} custom-scrollbar flex flex-col`}>
+        <div className={`flex-1 ${activeSubView === 'graph' || activeSubView === 'concepts' ? 'overflow-hidden p-0' : activeSubView === 'inbox' || activeSubView === 'board' ? 'overflow-hidden p-2 lg:p-4' : 'overflow-y-auto p-4 lg:p-6'} custom-scrollbar flex flex-col`}>
           {/* Active View Container */}
-          <div className={`w-full flex-1 flex flex-col ${activeSubView === 'graph' || activeSubView === 'inbox' || activeSubView === 'board' ? 'h-full min-h-0' : 'max-w-7xl mx-auto space-y-4'}`}>
+          <div className={`w-full flex-1 flex flex-col ${activeSubView === 'graph' || activeSubView === 'inbox' || activeSubView === 'board' || activeSubView === 'concepts' ? 'h-full min-h-0' : 'max-w-7xl mx-auto space-y-4'}`}>
 
             {/* Active Sub-View Rendering */}
-            <div className={`w-full flex-1 flex flex-col ${activeSubView === 'graph' || activeSubView === 'inbox' || activeSubView === 'board' ? 'h-full min-h-0' : ''}`}>
+            <div className={`w-full flex-1 flex flex-col ${activeSubView === 'graph' || activeSubView === 'inbox' || activeSubView === 'board' || activeSubView === 'concepts' ? 'h-full min-h-0' : ''}`}>
               {activeSubView === 'inbox' && (
                 <InboxTriageView
                   notes={filteredNotes}
@@ -514,7 +517,11 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
                 />
               )}
               {activeSubView === 'concepts' && (
-                <ConceptsView notes={filteredNotes} onOpenNote={navigateToNote} />
+                <SmartConnectionsView 
+                  notes={allFiles} 
+                  onOpenNote={navigateToNote} 
+                  vaultState={vaultState}
+                />
               )}
               {activeSubView === 'graph' && (
                 <GraphView notes={filteredNotes} onOpenNote={navigateToNote} />

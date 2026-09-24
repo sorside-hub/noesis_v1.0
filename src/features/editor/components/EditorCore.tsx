@@ -364,8 +364,6 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
       ref={containerRef} 
       className="w-full h-full overflow-y-auto bg-bg-primary text-text-primary flex flex-col relative"
     >
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--accent-primary) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-      
       {/* Integrated Title inside the unified scroll container */}
       <div className="flex-none relative z-10">
         <NoteTitle

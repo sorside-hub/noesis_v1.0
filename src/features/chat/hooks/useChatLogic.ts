@@ -47,6 +47,26 @@ export function useChatLogic(vault: VaultData, activeTabId: string | null) {
   useEffect(() => {
     localStorage.setItem('noesis_chat_threshold', threshold.toString());
   }, [threshold]);
+
+  // Support prefilling chat prompt from Smart Connections
+  useEffect(() => {
+    const pending = sessionStorage.getItem('noesis_pending_chat_prompt');
+    if (pending) {
+      sessionStorage.removeItem('noesis_pending_chat_prompt');
+      setInput(pending);
+      setMode('rag');
+    }
+
+    const handleCustomPrompt = (e: any) => {
+      if (e.detail?.prompt) {
+        setInput(e.detail.prompt);
+        setMode('rag');
+      }
+    };
+    window.addEventListener('noesis-set-chat-input', handleCustomPrompt);
+    return () => window.removeEventListener('noesis-set-chat-input', handleCustomPrompt);
+  }, []);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingPhase, setProcessingPhase] = useState<'idle' | 'rag' | 'generating'>('idle');
 

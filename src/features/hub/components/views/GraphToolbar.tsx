@@ -21,7 +21,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
   onToggleSettings,
 }) => {
   return (
-    <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 p-1 rounded-xl bg-bg-surface/85 backdrop-blur-xl border border-border-default">
+    <div className="absolute top-4 left-4 z-20 flex flex-col gap-1 p-1 rounded-xl bg-bg-secondary/90 backdrop-blur-xl">
       <button
         onClick={onZoomIn}
         className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
@@ -36,7 +36,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
       >
         <Minus size={16} />
       </button>
-      <div className="w-full h-px bg-border-subtle my-0.5" />
+      <div className="w-full h-px bg-text-muted/10 my-0.5" />
       <button
         onClick={onResetZoom}
         className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
@@ -48,7 +48,7 @@ export const GraphToolbar: React.FC<GraphToolbarProps> = ({
         onClick={onToggleAnimate}
         className={`p-2 rounded-lg transition-all cursor-pointer ${
           isAnimating
-            ? 'text-accent-contrast bg-accent-primary font-bold shadow-xs ring-1 ring-accent-primary/40'
+            ? 'text-accent-contrast bg-accent-primary font-bold'
             : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
         }`}
         title={isAnimating ? 'Hentikan Animasi' : 'Mulai Animasi'}

@@ -16,7 +16,7 @@ export const GraphDisplaySection: React.FC<GraphDisplaySectionProps> = ({
   setDisplaySettings,
 }) => {
   return (
-    <div className="rounded-xl bg-bg-surface border border-border-subtle overflow-hidden">
+    <div className="rounded-xl bg-bg-primary overflow-hidden transition-all duration-300">
       <button
         type="button"
         onClick={onToggle}
@@ -33,7 +33,7 @@ export const GraphDisplaySection: React.FC<GraphDisplaySectionProps> = ({
       </button>
 
       {isOpen && (
-        <div className="px-3 pb-3 pt-2 border-t border-border-subtle/50 space-y-3.5">
+        <div className="px-3 pb-3 pt-1 space-y-3.5">
           {/* On/Off Ikon Panah */}
           <div
             onClick={() =>
@@ -49,7 +49,7 @@ export const GraphDisplaySection: React.FC<GraphDisplaySectionProps> = ({
             </span>
             <div
               className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${
-                displaySettings.showArrows ? 'bg-accent-primary' : 'bg-bg-hover'
+                displaySettings.showArrows ? 'bg-accent-primary' : 'bg-bg-secondary'
               }`}
             >
               <div
@@ -82,7 +82,7 @@ export const GraphDisplaySection: React.FC<GraphDisplaySectionProps> = ({
                   textFadeThreshold: parseFloat(e.target.value),
                 })
               }
-              className="w-full accent-accent-primary h-1.5 bg-bg-hover rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-accent-primary h-1.5 bg-bg-secondary rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
@@ -106,7 +106,7 @@ export const GraphDisplaySection: React.FC<GraphDisplaySectionProps> = ({
                   nodeSizeScale: parseFloat(e.target.value),
                 })
               }
-              className="w-full accent-accent-primary h-1.5 bg-bg-hover rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-accent-primary h-1.5 bg-bg-secondary rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
@@ -130,11 +130,11 @@ export const GraphDisplaySection: React.FC<GraphDisplaySectionProps> = ({
                   linkThickness: parseFloat(e.target.value),
                 })
               }
-              className="w-full accent-accent-primary h-1.5 bg-bg-hover rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-accent-primary h-1.5 bg-bg-secondary rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
-          <div className="pt-2.5 border-t border-border-subtle/50 space-y-2.5">
+          <div className="pt-1 space-y-2.5">
             {/* Label on/off */}
             <div
               onClick={() =>
@@ -150,7 +150,7 @@ export const GraphDisplaySection: React.FC<GraphDisplaySectionProps> = ({
               </span>
               <div
                 className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${
-                  displaySettings.showNodeLabels ? 'bg-accent-primary' : 'bg-bg-hover'
+                  displaySettings.showNodeLabels ? 'bg-accent-primary' : 'bg-bg-secondary'
                 }`}
               >
                 <div
@@ -178,7 +178,7 @@ export const GraphDisplaySection: React.FC<GraphDisplaySectionProps> = ({
               </span>
               <div
                 className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${
-                  displaySettings.hideOrphans ? 'bg-accent-primary' : 'bg-bg-hover'
+                  displaySettings.hideOrphans ? 'bg-accent-primary' : 'bg-bg-secondary'
                 }`}
               >
                 <div
@@ -206,7 +206,7 @@ export const GraphDisplaySection: React.FC<GraphDisplaySectionProps> = ({
               </span>
               <div
                 className={`w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${
-                  displaySettings.showSemanticLinks ? 'bg-accent-primary' : 'bg-bg-hover'
+                  displaySettings.showSemanticLinks ? 'bg-accent-primary' : 'bg-bg-secondary'
                 }`}
               >
                 <div
