@@ -4,7 +4,6 @@ import { SettingsView } from './features/settings/components/SettingsView';
 import { ChatView } from './features/chat/components/ChatView';
 import { HubView } from './features/hub/components/HubView';
 import { MediaView } from './features/media/components/MediaView';
-import { SorsideView } from './features/sorside/components/SorsideView';
 import { BottomNavPill } from './components/navigation/BottomNavPill';
 import { ActivityBar } from './components/navigation/ActivityBar';
 import { useVault } from './hooks/useVault';
@@ -101,11 +100,6 @@ function AppContent({ vaultState }: { vaultState: ReturnType<typeof useVault> })
         {/* Media Library View */}
         <div className={`absolute inset-0 ${view === 'media' ? 'block' : 'hidden'}`}>
           <MediaView vaultState={vaultState} />
-        </div>
-
-        {/* SORSIDE Studio View (Website CMS) */}
-        <div className={`absolute inset-0 ${view === 'sorside' ? 'block' : 'hidden'}`}>
-          <SorsideView vaultState={vaultState} />
         </div>
 
         {/* Settings View */}

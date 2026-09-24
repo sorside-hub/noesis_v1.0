@@ -53,12 +53,14 @@ export const MediaHubHome: React.FC<MediaHubHomeProps> = ({
 
               <div className="mt-3 pt-2.5 border-t border-border-subtle flex items-center justify-between text-[11px] sm:text-xs">
                 <span className="text-text-muted font-medium">Jumlah:</span>
-                <span className={`font-bold font-mono px-2 py-0.5 rounded-md ${
+                <span className={`font-mono px-2 py-0.5 rounded-md ${
                   cat.id === 'trash' && count > 0
-                    ? 'bg-red-500/10 text-red-500'
+                    ? 'bg-red-500/10 text-red-500 font-bold'
                     : cat.id === 'unused' && count > 0
-                    ? 'bg-amber-500/10 text-amber-500'
-                    : 'bg-bg-elevated text-text-primary'
+                    ? 'bg-amber-500/10 text-amber-500 font-bold'
+                    : count > 0
+                    ? 'bg-bg-elevated text-text-primary font-bold'
+                    : 'bg-bg-elevated text-text-muted font-medium'
                 }`}>
                   {count} File
                 </span>

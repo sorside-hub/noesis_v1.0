@@ -40,16 +40,10 @@ export const useNavigationActions = ({
   // Navigate between top-level views ('vault' <-> 'settings')
   const navigateView = useCallback(
     (newView: ActiveTab) => {
-      // 1. If clicking the SAME tab that is currently active (e.g., clicking active SORSIDE or MEDIA again):
+      // 1. If clicking the SAME tab that is currently active (e.g., clicking active MEDIA again):
       if (newView === view) {
-        // Reset SORSIDE to main list if already on SORSIDE
-        if (newView === 'sorside') {
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('reset-sorside-view'));
-          }
-        }
         // Reset Media Category to main home if already on MEDIA
-        else if (newView === 'media') {
+        if (newView === 'media') {
           setMediaCategory(null);
         }
 

@@ -58,7 +58,7 @@ export const MediaHeader: React.FC<MediaHeaderProps> = ({
               {selectedCategory && currentCategoryMeta ? currentCategoryMeta.title : 'Media & Lampiran'}
             </h1>
             {selectedCategory && (
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-bg-elevated border border-border-subtle text-text-muted">
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-bg-secondary text-text-muted">
                 {getCategoryCount(selectedCategory)} File
               </span>
             )}
@@ -75,27 +75,7 @@ export const MediaHeader: React.FC<MediaHeaderProps> = ({
       {/* Action Hub Buttons */}
       {selectedCategory === null ? (
         <div className="flex items-center flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onScanStorage}
-            disabled={isScanning || isLoading}
-            title="Pindai file di Cloud Storage"
-            className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-          >
-            <CloudDownload className={`w-4 h-4 text-text-primary ${isScanning ? 'animate-bounce' : ''}`} />
-            <span className="hidden sm:inline">{isScanning ? 'Memindai...' : 'Pindai Storage'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={isLoading || isScanning}
-            title="Refresh Media List"
-            className="p-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary transition-all cursor-pointer"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
-          </button>
-
+          {/* 1. Upload Button (di kiri) */}
           <button
             type="button"
             onClick={onUploadClick}
@@ -114,15 +94,38 @@ export const MediaHeader: React.FC<MediaHeaderProps> = ({
               </>
             )}
           </button>
+
+          {/* 2. Sync Buttons (di kanan): Pindai Storage & Refresh */}
+          <button
+            type="button"
+            onClick={onScanStorage}
+            disabled={isScanning || isLoading}
+            title="Pindai file di Cloud Storage"
+            className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <CloudDownload className={`w-4 h-4 text-text-muted ${isScanning ? 'animate-bounce' : ''}`} />
+            <span className="hidden sm:inline text-text-primary">{isScanning ? 'Memindai...' : 'Pindai Storage'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isLoading || isScanning}
+            title="Refresh Media List"
+            className="p-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary transition-all cursor-pointer"
+          >
+            <RefreshCw className={`w-4 h-4 text-text-muted ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
+          </button>
         </div>
       ) : (
-        /* Action buttons in Detail View */
+        /* Action buttons in Detail View: Upload di kiri, Sync di kanan */
         <div className="flex items-center flex-wrap gap-2">
+          {/* 1. Upload / Action button (di kiri) */}
           {selectedCategory === 'voice_memo' ? (
             <button
               type="button"
               onClick={onOpenVoiceMemo}
-              className="px-3 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl bg-accent-primary text-accent-contrast font-medium text-xs hover:opacity-90 active:scale-95 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <Mic className="w-3.5 h-3.5" />
               <span>Rekam Memo</span>
@@ -151,7 +154,7 @@ export const MediaHeader: React.FC<MediaHeaderProps> = ({
               type="button"
               onClick={onUploadClick}
               disabled={isUploading}
-              className="px-3 py-2 rounded-xl bg-accent-primary text-accent-contrast font-medium text-xs hover:opacity-90 active:scale-95 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3.5 py-2 rounded-xl bg-accent-primary text-accent-contrast font-medium text-xs hover:opacity-90 active:scale-95 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               {isUploading ? (
                 <>
@@ -167,14 +170,28 @@ export const MediaHeader: React.FC<MediaHeaderProps> = ({
             </button>
           )}
 
+          {/* 2. Sync Buttons (di kanan) */}
+          {selectedCategory !== 'trash' && (
+            <button
+              type="button"
+              onClick={onScanStorage}
+              disabled={isScanning || isLoading}
+              title="Pindai file di Cloud Storage"
+              className="p-2.5 sm:px-3 sm:py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <CloudDownload className={`w-4 h-4 text-text-muted ${isScanning ? 'animate-bounce' : ''}`} />
+              <span className="hidden sm:inline text-text-primary">{isScanning ? 'Memindai...' : 'Pindai Storage'}</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onRefresh}
             disabled={isLoading || isScanning}
             title="Refresh Media List"
-            className="p-2 rounded-xl border border-border-default hover:bg-bg-hover text-text-muted hover:text-text-primary transition-all cursor-pointer"
+            className="p-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary transition-all cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-text-muted ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
           </button>
         </div>
       )}

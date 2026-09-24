@@ -1,10 +1,10 @@
 import React from 'react';
-import { Folder, LayoutGrid, MessageSquare, HardDrive, Globe, Settings } from 'lucide-react';
+import { Folder, LayoutGrid, MessageSquare, HardDrive, Settings } from 'lucide-react';
 import { useScrollDirection } from '../../hooks/useScrollDirection';
 import { useVirtualKeyboard } from '../../hooks/useVirtualKeyboard';
 import { useNavigation } from '../../context/NavigationContext';
 
-export type ActiveTab = 'vault' | 'hub' | 'chat' | 'media' | 'sorside' | 'settings';
+export type ActiveTab = 'vault' | 'hub' | 'chat' | 'media' | 'settings';
 
 interface BottomNavPillProps {
   activeTab: ActiveTab;
@@ -112,20 +112,6 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           }`}
         >
           <HardDrive size={15} />
-        </button>
-
-        <button
-          type="button"
-          aria-label="SORSIDE Studio"
-          title="SORSIDE Studio"
-          onClick={() => handleTabChange('sorside')}
-          className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
-            activeTab === 'sorside'
-              ? 'bg-accent-primary text-accent-contrast font-semibold'
-              : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
-          }`}
-        >
-          <Globe size={15} />
         </button>
 
         <button

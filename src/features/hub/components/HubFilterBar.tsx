@@ -208,25 +208,25 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
         </div>
       )}
 
-      {/* Add Filter Form */}
+      {/* Add Filter Form - Compact 1-Row Layout */}
       {isAdding && (
-        <div className="flex flex-wrap items-start sm:items-center gap-2 p-2.5 rounded-xl bg-bg-secondary transition-all animate-in fade-in duration-150 shadow-xs">
-          {/* 3 Categories Property Select */}
-          <div className="relative">
+        <div className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-lg bg-bg-secondary transition-all animate-in fade-in duration-150 w-full relative">
+          {/* Property Select */}
+          <div className="shrink-0 max-w-[110px] sm:max-w-[140px]">
             <select
               value={newProp}
               onChange={(e) => {
                 setNewProp(e.target.value);
                 setNewVal('');
               }}
-              className="bg-bg-primary hover:bg-bg-primary/90 focus:ring-1 focus:ring-accent-primary/50 rounded-xl px-3 py-2 text-xs text-text-primary focus:outline-none min-w-[155px] cursor-pointer transition-all shadow-2xs"
+              className="w-full bg-bg-primary hover:bg-bg-primary/90 rounded-md px-2 py-1 text-[11px] sm:text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary/40 cursor-pointer transition-all truncate"
             >
               <option value="" className="bg-bg-primary text-text-muted">
-                -- Pilih Properti --
+                -- Properti --
               </option>
 
               {/* 1. Core Properties */}
-              <optgroup label="Core Properties" className="bg-bg-primary text-accent-primary font-semibold">
+              <optgroup label="Core" className="bg-bg-primary text-accent-primary font-semibold">
                 {CORE_PROPERTIES.map(p => (
                   <option key={p.key} value={p.key} className="bg-bg-primary text-text-primary font-normal">
                     {p.label}
@@ -236,7 +236,7 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
 
               {/* 2. Custom Properties */}
               {customKeys.length > 0 && (
-                <optgroup label="Custom Properties" className="bg-bg-primary text-blue-400 font-semibold">
+                <optgroup label="Custom" className="bg-bg-primary text-blue-400 font-semibold">
                   {customKeys.map(k => (
                     <option key={k} value={k} className="bg-bg-primary text-text-primary font-normal">
                       {k}
@@ -246,7 +246,7 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
               )}
 
               {/* 3. Analysis Properties (AI) */}
-              <optgroup label="AI Properties" className="bg-bg-primary text-purple-400 font-semibold">
+              <optgroup label="AI" className="bg-bg-primary text-purple-400 font-semibold">
                 {ANALYSIS_PROPERTIES.map(p => (
                   <option key={p.key} value={p.key} className="bg-bg-primary text-text-primary font-normal">
                     {p.label}
@@ -256,77 +256,76 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
             </select>
           </div>
 
-          {/* Dynamic Auto-complete Value Input with Unified Integrated Popup */}
-          {newProp && (
-            <div 
-              className="relative flex-1 min-w-[170px] bg-bg-primary rounded-xl transition-all focus-within:ring-1 focus-within:ring-accent-primary/50 overflow-hidden shadow-2xs" 
-              ref={dropdownRef}
-            >
-              <div className="relative flex items-center">
-                <input
-                  type="text"
-                  value={newVal}
-                  onChange={(e) => {
-                    setNewVal(e.target.value);
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => setShowDropdown(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && newProp && newVal.trim()) {
-                      addFilter();
-                      setShowDropdown(false);
-                    }
-                  }}
-                  placeholder={`Ketik nilai ${getPropertyLabel(newProp)}...`}
-                  className="w-full bg-transparent pl-3 pr-8 py-2 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
-                  autoFocus
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className="absolute right-2.5 text-text-muted hover:text-text-primary cursor-pointer p-0.5"
-                >
-                  <ChevronDown size={13} className={`transition-transform duration-150 ${showDropdown ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
+          {/* Dynamic Auto-complete Value Input with Floating Overlay Dropdown */}
+          <div 
+            className="relative flex-1 min-w-0 bg-bg-primary rounded-md flex items-center focus-within:ring-1 focus-within:ring-accent-primary/40" 
+            ref={dropdownRef}
+          >
+            <input
+              type="text"
+              value={newVal}
+              disabled={!newProp}
+              onChange={(e) => {
+                setNewVal(e.target.value);
+                setShowDropdown(true);
+              }}
+              onFocus={() => {
+                if (newProp) setShowDropdown(true);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newProp && newVal.trim()) {
+                  addFilter();
+                  setShowDropdown(false);
+                }
+              }}
+              placeholder={newProp ? `Nilai ${getPropertyLabel(newProp)}...` : 'Pilih properti dulu...'}
+              className="w-full bg-transparent pl-2 pr-6 py-1 text-[11px] sm:text-xs text-text-primary placeholder:text-text-muted/50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed truncate"
+              autoFocus
+            />
+            {newProp && (
+              <button
+                type="button"
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="absolute right-1 text-text-muted hover:text-text-primary cursor-pointer p-0.5"
+              >
+                <ChevronDown size={11} className={`transition-transform duration-150 ${showDropdown ? 'rotate-180' : ''}`} />
+              </button>
+            )}
 
-              {showDropdown && propertyValues.length > 0 && (
-                <div className="animate-in fade-in duration-150">
-                  <div className="mx-2.5 h-px bg-border-default/30 my-0.5" />
-                  <div className="max-h-40 overflow-y-auto px-1 pb-1 space-y-0.5 custom-scrollbar">
-                    {propertyValues
-                      .filter(v => v.toLowerCase().includes(newVal.toLowerCase()))
-                      .map(v => (
-                        <button
-                          key={v}
-                          type="button"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            setNewVal(v);
-                            setShowDropdown(false);
-                          }}
-                          className="w-full text-left px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover hover:text-accent-primary rounded-lg transition-colors cursor-pointer"
-                        >
-                          {v}
-                        </button>
-                      ))}
-                    {propertyValues.filter(v => v.toLowerCase().includes(newVal.toLowerCase())).length === 0 && (
-                      <div className="px-3 py-2 text-xs text-text-muted text-center italic">
-                        Tidak ada opsi yang cocok
-                      </div>
-                    )}
+            {/* Floating Autocomplete Dropdown Popup */}
+            {showDropdown && newProp && propertyValues.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-bg-secondary rounded-lg shadow-xl z-50 py-1 border border-border-default/60 max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-100 min-w-[140px]">
+                {propertyValues
+                  .filter(v => v.toLowerCase().includes(newVal.toLowerCase()))
+                  .map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setNewVal(v);
+                        setShowDropdown(false);
+                      }}
+                      className="w-full text-left px-2.5 py-1 text-[11px] sm:text-xs text-text-primary hover:bg-bg-hover hover:text-accent-primary transition-colors cursor-pointer truncate"
+                    >
+                      {v}
+                    </button>
+                  ))}
+                {propertyValues.filter(v => v.toLowerCase().includes(newVal.toLowerCase())).length === 0 && (
+                  <div className="px-2.5 py-1.5 text-[11px] text-text-muted text-center italic">
+                    Tidak ada opsi cocok
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1.5 ml-auto self-center">
+          {/* Action Buttons: Add & Cancel */}
+          <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={addFilter}
               disabled={!newProp || !newVal.trim()}
-              className="px-3 py-2 rounded-xl bg-accent-primary text-accent-contrast font-medium text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
+              className="px-2 sm:px-2.5 py-1 rounded-md bg-accent-primary text-accent-contrast font-medium text-[11px] sm:text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity cursor-pointer shadow-2xs"
             >
               Add
             </button>
@@ -335,11 +334,12 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
                 setIsAdding(false);
                 setNewProp('');
                 setNewVal('');
+                setShowDropdown(false);
               }}
-              className="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
+              className="p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
               title="Batal"
             >
-              <X size={14} />
+              <X size={13} />
             </button>
           </div>
         </div>

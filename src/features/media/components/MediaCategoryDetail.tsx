@@ -116,7 +116,7 @@ export const MediaCategoryDetail: React.FC<MediaCategoryDetailProps> = ({
             <button
               type="button"
               onClick={onOpenVoiceMemo}
-              className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl bg-accent-primary text-accent-contrast text-xs font-semibold hover:opacity-90 transition-opacity shadow-xs cursor-pointer flex items-center gap-1.5"
             >
               <Mic className="w-3.5 h-3.5" />
               <span>Mulai Rekam Voice Memo</span>

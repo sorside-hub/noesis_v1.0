@@ -473,7 +473,7 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
         
         {/* Independent Tab Filter Bar */}
         {activeSubView !== 'graph' && activeSubView !== 'inbox' && (
-          <div className="px-3 sm:px-4 lg:px-5 py-1.5 border-b border-border-default bg-bg-primary">
+          <div className="px-3 sm:px-4 lg:px-5 py-1.5 bg-bg-primary">
             <HubFilterBar 
               notes={allFiles} 
               filters={tabFilters[activeSubView] || []} 

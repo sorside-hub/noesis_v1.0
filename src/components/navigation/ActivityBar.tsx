@@ -1,5 +1,5 @@
 import React from 'react';
-import { Folder, LayoutGrid, Settings, MessageSquare, HardDrive, Globe, Plus, AudioLines } from 'lucide-react';
+import { Folder, LayoutGrid, Settings, MessageSquare, HardDrive, Plus, AudioLines } from 'lucide-react';
 import { ActiveTab } from './BottomNavPill';
 import { useNavigation } from '../../context/NavigationContext';
 
@@ -110,20 +110,6 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({ activeTab, onTabChange
           }`}
         >
           <HardDrive size={18} strokeWidth={activeTab === 'media' ? 2.2 : 1.8} />
-        </button>
-
-        {/* SORSIDE Studio Tab (CMS Website) */}
-        <button
-          type="button"
-          title="SORSIDE Studio (CMS Website)"
-          onClick={() => onTabChange('sorside')}
-          className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-150 cursor-pointer ${
-            activeTab === 'sorside'
-              ? 'text-accent-contrast bg-accent-primary shadow-xs font-semibold border border-accent-primary/40'
-              : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
-          }`}
-        >
-          <Globe size={18} strokeWidth={activeTab === 'sorside' ? 2.2 : 1.8} />
         </button>
       </div>
 

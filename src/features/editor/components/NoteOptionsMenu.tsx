@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreHorizontal, FolderInput, Trash2, Star, StarOff, FileDown, Globe, Sparkles } from 'lucide-react';
+import { MoreHorizontal, FolderInput, Trash2, Star, StarOff, FileDown, Sparkles } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { FileNode } from '../../../types/vault';
 import { ExportNoteModal } from '../../../components/modals/ExportNoteModal';
@@ -206,24 +206,6 @@ export const NoteOptionsMenu: React.FC<NoteOptionsMenuProps> = ({
                     <span>Bookmark</span>
                   </>
                 )}
-              </button>
-            )}
-
-            {/* Publish to SORSIDE Action */}
-            {node && (
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  navigation?.navigateView('sorside');
-                  setTimeout(() => {
-                    window.dispatchEvent(new CustomEvent('publish-note-to-sorside', { detail: node }));
-                  }, 50);
-                }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-text-primary hover:bg-bg-hover hover:text-accent-primary transition-colors cursor-pointer text-left"
-              >
-                <Globe size={14} className="text-accent-primary shrink-0" />
-                <span>Publish ke SORSIDE</span>
               </button>
             )}
 
