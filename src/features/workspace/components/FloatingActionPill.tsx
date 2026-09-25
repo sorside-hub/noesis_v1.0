@@ -18,6 +18,8 @@ interface FloatingActionPillProps {
   handleToggleExpandCollapseAllTags?: () => void;
   areAllGroupsCollapsed?: boolean;
   handleToggleExpandCollapseAllGroups?: () => void;
+  areAllPropertiesCollapsed?: boolean;
+  handleToggleExpandCollapseAllProperties?: () => void;
 }
 
 export const FloatingActionPill: React.FC<FloatingActionPillProps> = ({
@@ -35,6 +37,8 @@ export const FloatingActionPill: React.FC<FloatingActionPillProps> = ({
   handleToggleExpandCollapseAllTags,
   areAllGroupsCollapsed = false,
   handleToggleExpandCollapseAllGroups,
+  areAllPropertiesCollapsed = false,
+  handleToggleExpandCollapseAllProperties,
 }) => {
   return (
     <div
@@ -46,8 +50,57 @@ export const FloatingActionPill: React.FC<FloatingActionPillProps> = ({
       )}
     >
       <div className="flex items-center gap-1 px-2.5 py-1.5 bg-bg-quaternary rounded-full text-text-secondary transition-all">
-        {/* TAB: BOOKMARKS */}
-        {activeTab === 'bookmarks' ? (
+        {/* TAB: PROPERTIES */}
+        {activeTab === 'properties' ? (
+          <>
+            {/* 1. New Note */}
+            <button
+              type="button"
+              title="Catatan Baru"
+              onClick={() => {
+                onCreateNote(null);
+                onCloseMobile();
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
+            >
+              <Plus size={14} className="text-icon-accent shrink-0" />
+              <span>Catatan</span>
+            </button>
+
+            <div className="w-px h-4 bg-border-default mx-0.5" />
+
+            {/* 2. Search Properties */}
+            <button
+              type="button"
+              title={isTreeSearchOpen ? 'Tutup pencarian' : 'Cari properti'}
+              onClick={() => setIsTreeSearchOpen((prev) => !prev)}
+              className={twMerge(
+                'p-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer',
+                isTreeSearchOpen
+                  ? 'bg-bg-hover text-text-primary'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+              )}
+            >
+              <Search size={14} className="text-icon-accent" />
+            </button>
+
+            {/* 3. Expand / Collapse Properties */}
+            {handleToggleExpandCollapseAllProperties && (
+              <button
+                type="button"
+                title={areAllPropertiesCollapsed ? 'Buka Semua Properti' : 'Tutup Semua Properti'}
+                onClick={handleToggleExpandCollapseAllProperties}
+                className="p-1.5 rounded-full text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer group"
+              >
+                {areAllPropertiesCollapsed ? (
+                  <ChevronsUpDown size={14} className="text-icon-accent transition-opacity" />
+                ) : (
+                  <ChevronsDownUp size={14} className="text-icon-accent transition-colors" />
+                )}
+              </button>
+            )}
+          </>
+        ) : activeTab === 'bookmarks' ? (
           <>
             {/* 1. New Bookmark Group */}
             <button

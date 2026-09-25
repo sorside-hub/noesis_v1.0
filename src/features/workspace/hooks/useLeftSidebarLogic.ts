@@ -6,9 +6,10 @@ import { useTreeSearch } from './useTreeSearch';
 import { useNodeActions } from './useNodeActions';
 import { useTreeDnd } from './useTreeDnd';
 import { extractAllTagsFromVault } from '../utils/tagUtils';
+import { extractAllPropertiesFromVault } from '../utils/propertyUtils';
 import { useBookmarks } from './useBookmarks';
 
-export type SidebarTabMode = 'files' | 'tags' | 'bookmarks';
+export type SidebarTabMode = 'files' | 'tags' | 'bookmarks' | 'properties';
 
 interface UseLeftSidebarLogicProps {
   vault: VaultData;
@@ -41,15 +42,24 @@ export function useLeftSidebarLogic({
   // Active tab: 'files' | 'tags' | 'bookmarks'
   const [activeTab, setActiveTab] = useState<SidebarTabMode>('files');
 
-  // Switch to tags tab if a tag navigation event is received
+  // Switch to tags or properties tab if navigation events are received
   useEffect(() => {
     const handleOpenTag = (e: any) => {
       if (e.detail?.tag) {
         setActiveTab('tags');
       }
     };
+    const handleOpenProperty = (e: any) => {
+      if (e.detail?.property) {
+        setActiveTab('properties');
+      }
+    };
     window.addEventListener('open-tag-in-sidebar', handleOpenTag);
-    return () => window.removeEventListener('open-tag-in-sidebar', handleOpenTag);
+    window.addEventListener('open-property-in-sidebar', handleOpenProperty);
+    return () => {
+      window.removeEventListener('open-tag-in-sidebar', handleOpenTag);
+      window.removeEventListener('open-property-in-sidebar', handleOpenProperty);
+    };
   }, []);
 
   // 1. Folder Tree Hierarchy & Expand/Collapse
@@ -86,7 +96,12 @@ export function useLeftSidebarLogic({
     return extractAllTagsFromVault(vault);
   }, [vault]);
 
-  // 6. Bookmarks Hook
+  // 6. Extract All Properties for Properties Explorer
+  const propertiesData = useMemo(() => {
+    return extractAllPropertiesFromVault(vault);
+  }, [vault]);
+
+  // 7. Bookmarks Hook
   const bookmarksData = useBookmarks(vault, setNodeBookmark);
 
   // Navigation click
@@ -105,6 +120,7 @@ export function useLeftSidebarLogic({
     activeTab,
     setActiveTab,
     tagData,
+    propertiesData,
     bookmarksData,
     ...folderTree,
     ...treeSearch,

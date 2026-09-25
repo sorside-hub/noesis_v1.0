@@ -33,84 +33,92 @@ export const RightSidebarTabSwitcher: React.FC<RightSidebarTabSwitcherProps> = (
 
   return (
     <div
-      ref={tabMenuRef}
       className={twMerge(
-        'absolute bottom-4 left-1/2 -translate-x-1/2 w-[85%] z-30 bg-bg-quaternary rounded-2xl overflow-hidden transition-all duration-150',
-        isKeyboardOpen
-          ? 'opacity-0 translate-y-12 pointer-events-none'
-          : 'opacity-100 translate-y-0 pointer-events-auto'
+        'absolute bottom-0 left-0 right-0 z-30 flex flex-col items-center pointer-events-none transition-all duration-150',
+        isKeyboardOpen && 'hidden'
       )}
     >
-      {/* EXPANDED TAB OPTIONS LIST (Obsidian Style) */}
-      {isTabMenuOpen && (
-        <div className="animate-in fade-in duration-150">
-          <div className="p-1.5 space-y-0.5">
-            {tabs.map((tab) => {
-              const TabIcon = tab.icon;
-              const isSelected = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setIsTabMenuOpen(false);
-                  }}
-                  className={twMerge(
-                    'w-full flex items-center px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer group',
-                    isSelected
-                      ? 'bg-bg-hover text-text-primary'
-                      : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-                  )}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <TabIcon
-                      size={15}
-                      className={twMerge(
-                        'transition-colors duration-150',
-                        isSelected ? 'text-text-primary' : 'text-icon-secondary group-hover:text-text-primary'
-                      )}
-                    />
-                    <span className="transition-colors duration-150">{tab.label}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-          <div className="mx-3.5 h-px bg-border-default/20 my-0.5" />
-        </div>
-      )}
+      {/* 1. SOFT GRADIENT FADE (Obsidian style - no harsh line) */}
+      <div className="w-full h-10 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent pointer-events-none" />
 
-      {/* TRIGGER / ANCHOR BUTTON */}
-      <button
-        type="button"
-        onClick={() => setIsTabMenuOpen((prev) => !prev)}
-        className={twMerge(
-          'w-full flex items-center justify-between px-4 py-2.5 transition-all cursor-pointer text-xs group',
-          isTabMenuOpen
-            ? 'text-text-muted/40 hover:text-text-muted/60'
-            : 'text-text-primary hover:bg-bg-hover'
-        )}
-      >
-        <div className="flex items-center gap-2.5 font-medium">
-          <CurrentTabIcon
-            size={15}
-            className={twMerge(
-              'shrink-0 transition-colors',
-              isTabMenuOpen ? 'text-text-muted/40' : 'text-text-primary'
-            )}
-          />
-          <span className="text-xs">{currentTabObj.label}</span>
-        </div>
-        <ChevronsUpDown
-          size={14}
-          className={twMerge(
-            'shrink-0 transition-colors',
-            isTabMenuOpen ? 'text-text-muted/30' : 'text-text-muted group-hover:text-text-primary'
+      {/* 2. SOLID BOTTOM SECTION FOR TAB SWITCHER */}
+      <div className="w-full bg-bg-secondary px-3 pb-3.5 pt-0.5 flex flex-col items-center pointer-events-auto">
+        <div
+          ref={tabMenuRef}
+          className="w-full relative bg-bg-quaternary rounded-2xl border border-border-default/20 transition-all duration-150 shadow-sm"
+        >
+          {/* EXPANDED TAB OPTIONS LIST (Opens Upwards Above Footer) */}
+          {isTabMenuOpen && (
+            <div className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-bg-quaternary rounded-2xl shadow-2xl border border-border-default/30 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
+              {tabs.map((tab) => {
+                const TabIcon = tab.icon;
+                const isSelected = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setIsTabMenuOpen(false);
+                    }}
+                    className={twMerge(
+                      'w-full flex items-center px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer group',
+                      isSelected
+                        ? 'bg-bg-hover text-text-primary'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <TabIcon
+                        size={15}
+                        className={twMerge(
+                          'transition-colors duration-150',
+                          isSelected
+                            ? 'text-text-primary'
+                            : 'text-icon-secondary group-hover:text-text-primary'
+                        )}
+                      />
+                      <span className="transition-colors duration-150">{tab.label}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           )}
-        />
-      </button>
+
+          {/* TRIGGER / ANCHOR BUTTON */}
+          <button
+            type="button"
+            onClick={() => setIsTabMenuOpen((prev) => !prev)}
+            className={twMerge(
+              'w-full flex items-center justify-between px-4 py-2.5 transition-all cursor-pointer text-xs group rounded-2xl',
+              isTabMenuOpen
+                ? 'text-text-muted/40 hover:text-text-muted/60'
+                : 'text-text-primary hover:bg-bg-hover'
+            )}
+          >
+            <div className="flex items-center gap-2.5 font-medium">
+              <CurrentTabIcon
+                size={15}
+                className={twMerge(
+                  'shrink-0 transition-colors',
+                  isTabMenuOpen ? 'text-text-muted/40' : 'text-text-primary'
+                )}
+              />
+              <span className="text-xs">{currentTabObj.label}</span>
+            </div>
+            <ChevronsUpDown
+              size={14}
+              className={twMerge(
+                'shrink-0 transition-colors',
+                isTabMenuOpen ? 'text-text-muted/30' : 'text-text-muted group-hover:text-text-primary'
+              )}
+            />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
+
 

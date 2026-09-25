@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { X, Search, FileText, Folder, Hash, FolderTree, Bookmark, Star } from 'lucide-react';
+import { X, Search, FileText, Folder, Hash, FolderTree, Bookmark, Star, SlidersHorizontal } from 'lucide-react';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import { twMerge } from 'tailwind-merge';
 import { VaultData } from '../../../types/vault';
@@ -12,10 +12,12 @@ import { RenameNodeModal } from './RenameNodeModal';
 import { CreateFolderModal } from './CreateFolderModal';
 import { FileTree } from './FileTree';
 import { TagExplorer } from './TagExplorer';
+import { PropertiesExplorer } from './PropertiesExplorer';
 import { BookmarksExplorer } from './BookmarksExplorer';
-import { FloatingActionPill } from './FloatingActionPill';
+import { LeftSidebarTabSwitcher } from './LeftSidebarTabSwitcher';
 import { BookmarkModal } from './BookmarkModal';
 import { ExportNoteModal } from '../../../components/modals/ExportNoteModal';
+import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
 import { FileNode } from '../../../types/vault';
 import { TagNodeData } from '../utils/tagUtils';
 
@@ -50,10 +52,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   isOpen: _isOpen,
   onCloseMobile,
 }) => {
+  const { isKeyboardOpen } = useVirtualKeyboard();
+
   const {
     activeTab,
     setActiveTab,
     tagData,
+    propertiesData,
     bookmarksData,
     expandedFolders,
     isTreeSearchOpen,
@@ -101,7 +106,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     handleCreateSubfolderInFolder,
     getAvailableFolders,
     matchesSearch,
-    isPillHidden,
+    isPillHidden: _isPillHidden,
     sensors,
     activeDragNode,
     overFolderId,
@@ -167,62 +172,33 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     }
   };
 
+  // 3. State & handlers for Properties Explorer expand/collapse
+  const [expandedProperties, setExpandedProperties] = useState<Set<string>>(new Set());
+
+  const allPropertyIds = useMemo(() => {
+    return [
+      ...propertiesData.coreProperties.map((p) => p.id),
+      ...propertiesData.customProperties.map((p) => p.id),
+    ];
+  }, [propertiesData]);
+
+  const areAllPropertiesExpanded =
+    allPropertyIds.length > 0 && allPropertyIds.every((id) => expandedProperties.has(id));
+  const areAllPropertiesCollapsed =
+    allPropertyIds.length === 0 || expandedProperties.size === 0;
+
+  const handleToggleExpandCollapseAllProperties = () => {
+    if (areAllPropertiesExpanded) {
+      setExpandedProperties(new Set());
+    } else {
+      setExpandedProperties(new Set(allPropertyIds));
+    }
+  };
+
   return (
     <div className="h-full w-full flex flex-col bg-bg-secondary overflow-hidden select-none relative">
       {/* ----------------------------------------------------------- */}
-      {/* TOP TAB SWITCHER: FILES vs TAGS vs BOOKMARKS (Obsidian Style) */}
-      {/* ----------------------------------------------------------- */}
-      <div className="px-2.5 pt-2.5 pb-1.5 flex items-center justify-between border-b border-border-subtle shrink-0">
-        <div className="flex items-center gap-0.5 bg-bg-primary p-0.5 rounded-lg w-full">
-          {/* 1. Files Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('files')}
-            className={twMerge(
-              'flex-1 flex items-center justify-center gap-1.5 py-1 px-1.5 rounded-md text-xs font-semibold transition-all duration-150 cursor-pointer',
-              activeTab === 'files'
-                ? 'bg-bg-secondary text-text-primary shadow-xs'
-                : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-            )}
-          >
-            <FolderTree size={13} className={activeTab === 'files' ? 'text-accent-primary' : 'text-icon-accent'} />
-            <span className="truncate">Files</span>
-          </button>
-
-          {/* 2. Tags Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('tags')}
-            className={twMerge(
-              'flex-1 flex items-center justify-center gap-1.5 py-1 px-1.5 rounded-md text-xs font-semibold transition-all duration-150 cursor-pointer',
-              activeTab === 'tags'
-                ? 'bg-bg-secondary text-text-primary shadow-xs'
-                : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-            )}
-          >
-            <Hash size={13} className={activeTab === 'tags' ? 'text-accent-primary' : 'text-icon-accent'} />
-            <span className="truncate">Tags</span>
-          </button>
-
-          {/* 3. Bookmarks Tab */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('bookmarks')}
-            className={twMerge(
-              'flex-1 flex items-center justify-center gap-1.5 py-1 px-1.5 rounded-md text-xs font-semibold transition-all duration-150 cursor-pointer',
-              activeTab === 'bookmarks'
-                ? 'bg-bg-secondary text-text-primary shadow-xs'
-                : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-            )}
-          >
-            <Bookmark size={13} className={activeTab === 'bookmarks' ? 'text-accent-primary fill-accent-primary/30' : 'text-icon-accent'} />
-            <span className="truncate">Bookmarks</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ----------------------------------------------------------- */}
-      {/* SHARED SEARCH BAR (Context-aware: Files, Tags, Bookmarks) */}
+      {/* SHARED SEARCH BAR (Context-aware: Files, Tags, Bookmarks, Props) */}
       {/* ----------------------------------------------------------- */}
       {isTreeSearchOpen && (
         <div ref={searchContainerRef} className="px-2.5 pt-2 pb-1.5 border-b border-border-subtle bg-bg-secondary z-10">
@@ -249,7 +225,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 }
               }}
               placeholder={
-                activeTab === 'bookmarks'
+                activeTab === 'properties'
+                  ? "Cari properti / catatan..."
+                  : activeTab === 'bookmarks'
                   ? "Cari bookmark..."
                   : activeTab === 'tags'
                   ? "Cari tag / catatan..."
@@ -274,9 +252,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       )}
 
       {/* ----------------------------------------------------------- */}
-      {/* CONTENT AREA: FILE TREE OR TAG EXPLORER OR BOOKMARKS */}
+      {/* CONTENT AREA: FILE TREE OR TAG EXPLORER OR PROPS OR BOOKMARKS */}
       {/* ----------------------------------------------------------- */}
-      <div className="flex-1 overflow-y-auto p-2 pb-16 space-y-0.5 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-2 pb-32 space-y-0.5 custom-scrollbar">
         {activeTab === 'files' ? (
           <DndContext
             sensors={sensors}
@@ -323,6 +301,16 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             expandedTags={expandedTags}
             setExpandedTags={setExpandedTags}
           />
+        ) : activeTab === 'properties' ? (
+          <PropertiesExplorer
+            propertiesData={propertiesData}
+            searchQuery={treeSearchQuery}
+            activeFileId={activeFileId}
+            onSelectFile={onSelectFile}
+            onCloseMobile={onCloseMobile}
+            expandedProperties={expandedProperties}
+            setExpandedProperties={setExpandedProperties}
+          />
         ) : (
           <BookmarksExplorer
             vault={vault}
@@ -347,11 +335,12 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       {/* ----------------------------------------------------------- */}
-      {/* FLOATING ACTION PILL */}
+      {/* BOTTOM ACTION ICONS + FLOATING TAB SWITCHER PILL */}
       {/* ----------------------------------------------------------- */}
-      <FloatingActionPill
+      <LeftSidebarTabSwitcher
         activeTab={activeTab}
-        isPillHidden={isPillHidden}
+        setActiveTab={setActiveTab}
+        isKeyboardOpen={isKeyboardOpen}
         onCreateNote={onCreateNote}
         onCreateFolder={() => handleStartCreateFolder(null)}
         onCreateBookmarkGroup={() => {
@@ -366,6 +355,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         handleToggleExpandCollapseAllTags={handleToggleExpandCollapseAllTags}
         areAllGroupsCollapsed={areAllBookmarkGroupsCollapsed}
         handleToggleExpandCollapseAllGroups={handleToggleExpandCollapseAllBookmarkGroups}
+        areAllPropertiesCollapsed={areAllPropertiesCollapsed}
+        handleToggleExpandCollapseAllProperties={handleToggleExpandCollapseAllProperties}
       />
 
       {/* ----------------------------------------------------------- */}

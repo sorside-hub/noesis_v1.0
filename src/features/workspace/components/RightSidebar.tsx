@@ -138,7 +138,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             ? 'overflow-hidden flex flex-col p-0 pb-[4.5rem]'
             : activeTab === 'CHAT' && isKeyboardOpen
             ? 'overflow-y-auto p-4 space-y-3 pb-3'
-            : 'overflow-y-auto p-4 space-y-3 pb-20'
+            : 'overflow-y-auto p-4 space-y-3 pb-28'
         }`}
       >
         {!activeNode ? (
