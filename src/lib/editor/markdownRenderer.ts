@@ -19,15 +19,15 @@ const renderer = {
     const encodedCode = encodeURIComponent(text);
 
     return `
-      <div class="code-block-wrapper my-4 rounded-xl overflow-hidden border border-zinc-800 dark:border-zinc-800 bg-zinc-950 dark:bg-zinc-950 shadow-xs">
-        <div class="code-block-header flex items-center justify-between px-3.5 py-1.5 bg-zinc-900 dark:bg-zinc-900 border-b border-zinc-800 dark:border-zinc-800 text-xs font-mono text-zinc-400 select-none">
+      <div class="code-block-wrapper my-4 rounded-xl overflow-hidden bg-bg-secondary shadow-xs">
+        <div class="code-block-header flex items-center justify-between px-3.5 py-1.5 bg-bg-secondary text-xs font-mono text-text-muted select-none">
           <div class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-zinc-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-            <span class="font-medium text-zinc-300 font-mono text-xs">${displayLang}</span>
+            <svg class="w-3.5 h-3.5 text-text-muted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <span class="font-medium text-text-secondary font-mono text-xs">${displayLang}</span>
           </div>
           <button
             type="button"
-            class="copy-code-btn inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-zinc-800 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+            class="copy-code-btn inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-bg-hover text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
             data-code="${encodedCode}"
             title="Copy to clipboard"
           >
@@ -41,7 +41,7 @@ const renderer = {
             <span class="copy-text text-[11px] font-sans">Copy</span>
           </button>
         </div>
-        <pre class="code-block-content p-4 m-0 font-mono text-[13px] text-zinc-300 leading-relaxed overflow-x-auto bg-transparent"><code>${DOMPurify.sanitize(text)}</code></pre>
+        <pre class="code-block-content p-4 m-0 font-mono text-[13px] text-text-primary leading-relaxed overflow-x-auto bg-transparent"><code>${DOMPurify.sanitize(text)}</code></pre>
       </div>
     `;
   },

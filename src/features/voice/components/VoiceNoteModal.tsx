@@ -122,21 +122,21 @@ export const VoiceNoteModal: React.FC<VoiceNoteModalProps> = ({ vaultState }) =>
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-bg-surface border border-border-default rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative animate-scale-in">
+      <div className="bg-bg-primary rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative animate-scale-in border-0">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border-default/50">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-accent-primary/10 text-accent-primary rounded-md">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 bg-bg-primary">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-bg-secondary text-accent-primary rounded-xl">
               <AudioLines size={18} />
             </div>
-            <h3 className="font-semibold text-text-primary">AI Voice Transcript</h3>
+            <h3 className="font-semibold text-text-primary text-sm">AI Voice Transcript</h3>
           </div>
           <button
             onClick={handleClose}
-            className="p-1.5 text-text-muted hover:text-text-primary hover:bg-bg-primary rounded-md transition-colors"
+            className="p-2 text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-xl transition-colors cursor-pointer border-0"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 

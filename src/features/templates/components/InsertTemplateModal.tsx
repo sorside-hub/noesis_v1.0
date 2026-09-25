@@ -5,16 +5,11 @@ import {
   X, 
   ClipboardList, 
   FileText, 
-  Calendar, 
-  Tag, 
-  Layers, 
   Check, 
-  ArrowRight,
-  ArrowLeft,
-  FolderOpen,
-  Plus,
-  Sparkles,
-  Info
+  ArrowLeft, 
+  FolderOpen, 
+  Plus, 
+  Info 
 } from 'lucide-react';
 import { VaultData, FileNode, NoteMetadata } from '../../../types/vault';
 import { useTemplateSettings } from '../hooks/useTemplateSettings';
@@ -86,7 +81,7 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
     return filteredTemplates[clampedIndex] || null;
   }, [filteredTemplates, selectedIndex]);
 
-  // Focus search input on open only on desktop non-touch screens to avoid auto-opening virtual keyboard on mobile
+  // Focus search input on open only on desktop non-touch screens
   useEffect(() => {
     if (isOpen) {
       setSearchQuery('');
@@ -199,7 +194,6 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
           filteredTemplates.length > 0 ? (prev - 1 + filteredTemplates.length) % filteredTemplates.length : 0
         );
       } else if (e.key === 'Enter') {
-        // Don't trigger if user is holding Shift or Alt
         if (!e.shiftKey && !e.altKey) {
           e.preventDefault();
           handleExecuteInsert();
@@ -220,24 +214,19 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
     >
       <div
         style={isMobile ? { height: `${modalHeight}px` } : undefined}
-        className="bg-bg-surface border border-border-default rounded-2xl shadow-2xl w-full max-w-4xl sm:h-[85vh] sm:max-h-[720px] shrink-0 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-bg-primary rounded-2xl shadow-2xl w-full max-w-4xl sm:h-[85vh] sm:max-h-[720px] shrink-0 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 border-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-4 py-3 sm:px-5 sm:py-4 border-b border-border-default bg-bg-surface flex items-center justify-between gap-3 shrink-0">
+        <div className="px-5 pt-5 pb-3 bg-bg-primary flex items-center justify-between gap-3 shrink-0 border-0">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="p-2 sm:p-2.5 rounded-xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary shrink-0">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-bg-secondary text-accent-primary shrink-0 border-0">
               <ClipboardList size={18} className="sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm sm:text-base font-bold text-text-heading tracking-tight truncate">
-                  Sisipkan Template
-                </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold bg-accent-primary/15 text-accent-primary border border-accent-primary/25 whitespace-nowrap shrink-0">
-                  {templates.length}
-                </span>
-              </div>
+              <h3 className="text-sm sm:text-base font-bold text-text-heading tracking-tight truncate">
+                Sisipkan Template
+              </h3>
               <p className="text-[11px] sm:text-xs text-text-muted mt-0.5 truncate flex items-center gap-1.5">
                 <FolderOpen size={12} className="text-accent-primary shrink-0" />
                 <span>Folder: <strong className="text-text-secondary">{activeTemplateFolder?.name || 'Templates'}</strong></span>
@@ -254,7 +243,7 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 sm:p-2 text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer shrink-0"
+            className="p-2 text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-xl transition-colors cursor-pointer shrink-0 border-0"
             title="Tutup (Esc)"
             aria-label="Tutup Modal"
           >
@@ -263,7 +252,7 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
         </div>
 
         {/* Search Bar */}
-        <div className="p-2.5 sm:p-3.5 border-b border-border-subtle bg-bg-canvas/40 shrink-0">
+        <div className="px-5 py-2.5 bg-bg-primary shrink-0 border-0">
           <div className="relative">
             <Search
               size={15}
@@ -275,10 +264,10 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
               inputMode="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari template (judul, konten, tag)..."
-              className="w-full bg-bg-primary border border-border-default hover:border-accent-primary/40 focus:border-accent-primary rounded-xl pl-9 sm:pl-10 pr-9 sm:pr-24 py-2 sm:py-2.5 text-sm sm:text-xs text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary transition-all font-medium"
+              placeholder="Cari template..."
+              className="w-full bg-bg-secondary rounded-xl pl-9 sm:pl-10 pr-9 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary transition-all font-medium border-0"
             />
-            {searchQuery ? (
+            {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
@@ -287,55 +276,23 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
               >
                 <X size={14} />
               </button>
-            ) : (
-              <div className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 items-center gap-1 text-[10px] text-text-muted font-mono bg-bg-surface px-1.5 py-0.5 rounded border border-border-subtle">
-                <span>↑↓ navigasi</span>
-                <span>↵ pilih</span>
-              </div>
             )}
           </div>
         </div>
 
-        {/* Mobile View Switcher Tabs (< md only) */}
-        <div className="md:hidden flex items-center border-b border-border-subtle bg-bg-canvas/60 px-3 py-1.5 gap-2 text-xs shrink-0">
-          <button
-            type="button"
-            onClick={() => setMobileTab('list')}
-            className={`flex-1 py-1.5 px-3 rounded-lg font-semibold text-center transition-colors cursor-pointer ${
-              mobileTab === 'list'
-                ? 'bg-accent-primary text-accent-contrast shadow-2xs'
-                : 'bg-bg-primary text-text-muted hover:text-text-primary border border-border-subtle'
-            }`}
-          >
-            Daftar ({filteredTemplates.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobileTab('preview')}
-            disabled={!selectedTemplate}
-            className={`flex-1 py-1.5 px-3 rounded-lg font-semibold text-center transition-colors cursor-pointer truncate disabled:opacity-40 disabled:cursor-not-allowed ${
-              mobileTab === 'preview'
-                ? 'bg-accent-primary text-accent-contrast shadow-2xs'
-                : 'bg-bg-primary text-text-muted hover:text-text-primary border border-border-subtle'
-            }`}
-          >
-            Pratinjau {selectedTemplate ? `(${selectedTemplate.title})` : ''}
-          </button>
-        </div>
-
-        {/* Body 2-Column Split: Template List (Left) & Rich Preview (Right) */}
-        <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden divide-y md:divide-y-0 md:divide-x divide-border-subtle">
+        {/* Body 2-Column Split: Template List (Left) & Compact Preview (Right) */}
+        <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden bg-bg-primary">
           
-          {/* Left: Template List */}
+          {/* Left: Template List - Hanya Judul */}
           <div 
             ref={listContainerRef}
             className={`${
               mobileTab === 'list' ? 'flex flex-col' : 'hidden'
-            } md:flex md:flex-col w-full md:w-[42%] lg:w-[38%] overflow-y-auto p-3 space-y-1.5 shrink-0 bg-bg-canvas/20 custom-scrollbar`}
+            } md:flex md:flex-col w-full md:w-[40%] lg:w-[36%] overflow-y-auto px-5 py-2 space-y-1.5 shrink-0 bg-bg-primary custom-scrollbar`}
           >
             {filteredTemplates.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center space-y-3 my-auto overflow-y-auto">
-                <div className="w-12 h-12 rounded-2xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary flex items-center justify-center mx-auto shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-bg-secondary text-accent-primary flex items-center justify-center mx-auto shrink-0 border-0">
                   <FileText size={22} />
                 </div>
                 <div className="space-y-1">
@@ -355,7 +312,7 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
                       onCreateTemplateNote(activeTemplateFolder?.id || null);
                       onClose();
                     }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-accent-primary text-accent-contrast rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs active:scale-98"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-accent-primary text-accent-contrast rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs active:scale-98 border-0"
                   >
                     <Plus size={14} />
                     <span>Buat Template Pertama</span>
@@ -366,7 +323,6 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
               filteredTemplates.map((template, idx) => {
                 const isSelected = selectedTemplate?.id === template.id;
                 const noteType = template.metadata?.noteType;
-                const tags = template.metadata?.tags || [];
 
                 return (
                   <div
@@ -374,50 +330,25 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
                     data-selected={isSelected}
                     onClick={() => {
                       setSelectedIndex(idx);
-                      // On mobile, auto navigate to preview tab when tapping item
                       setMobileTab('preview');
                     }}
                     onDoubleClick={handleExecuteInsert}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer select-none group ${
+                    className={`px-3.5 py-2.5 rounded-xl transition-all cursor-pointer select-none group flex items-center justify-between gap-2 border-0 ${
                       isSelected
-                        ? 'bg-accent-primary/10 border-accent-primary/35 shadow-xs'
-                        : 'bg-bg-surface hover:bg-bg-hover border-border-subtle hover:border-border-default'
+                        ? 'bg-bg-hover text-text-primary font-semibold shadow-2xs'
+                        : 'bg-bg-secondary hover:bg-bg-hover text-text-secondary hover:text-text-primary'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className={`text-xs font-bold leading-snug truncate ${
-                        isSelected ? 'text-accent-primary' : 'text-text-primary group-hover:text-text-heading'
-                      }`}>
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <FileText size={15} className={`shrink-0 ${isSelected ? 'text-text-primary' : 'text-text-muted group-hover:text-text-primary'}`} />
+                      <span className="text-xs truncate font-medium">
                         {template.title}
-                      </h4>
-                      {noteType && (
-                        <span className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-bg-canvas text-text-muted border border-border-subtle">
-                          {noteType}
-                        </span>
-                      )}
+                      </span>
                     </div>
-
-                    <p className="text-[11px] text-text-muted line-clamp-2 mt-1 leading-relaxed">
-                      {template.descriptionSnippet}
-                    </p>
-
-                    {tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.2 rounded-full bg-bg-canvas text-text-secondary border border-border-subtle"
-                          >
-                            <Tag size={9} className="text-accent-primary" />
-                            <span>{tag.replace(/^#/, '')}</span>
-                          </span>
-                        ))}
-                        {tags.length > 3 && (
-                          <span className="text-[10px] text-text-muted self-center">
-                            +{tags.length - 3}
-                          </span>
-                        )}
-                      </div>
+                    {noteType && (
+                      <span className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-mono font-medium text-text-muted bg-bg-primary/60">
+                        {noteType}
+                      </span>
                     )}
                   </div>
                 );
@@ -425,43 +356,33 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
             )}
           </div>
 
-          {/* Right: Rich Preview & Metadata Inspector */}
+          {/* Right: Compact Rich Preview */}
           <div className={`${
             mobileTab === 'preview' ? 'flex' : 'hidden'
-          } md:flex flex-1 flex-col min-w-0 bg-bg-surface overflow-hidden`}>
+          } md:flex flex-1 flex-col min-w-0 bg-bg-primary overflow-hidden border-0`}>
             {selectedTemplate ? (
               <>
-                {/* Preview Header & Controls */}
-                <div className="p-3 sm:p-3.5 border-b border-border-subtle bg-bg-canvas/30 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <button
-                      type="button"
-                      onClick={() => setMobileTab('list')}
-                      className="md:hidden p-1 text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer shrink-0"
-                      title="Kembali ke daftar template"
-                      aria-label="Kembali ke daftar template"
-                    >
-                      <ArrowLeft size={16} />
-                    </button>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-text-heading">
-                        <Sparkles size={14} className="text-accent-primary shrink-0" />
-                        <span className="truncate">{selectedTemplate.title}</span>
-                      </div>
-                      <span className="text-[11px] text-text-muted mt-0.5 block truncate">
-                        Variabel dinamis dievaluasi otomatis untuk catatan aktif
-                      </span>
-                    </div>
-                  </div>
+                {/* Compact Preview Header & Controls */}
+                <div className="px-5 py-2.5 bg-bg-primary flex items-center justify-between gap-2 shrink-0 border-0">
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab('list')}
+                    className="md:hidden p-1.5 text-text-secondary hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-xl transition-colors cursor-pointer shrink-0 border-0"
+                    title="Kembali ke daftar template"
+                    aria-label="Kembali ke daftar template"
+                  >
+                    <ArrowLeft size={16} />
+                  </button>
+                  <div className="hidden md:block" />
 
                   {/* Mode Selector */}
-                  <div className="flex items-center bg-bg-primary p-0.5 rounded-lg border border-border-default text-[11px] shrink-0">
+                  <div className="flex items-center bg-bg-secondary p-1 rounded-xl border-0 text-[11px] shrink-0 gap-1">
                     <button
                       type="button"
                       onClick={() => setInsertionMode('insert')}
-                      className={`px-2 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
                         insertionMode === 'insert'
-                          ? 'bg-accent-primary text-accent-contrast shadow-2xs'
+                          ? 'bg-bg-primary text-text-primary font-semibold shadow-xs'
                           : 'text-text-muted hover:text-text-primary'
                       }`}
                       title="Sisipkan di posisi kursor aktif"
@@ -471,9 +392,9 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setInsertionMode('append')}
-                      className={`px-2 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
                         insertionMode === 'append'
-                          ? 'bg-accent-primary text-accent-contrast shadow-2xs'
+                          ? 'bg-bg-primary text-text-primary font-semibold shadow-xs'
                           : 'text-text-muted hover:text-text-primary'
                       }`}
                       title="Tambahkan di bagian paling bawah catatan"
@@ -483,9 +404,9 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setInsertionMode('replace')}
-                      className={`px-2 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
                         insertionMode === 'replace'
-                          ? 'bg-rose-500 text-white shadow-2xs'
+                          ? 'bg-rose-500 text-white font-semibold shadow-xs'
                           : 'text-text-muted hover:text-text-primary'
                       }`}
                       title="Ganti seluruh isi catatan yang ada"
@@ -495,41 +416,17 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
                   </div>
                 </div>
 
-                {/* Metadata Sync Inspector */}
-                {selectedTemplate.metadata && (
-                  <div className="px-4 py-2 bg-accent-primary/5 border-b border-border-subtle flex flex-wrap items-center gap-2 text-[11px] shrink-0">
-                    <Layers size={13} className="text-accent-primary shrink-0" />
-                    <span className="text-text-secondary font-medium">Metadata yang akan disinkronkan:</span>
-                    
-                    {selectedTemplate.metadata.noteType && (
-                      <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-accent-primary/30 text-accent-primary font-semibold text-[10px]">
-                        Type: {selectedTemplate.metadata.noteType}
-                      </span>
-                    )}
-
-                    {selectedTemplate.metadata.status && (
-                      <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-default text-text-secondary text-[10px]">
-                        Status: {selectedTemplate.metadata.status}
-                      </span>
-                    )}
-
-                    {selectedTemplate.metadata.tags && selectedTemplate.metadata.tags.length > 0 && (
-                      <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-default text-text-secondary text-[10px]">
-                        Tags: +{selectedTemplate.metadata.tags.join(', ')}
-                      </span>
-                    )}
+                {/* Live Content Preview (Markdown text format) - Spacious and clean */}
+                <div className="flex-1 overflow-hidden px-5 pb-3 pt-1 flex flex-col min-h-0 bg-bg-primary">
+                  <div className="flex-1 overflow-y-auto p-4 rounded-xl bg-bg-secondary border-0 custom-scrollbar">
+                    <pre className="font-mono text-xs text-text-primary whitespace-pre-wrap break-words leading-relaxed select-text font-normal">
+                      {previewContent || '(Template ini tidak memiliki teks konten)'}
+                    </pre>
                   </div>
-                )}
-
-                {/* Live Content Preview (Markdown text format) */}
-                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-bg-surface">
-                  <pre className="font-mono text-xs text-text-primary whitespace-pre-wrap break-words leading-relaxed select-text font-normal">
-                    {previewContent || '(Template ini tidak memiliki teks konten)'}
-                  </pre>
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center p-6 text-center text-text-muted">
+              <div className="flex-1 flex items-center justify-center p-6 text-center text-text-muted bg-bg-primary">
                 <div className="space-y-2">
                   <Info size={28} className="mx-auto text-text-muted/60" />
                   <p className="text-xs">Pilih salah satu template di sebelah kiri untuk melihat pratinjau.</p>
@@ -540,7 +437,7 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-4 py-3 sm:px-5 sm:py-3.5 border-t border-border-default bg-bg-canvas/30 flex items-center justify-between gap-3 shrink-0">
+        <div className="px-5 py-4 bg-bg-primary flex items-center justify-between gap-3 shrink-0 border-0">
           <div className="text-[11px] text-text-muted hidden sm:flex items-center gap-1.5">
             <Info size={13} className="text-accent-primary" />
             <span>Mode: <strong className="text-text-primary capitalize">{insertionMode === 'insert' ? 'Sisipkan di Kursor' : insertionMode === 'append' ? 'Tambahkan di Akhir' : 'Ganti Seluruh Isi'}</strong></span>
@@ -550,7 +447,7 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-xl transition-colors cursor-pointer text-center"
+              className="px-4 py-2.5 text-xs font-medium text-text-secondary hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-xl transition-colors cursor-pointer text-center border-0"
             >
               Batal
             </button>
@@ -558,7 +455,7 @@ export const InsertTemplateModal: React.FC<InsertTemplateModalProps> = ({
               type="button"
               disabled={!selectedTemplate}
               onClick={handleExecuteInsert}
-              className="px-5 py-2 text-xs font-semibold bg-accent-primary text-accent-contrast hover:opacity-90 rounded-xl transition-opacity flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-40 disabled:cursor-not-allowed text-center"
+              className="px-5 py-2.5 text-xs font-semibold bg-accent-primary text-accent-contrast hover:opacity-90 rounded-xl transition-opacity flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-40 disabled:cursor-not-allowed text-center border-0"
             >
               <Check size={14} />
               <span>Sisipkan Template</span>

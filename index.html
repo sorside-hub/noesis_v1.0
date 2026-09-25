@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="dark" data-theme="charcoal-navy">
+<html lang="en" class="dark" data-theme="charcoal-navy" style="background-color: #262626; color-scheme: dark;">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
@@ -7,6 +7,7 @@
     <meta name="description" content="Offline-first Personal Knowledge Management & Second Brain powered by local AI." />
     
     <!-- PWA Primary & Theme Colors -->
+    <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#262626" />
     <meta name="background-color" content="#262626" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -14,6 +15,17 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Noesis" />
     <meta name="application-name" content="Noesis" />
+
+    <!-- Instant Pre-paint Dark Mode to prevent any white flash -->
+    <style>
+      :root, html, body {
+        background-color: #262626 !important;
+        color-scheme: dark !important;
+      }
+      #root {
+        background-color: #262626 !important;
+      }
+    </style>
 
     <!-- Icons & Manifest -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -86,7 +98,7 @@
       })();
     </script>
   </head>
-  <body class="bg-bg-primary text-text-primary antialiased select-none overflow-hidden touch-manipulation">
+  <body class="bg-bg-primary text-text-primary antialiased select-none overflow-hidden touch-manipulation" style="background-color: #262626;">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>

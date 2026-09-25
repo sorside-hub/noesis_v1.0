@@ -13,10 +13,6 @@ import {
   Smile,
   Layers,
   Sparkles,
-  ArrowUpDown,
-  ChevronsUpDown,
-  ChevronsDownUp,
-  FolderOpen,
 } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import {
@@ -26,6 +22,9 @@ import {
   VaultPropertiesData,
 } from '../utils/propertyUtils';
 
+export type PropertyTabScope = 'all' | 'core' | 'custom';
+export type PropertySortMode = 'name' | 'count';
+
 interface PropertiesExplorerProps {
   propertiesData: VaultPropertiesData;
   searchQuery: string;
@@ -34,10 +33,11 @@ interface PropertiesExplorerProps {
   onCloseMobile: () => void;
   expandedProperties?: Set<string>;
   setExpandedProperties?: React.Dispatch<React.SetStateAction<Set<string>>>;
+  scope?: PropertyTabScope;
+  setScope?: React.Dispatch<React.SetStateAction<PropertyTabScope>>;
+  sortMode?: PropertySortMode;
+  setSortMode?: React.Dispatch<React.SetStateAction<PropertySortMode>>;
 }
-
-type PropertyTabScope = 'all' | 'core' | 'custom';
-type PropertySortMode = 'name' | 'count';
 
 export const PropertiesExplorer: React.FC<PropertiesExplorerProps> = ({
   propertiesData,
@@ -47,11 +47,20 @@ export const PropertiesExplorer: React.FC<PropertiesExplorerProps> = ({
   onCloseMobile,
   expandedProperties: externalExpandedProps,
   setExpandedProperties: externalSetExpandedProps,
+  scope: externalScope,
+  setScope: externalSetScope,
+  sortMode: externalSortMode,
+  setSortMode: externalSetSortMode,
 }) => {
-  const [scope, setScope] = useState<PropertyTabScope>('all');
-  const [sortMode, setSortMode] = useState<PropertySortMode>('count');
+  const [internalScope, setInternalScope] = useState<PropertyTabScope>('all');
+  const [internalSortMode, setInternalSortMode] = useState<PropertySortMode>('count');
   const [internalExpandedProps, setInternalExpandedProps] = useState<Set<string>>(new Set());
   const [expandedValueGroups, setExpandedValueGroups] = useState<Set<string>>(new Set());
+
+  const scope = externalScope ?? internalScope;
+  const setScope = externalSetScope ?? setInternalScope;
+  const sortMode = externalSortMode ?? internalSortMode;
+  const setSortMode = externalSetSortMode ?? setInternalSortMode;
 
   const expandedProps = externalExpandedProps ?? internalExpandedProps;
   const setExpandedProps = externalSetExpandedProps ?? setInternalExpandedProps;
@@ -82,28 +91,6 @@ export const PropertiesExplorer: React.FC<PropertiesExplorerProps> = ({
       }
       return next;
     });
-  };
-
-  // Expand / collapse all helper
-  const allPropertyIds = useMemo(() => {
-    return [
-      ...propertiesData.coreProperties.map((p) => p.id),
-      ...propertiesData.customProperties.map((p) => p.id),
-    ];
-  }, [propertiesData]);
-
-  const areAllExpanded = useMemo(() => {
-    if (allPropertyIds.length === 0) return false;
-    return allPropertyIds.every((id) => expandedProps.has(id));
-  }, [allPropertyIds, expandedProps]);
-
-  const handleToggleExpandAll = () => {
-    if (areAllExpanded) {
-      setExpandedProps(new Set());
-      setExpandedValueGroups(new Set());
-    } else {
-      setExpandedProps(new Set(allPropertyIds));
-    }
   };
 
   // Filter properties based on search query and scope
@@ -290,75 +277,8 @@ export const PropertiesExplorer: React.FC<PropertiesExplorerProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col space-y-2 select-none">
-      {/* 1. Control Ribbon: Scope Filters & Sort Toggle */}
-      <div className="flex items-center justify-between gap-1 px-1 pt-0.5 pb-1">
-        {/* Scope Pill Selector */}
-        <div className="flex items-center gap-1 bg-bg-surface p-0.5 rounded-md text-[11px]">
-          <button
-            type="button"
-            onClick={() => setScope('all')}
-            className={twMerge(
-              'px-2 py-0.5 rounded font-medium transition-colors cursor-pointer',
-              scope === 'all'
-                ? 'bg-bg-secondary text-text-primary shadow-xs'
-                : 'text-text-muted hover:text-text-primary'
-            )}
-          >
-            Semua
-          </button>
-          <button
-            type="button"
-            onClick={() => setScope('core')}
-            className={twMerge(
-              'px-2 py-0.5 rounded font-medium transition-colors cursor-pointer',
-              scope === 'core'
-                ? 'bg-bg-secondary text-text-primary shadow-xs'
-                : 'text-text-muted hover:text-text-primary'
-            )}
-          >
-            Core ({propertiesData.coreProperties.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setScope('custom')}
-            className={twMerge(
-              'px-2 py-0.5 rounded font-medium transition-colors cursor-pointer',
-              scope === 'custom'
-                ? 'bg-bg-secondary text-text-primary shadow-xs'
-                : 'text-text-muted hover:text-text-primary'
-            )}
-          >
-            Custom ({propertiesData.customProperties.length})
-          </button>
-        </div>
-
-        {/* Action icons: Sort & Expand All */}
-        <div className="flex items-center gap-0.5 text-text-muted">
-          <button
-            type="button"
-            title={`Urutkan berdasarkan: ${sortMode === 'count' ? 'Jumlah Catatan' : 'Nama (A-Z)'}`}
-            onClick={() => setSortMode(sortMode === 'count' ? 'name' : 'count')}
-            className={twMerge(
-              'p-1 rounded hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer',
-              sortMode === 'count' ? 'text-accent-primary' : 'text-icon-accent'
-            )}
-          >
-            <ArrowUpDown size={13} />
-          </button>
-
-          <button
-            type="button"
-            title={areAllExpanded ? 'Tutup Semua Properti' : 'Buka Semua Properti'}
-            onClick={handleToggleExpandAll}
-            className="p-1 rounded text-icon-accent hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
-          >
-            {areAllExpanded ? <ChevronsDownUp size={13} /> : <ChevronsUpDown size={13} />}
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Main Properties List Area */}
+    <div className="w-full flex flex-col space-y-1 py-1 select-none">
+      {/* Main Properties List Area */}
       {totalFilteredCount === 0 ? (
         <div className="py-8 px-4 text-center text-text-muted flex flex-col items-center justify-center space-y-2">
           <SlidersHorizontal size={24} className="text-text-muted/60" />

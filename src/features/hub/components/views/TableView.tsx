@@ -125,12 +125,12 @@ export const TableView: React.FC<TableViewProps> = ({ notes, filters = [], onOpe
       <div className="hidden md:block w-full overflow-x-auto rounded-xl bg-bg-surface shadow-xs custom-scrollbar">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
-            <tr className="bg-bg-secondary/40 text-text-muted text-xs border-b border-border-default/40">
-              <th className="font-medium py-3 px-4 w-[25%] min-w-[200px]">Title</th>
-              <th className="font-medium py-3 px-4 flex-1">AI Summary</th>
-              <th className="font-medium py-3 px-4 w-[15%] min-w-[120px]">Updated</th>
+            <tr className="bg-bg-secondary text-text-primary text-xs font-semibold border-b border-border-default">
+              <th className="py-3 px-4 w-[25%] min-w-[200px]">Title</th>
+              <th className="py-3 px-4 flex-1">AI Summary</th>
+              <th className="py-3 px-4 w-[15%] min-w-[120px]">Updated</th>
               {dynamicProperties.map(prop => (
-                <th key={prop} className="font-medium py-3 px-4 w-[12%] min-w-[120px] capitalize">
+                <th key={prop} className="py-3 px-4 w-[12%] min-w-[120px] capitalize">
                   {getPropertyLabel(prop)}
                 </th>
               ))}

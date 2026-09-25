@@ -154,7 +154,7 @@ export const AudioPill: React.FC<AudioPillProps> = ({
   return (
     <>
       <div
-        className={`noesis-audio-pill my-3 inline-flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 px-3.5 py-2.5 rounded-2xl bg-bg-surface/90 dark:bg-[#0c0c0d] border border-border-default/80 hover:border-accent-primary/40 shadow-xs backdrop-blur-md select-none transition-all w-full max-w-lg ${className}`}
+        className={`noesis-audio-pill my-3 inline-flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 px-3.5 py-2.5 rounded-2xl bg-bg-secondary text-text-primary shadow-xs select-none transition-all w-full max-w-lg border-0 ${className}`}
         contentEditable={false}
         onMouseDown={(e) => { e.stopPropagation(); }}
         onTouchStart={(e) => { e.stopPropagation(); }}
@@ -213,7 +213,7 @@ export const AudioPill: React.FC<AudioPillProps> = ({
         </div>
 
         {/* Controls Right / Bottom: Duration + Speed + Volume */}
-        <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 text-xs text-text-muted border-t sm:border-t-0 border-border-subtle pt-1.5 sm:pt-0">
+        <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 text-xs text-text-muted pt-1.5 sm:pt-0">
           <span className="font-mono text-[11px] text-text-secondary min-w-[65px] text-right">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
@@ -224,7 +224,7 @@ export const AudioPill: React.FC<AudioPillProps> = ({
             onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
             onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
             onClick={cyclePlaybackRate}
-            className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bg-hover hover:bg-bg-elevated text-text-primary hover:text-accent-primary transition-colors cursor-pointer border border-border-subtle"
+            className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-bg-primary hover:bg-bg-hover text-text-primary hover:text-accent-primary transition-colors cursor-pointer border-0"
             title="Ubah kecepatan putar"
           >
             {playbackRate}x

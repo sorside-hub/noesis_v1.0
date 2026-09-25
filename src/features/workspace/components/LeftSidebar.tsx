@@ -131,6 +131,14 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const [isCreatingBookmarkGroup, setIsCreatingBookmarkGroup] = useState(false);
   const [exportingNode, setExportingNode] = useState<FileNode | null>(null);
 
+  // Tag controls (view mode & sort mode)
+  const [tagViewMode, setTagViewMode] = useState<'tree' | 'flat'>('tree');
+  const [tagSortMode, setTagSortMode] = useState<'name' | 'count'>('name');
+
+  // Property controls (scope & sort mode)
+  const [propertyScope, setPropertyScope] = useState<'all' | 'core' | 'custom'>('all');
+  const [propertySortMode, setPropertySortMode] = useState<'name' | 'count'>('count');
+
   // 1. State & handlers for Tag Explorer expand/collapse
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
 
@@ -300,6 +308,10 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             onCloseMobile={onCloseMobile}
             expandedTags={expandedTags}
             setExpandedTags={setExpandedTags}
+            viewMode={tagViewMode}
+            setViewMode={setTagViewMode}
+            sortMode={tagSortMode}
+            setSortMode={setTagSortMode}
           />
         ) : activeTab === 'properties' ? (
           <PropertiesExplorer
@@ -310,6 +322,10 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             onCloseMobile={onCloseMobile}
             expandedProperties={expandedProperties}
             setExpandedProperties={setExpandedProperties}
+            scope={propertyScope}
+            setScope={setPropertyScope}
+            sortMode={propertySortMode}
+            setSortMode={setPropertySortMode}
           />
         ) : (
           <BookmarksExplorer
@@ -357,6 +373,18 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         handleToggleExpandCollapseAllGroups={handleToggleExpandCollapseAllBookmarkGroups}
         areAllPropertiesCollapsed={areAllPropertiesCollapsed}
         handleToggleExpandCollapseAllProperties={handleToggleExpandCollapseAllProperties}
+        tagViewMode={tagViewMode}
+        onToggleTagViewMode={() => setTagViewMode((prev) => (prev === 'tree' ? 'flat' : 'tree'))}
+        tagSortMode={tagSortMode}
+        onToggleTagSortMode={() => setTagSortMode((prev) => (prev === 'name' ? 'count' : 'name'))}
+        propertyScope={propertyScope}
+        onCyclePropertyScope={() =>
+          setPropertyScope((prev) => (prev === 'all' ? 'core' : prev === 'core' ? 'custom' : 'all'))
+        }
+        propertySortMode={propertySortMode}
+        onTogglePropertySortMode={() =>
+          setPropertySortMode((prev) => (prev === 'count' ? 'name' : 'count'))
+        }
       />
 
       {/* ----------------------------------------------------------- */}

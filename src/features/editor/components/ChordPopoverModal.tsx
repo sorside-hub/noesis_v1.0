@@ -71,15 +71,15 @@ export const ChordPopoverModal: React.FC<ChordPopoverModalProps> = ({
       }}
     >
       <div
-        className="w-full max-w-sm bg-bg-surface border border-border-default rounded-xl shadow-2xl flex flex-col overflow-hidden"
+        className="w-full max-w-sm bg-bg-primary border-0 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-labelledby="chord-modal-title"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border-default bg-bg-canvas/40 shrink-0 gap-2">
+        <div className="flex items-center justify-between px-4 py-3 bg-bg-primary shrink-0 gap-2 border-0">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-1.5 rounded-lg bg-accent-primary/10 text-accent-primary shrink-0">
+            <div className="p-1.5 rounded-xl bg-bg-secondary text-accent-primary shrink-0 border-0">
               <Music size={18} />
             </div>
             <div className="min-w-0">
@@ -98,7 +98,7 @@ export const ChordPopoverModal: React.FC<ChordPopoverModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-bg-surface hover:bg-bg-hover active:bg-bg-active border border-border-default rounded-lg text-xs font-medium text-text-primary transition-all duration-150 cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-bg-secondary hover:bg-bg-hover active:bg-bg-active border-0 rounded-xl text-xs font-medium text-text-primary transition-all duration-150 cursor-pointer shadow-2xs"
                 title="Pilih Instrumen"
               >
                 <span>{instrument === 'guitar' ? '🎸 Gitar' : '🪕 Ukulele'}</span>
@@ -142,7 +142,7 @@ export const ChordPopoverModal: React.FC<ChordPopoverModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-xl transition-colors cursor-pointer border-0"
               title="Tutup"
               aria-label="Tutup"
             >
@@ -152,9 +152,9 @@ export const ChordPopoverModal: React.FC<ChordPopoverModalProps> = ({
         </div>
 
         {/* Body */}
-        <div className="p-5 flex flex-col items-center justify-center space-y-4">
+        <div className="p-5 flex flex-col items-center justify-center space-y-4 bg-bg-primary">
           {/* SVG Diagram Canvas */}
-          <div className="p-2 bg-bg-canvas/50 border border-border-default/80 rounded-xl flex items-center justify-center min-w-[200px]">
+          <div className="p-2 bg-bg-secondary border-0 rounded-2xl flex items-center justify-center min-w-[200px]">
             <ChordDiagramSvg
               position={currentPos}
               instrument={instrument}
@@ -165,7 +165,7 @@ export const ChordPopoverModal: React.FC<ChordPopoverModalProps> = ({
 
           {/* Voicing Position Controls & Counter */}
           {maxPositions > 1 && (
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-bg-canvas/80 border border-border-default/80 text-xs font-medium text-text-muted shadow-2xs">
+            <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-bg-secondary border-0 text-xs font-medium text-text-muted shadow-2xs">
               <button
                 type="button"
                 onClick={handlePrevPosition}
@@ -201,7 +201,7 @@ export const ChordPopoverModal: React.FC<ChordPopoverModalProps> = ({
                 {chordDef.notes.map((note, idx) => (
                   <span
                     key={idx}
-                    className="px-1.5 py-0.5 rounded bg-bg-canvas border border-border-default font-semibold text-text-primary text-[11px]"
+                    className="px-2 py-0.5 rounded-lg bg-bg-secondary font-semibold text-accent-primary text-[11px] border-0"
                   >
                     {note}
                   </span>

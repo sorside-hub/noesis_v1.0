@@ -178,15 +178,15 @@ export const ToolbarSettingsModal: React.FC<ToolbarSettingsModalProps> = ({
       }}
     >
       <div 
-        className="w-full max-w-lg bg-bg-surface border border-border-default rounded-xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden"
+        className="w-full max-w-lg bg-bg-primary rounded-2xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-labelledby="toolbar-settings-title"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-default shrink-0">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0 bg-bg-primary">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-accent-primary/10 text-accent-primary shrink-0">
+            <div className="p-2 rounded-xl bg-bg-secondary text-accent-primary shrink-0">
               <SlidersHorizontal size={18} />
             </div>
             <div>
@@ -201,7 +201,7 @@ export const ToolbarSettingsModal: React.FC<ToolbarSettingsModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+            className="p-2 text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-xl transition-colors cursor-pointer"
             title="Tutup"
             aria-label="Tutup"
           >
@@ -210,22 +210,22 @@ export const ToolbarSettingsModal: React.FC<ToolbarSettingsModalProps> = ({
         </div>
 
         {/* Toolbar Controls / Search & Reset */}
-        <div className="px-5 py-3 border-b border-border-default bg-bg-canvas/50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
+        <div className="px-5 py-2 bg-bg-primary flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari tombol..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-bg-surface border border-border-default rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary"
+              className="w-full pl-9 pr-8 py-2 text-xs bg-bg-secondary rounded-xl text-text-primary placeholder:text-text-muted border-0 focus:outline-none focus:ring-1 focus:ring-accent-primary transition-colors"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs"
               >
                 ✕
               </button>
@@ -240,7 +240,7 @@ export const ToolbarSettingsModal: React.FC<ToolbarSettingsModalProps> = ({
             <button
               type="button"
               onClick={handleResetToDefault}
-              className="px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover border border-border-default rounded-md flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              className="px-3 py-2 text-xs font-medium text-text-secondary hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 border-0"
               title="Kembalikan urutan awal toolbar"
             >
               <RotateCcw size={13} />
@@ -253,7 +253,7 @@ export const ToolbarSettingsModal: React.FC<ToolbarSettingsModalProps> = ({
         <div 
           ref={listRef}
           onDragOver={handleContainerDragOver}
-          className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-1.5"
+          className="flex-1 overflow-y-auto px-5 py-3 space-y-2 bg-bg-primary custom-scrollbar"
         >
           {filteredIndices.length === 0 ? (
             <div className="py-8 text-center text-sm text-text-muted">
@@ -278,14 +278,14 @@ export const ToolbarSettingsModal: React.FC<ToolbarSettingsModalProps> = ({
                   onDragOver={(e) => handleDragOver(e, originalIndex)}
                   onDrop={(e) => handleDrop(e, originalIndex)}
                   onDragEnd={handleDragEnd}
-                  className={`group flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg border transition-all ${
+                  className={`group flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl transition-all ${
                     isDragging
-                      ? 'opacity-40 bg-accent-primary/10 border-accent-primary dashed'
+                      ? 'opacity-40 bg-accent-primary/20 scale-[0.99]'
                       : isOver
-                      ? 'border-accent-primary bg-accent-primary/5 shadow-sm scale-[1.01]'
+                      ? 'bg-bg-hover ring-1 ring-accent-primary shadow-sm scale-[1.01]'
                       : isHidden
-                      ? 'opacity-60 bg-bg-canvas/40 border-dashed border-border-default'
-                      : 'bg-bg-surface border-border-default hover:border-border-hover hover:bg-bg-hover/40'
+                      ? 'opacity-50 bg-bg-secondary/60'
+                      : 'bg-bg-secondary hover:bg-bg-hover/80'
                   }`}
                 >
                   {/* Left: Drag Handle, Index Badge & Tool Info */}
@@ -306,7 +306,7 @@ export const ToolbarSettingsModal: React.FC<ToolbarSettingsModalProps> = ({
                     </span>
 
                     {/* Tool Icon */}
-                    <div className="w-8 h-8 rounded-md bg-bg-canvas border border-border-default flex items-center justify-center text-text-primary shrink-0 shadow-2xs">
+                    <div className="w-8 h-8 rounded-lg bg-bg-primary flex items-center justify-center text-text-primary shrink-0 shadow-2xs">
                       {tool.icon}
                     </div>
 
@@ -326,13 +326,13 @@ export const ToolbarSettingsModal: React.FC<ToolbarSettingsModalProps> = ({
                   </div>
 
                   {/* Right: Actions (Up/Down Buttons & Visibility Toggle) */}
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     {/* Move Up */}
                     <button
                       type="button"
                       disabled={isFirst || !!searchQuery}
                       onClick={() => handleMove(originalIndex, 'up')}
-                      className="p-1.5 text-text-muted hover:text-text-primary hover:bg-bg-canvas rounded transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
+                      className="p-1.5 text-text-muted hover:text-text-primary bg-bg-primary/50 hover:bg-bg-primary rounded-lg transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
                       title="Geser ke atas"
                       aria-label={`Geser ${tool.label} ke atas`}
                     >
@@ -344,23 +344,23 @@ export const ToolbarSettingsModal: React.FC<ToolbarSettingsModalProps> = ({
                       type="button"
                       disabled={isLast || !!searchQuery}
                       onClick={() => handleMove(originalIndex, 'down')}
-                      className="p-1.5 text-text-muted hover:text-text-primary hover:bg-bg-canvas rounded transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
+                      className="p-1.5 text-text-muted hover:text-text-primary bg-bg-primary/50 hover:bg-bg-primary rounded-lg transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
                       title="Geser ke bawah"
                       aria-label={`Geser ${tool.label} ke bawah`}
                     >
                       <ChevronDown size={16} />
                     </button>
 
-                    <div className="w-[1px] h-4 bg-border-default mx-0.5" />
+                    <div className="w-[1px] h-4 bg-bg-hover mx-0.5" />
 
                     {/* Visibility Toggle (Eye / EyeOff) */}
                     <button
                       type="button"
                       onClick={() => handleToggleVisibility(id)}
-                      className={`p-1.5 rounded transition-colors cursor-pointer ${
+                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                         isHidden
-                          ? 'text-text-muted hover:text-text-primary hover:bg-bg-canvas'
-                          : 'text-accent-primary hover:bg-accent-primary/10'
+                          ? 'text-text-muted hover:text-text-primary bg-bg-primary/50 hover:bg-bg-primary'
+                          : 'text-accent-primary bg-bg-primary/50 hover:bg-bg-primary'
                       }`}
                       title={isHidden ? 'Tampilkan di toolbar' : 'Sembunyikan dari toolbar'}
                       aria-label={isHidden ? `Tampilkan ${tool.label}` : `Sembunyikan ${tool.label}`}
@@ -375,14 +375,14 @@ export const ToolbarSettingsModal: React.FC<ToolbarSettingsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3.5 border-t border-border-default bg-bg-canvas/30 flex items-center justify-between shrink-0">
+        <div className="px-5 py-4 bg-bg-primary flex items-center justify-between shrink-0">
           <p className="text-[11px] text-text-muted hidden sm:block">
             Perubahan otomatis tersimpan dan aktif seketika.
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto px-5 py-2 text-xs font-semibold bg-accent-primary text-accent-contrast rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 ml-auto cursor-pointer shadow-xs"
+            className="w-full sm:w-auto px-5 py-2.5 text-xs font-semibold bg-accent-primary text-accent-contrast hover:opacity-90 rounded-xl transition-all flex items-center justify-center gap-1.5 ml-auto cursor-pointer shadow-xs border-0"
           >
             <Check size={15} />
             <span>Selesai</span>

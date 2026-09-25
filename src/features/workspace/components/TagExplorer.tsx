@@ -4,15 +4,12 @@ import {
   ChevronRight,
   ChevronDown,
   FileText,
-  Tag as TagIcon,
-  FolderTree,
-  ListFilter,
-  ArrowUpDown,
-  ChevronsDownUp,
-  ChevronsUpDown,
 } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { FlatTagItem, TagNodeData } from '../utils/tagUtils';
+
+export type TagViewMode = 'tree' | 'flat';
+export type TagSortMode = 'name' | 'count';
 
 interface TagExplorerProps {
   flatTags: FlatTagItem[];
@@ -23,10 +20,11 @@ interface TagExplorerProps {
   onCloseMobile: () => void;
   expandedTags?: Set<string>;
   setExpandedTags?: React.Dispatch<React.SetStateAction<Set<string>>>;
+  viewMode?: TagViewMode;
+  setViewMode?: React.Dispatch<React.SetStateAction<TagViewMode>>;
+  sortMode?: TagSortMode;
+  setSortMode?: React.Dispatch<React.SetStateAction<TagSortMode>>;
 }
-
-type TagViewMode = 'tree' | 'flat';
-type TagSortMode = 'name' | 'count';
 
 export const TagExplorer: React.FC<TagExplorerProps> = ({
   flatTags,
@@ -37,11 +35,20 @@ export const TagExplorer: React.FC<TagExplorerProps> = ({
   onCloseMobile,
   expandedTags: externalExpandedTags,
   setExpandedTags: externalSetExpandedTags,
+  viewMode: externalViewMode,
+  setViewMode: externalSetViewMode,
+  sortMode: externalSortMode,
+  setSortMode: externalSetSortMode,
 }) => {
-  const [viewMode, setViewMode] = useState<TagViewMode>('tree');
-  const [sortMode, setSortMode] = useState<TagSortMode>('name');
+  const [internalViewMode, setInternalViewMode] = useState<TagViewMode>('tree');
+  const [internalSortMode, setInternalSortMode] = useState<TagSortMode>('name');
   const [internalExpandedTags, setInternalExpandedTags] = useState<Set<string>>(new Set());
   const [highlightedTag, setHighlightedTag] = useState<string | null>(null);
+
+  const viewMode = externalViewMode ?? internalViewMode;
+  const setViewMode = externalSetViewMode ?? setInternalViewMode;
+  const sortMode = externalSortMode ?? internalSortMode;
+  const setSortMode = externalSetSortMode ?? setInternalSortMode;
 
   const expandedTags = externalExpandedTags ?? internalExpandedTags;
   const setExpandedTags = externalSetExpandedTags ?? setInternalExpandedTags;
@@ -327,50 +334,7 @@ export const TagExplorer: React.FC<TagExplorerProps> = ({
   const sortedRootTreeNodes = filterAndSortTagTreeNodes(tagTree);
 
   return (
-    <div className="space-y-1.5 py-1">
-      {/* Mini Controls Bar: View mode (Tree/Flat), Sort, Expand/Collapse */}
-      <div className="px-2 py-1 flex items-center justify-between text-[11px] font-medium text-text-secondary border-b border-border-default/40 pb-1.5 mb-1">
-        <span className="flex items-center gap-1.5 text-text-secondary">
-          <TagIcon size={12} className="text-icon-accent" />
-          <span>{flatTags.length} {flatTags.length === 1 ? 'Tag' : 'Tags'}</span>
-        </span>
-
-        <div className="flex items-center gap-1">
-          {/* Toggle Sort (A-Z vs Count) */}
-          <button
-            type="button"
-            title={sortMode === 'name' ? 'Urutkan berdasarkan frekuensi' : 'Urutkan berdasarkan nama (A-Z)'}
-            onClick={() => setSortMode((prev) => (prev === 'name' ? 'count' : 'name'))}
-            className={twMerge(
-              'p-1 px-1.5 rounded-md text-[10px] transition-colors cursor-pointer flex items-center gap-1',
-              sortMode === 'count'
-                ? 'bg-bg-quaternary text-text-primary border border-border-default/60 font-medium'
-                : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-            )}
-          >
-            <ArrowUpDown size={11} className="text-icon-accent" />
-            <span className="text-[10px] uppercase font-medium tracking-wider">
-              {sortMode === 'name' ? 'A-Z' : 'Count'}
-            </span>
-          </button>
-
-          {/* Toggle View Mode (Hierarchical Tree vs Flat List) */}
-          <button
-            type="button"
-            title={viewMode === 'tree' ? 'Ganti ke Tampilan Daftar' : 'Ganti ke Tampilan Hirarki Tree'}
-            onClick={() => setViewMode((prev) => (prev === 'tree' ? 'flat' : 'tree'))}
-            className={twMerge(
-              'p-1 px-1.5 rounded-md transition-colors cursor-pointer flex items-center justify-center',
-              viewMode === 'tree'
-                ? 'bg-bg-quaternary text-text-primary border border-border-default/60 font-medium'
-                : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-            )}
-          >
-            {viewMode === 'tree' ? <FolderTree size={12} className="text-icon-accent" /> : <ListFilter size={12} className="text-icon-accent" />}
-          </button>
-        </div>
-      </div>
-
+    <div className="space-y-0.5 py-1">
       {/* Main Tag Items */}
       {viewMode === 'tree' ? (
         <div className="space-y-0.5">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Bookmark, Star, Trash2, FolderPlus, Folder, ChevronRight, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Bookmark, Star, Trash2, FolderPlus, X } from 'lucide-react';
 import { FileNode, VaultData } from '../../../types/vault';
 import { BookmarkGroup } from '../types/bookmarks';
 
@@ -85,26 +86,26 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
     onClose();
   };
 
-  return (
+  const modalContent = (
     <div
       className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-bg-primary rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
+        className="w-full max-w-md bg-bg-primary rounded-2xl shadow-2xl overflow-hidden flex flex-col border-0 animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle bg-bg-primary">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-accent-primary/10 flex items-center justify-center text-icon-accent shrink-0">
-              <Bookmark size={18} className="fill-accent-primary/20 text-accent-primary" />
+        <div className="flex items-center justify-between px-5 py-4 bg-bg-primary border-0 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-bg-secondary flex items-center justify-center text-accent-primary shrink-0 border-0">
+              <Bookmark size={18} className="fill-accent-primary text-accent-primary" />
             </div>
-            <div>
-              <h3 className="text-sm font-semibold text-text-primary">
-                {isBookmarked ? 'Edit Bookmark' : 'Bookmark'}
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-text-primary truncate">
+                {isBookmarked ? 'Edit Bookmark' : 'Bookmark Catatan'}
               </h3>
-              <p className="text-[11px] text-text-secondary">
+              <p className="text-[11px] text-text-muted truncate">
                 Atur judul tampilan dan grup untuk bookmark ini
               </p>
             </div>
@@ -112,26 +113,28 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-icon-accent hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover transition-colors cursor-pointer border-0 shrink-0"
+            title="Tutup (Esc)"
+            aria-label="Tutup"
           >
             <X size={16} />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="px-5 pb-5 pt-1 space-y-4">
           {/* 1. Alur / Path Info (Read-only) */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary flex items-center gap-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
               <span>Alur / Lokasi File</span>
             </label>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-bg-secondary text-xs text-text-secondary overflow-x-auto select-all">
-              <span className="text-icon-accent shrink-0 text-[11px]">📁</span>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-bg-secondary text-xs text-text-secondary overflow-x-auto select-all border-0">
+              <span className="text-accent-primary shrink-0 text-[11px]">📁</span>
               <span className="font-mono text-[11.5px] truncate text-text-secondary">
                 {nodePath}
               </span>
             </div>
-            <p className="text-[10px] text-text-secondary/70">
+            <p className="text-[10px] text-text-muted/70">
               *Lokasi file asli bersifat tetap dan tidak berubah.
             </p>
           </div>
@@ -140,21 +143,20 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
           <div className="space-y-1.5">
             <label
               htmlFor="bm-title-input"
-              className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary flex items-center justify-between"
+              className="text-[11px] font-semibold uppercase tracking-wider text-text-muted flex items-center justify-between"
             >
               <span>Judul Bookmark</span>
-              <span className="text-[10px] lowercase text-text-secondary/80">
+              <span className="text-[10px] lowercase text-text-muted/70">
                 (bisa beda dari nama file)
               </span>
             </label>
             <input
               id="bm-title-input"
               type="text"
-              autoFocus
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={targetNode.name}
-              className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/50 transition-all font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-bg-secondary text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/50 transition-all font-medium border-0"
             />
           </div>
 
@@ -162,7 +164,7 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
           <div className="space-y-1.5">
             <label
               htmlFor="bm-group-select"
-              className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary flex items-center justify-between"
+              className="text-[11px] font-semibold uppercase tracking-wider text-text-muted flex items-center justify-between"
             >
               <span>Grup Bookmark</span>
             </label>
@@ -181,7 +183,7 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
                       setSelectedGroupId(val ? val : null);
                     }
                   }}
-                  className="w-full px-3 py-2 rounded-xl bg-bg-secondary text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary/50 transition-all cursor-pointer"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-bg-secondary text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary/50 transition-all cursor-pointer border-0"
                 >
                   <option value="">Tanpa Grup (Root)</option>
                   {groups.map((grp) => (
@@ -194,10 +196,10 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
               </div>
             ) : (
               /* Inline New Group Input */
-              <div className="space-y-2 p-3 bg-bg-secondary rounded-xl animate-in fade-in duration-150">
+              <div className="space-y-2 p-3 bg-bg-secondary rounded-xl animate-in fade-in duration-150 border-0">
                 <div className="flex items-center justify-between text-xs text-text-primary font-medium">
                   <span className="flex items-center gap-1.5 text-accent-primary">
-                    <FolderPlus size={14} className="text-icon-accent" />
+                    <FolderPlus size={14} />
                     <span>Nama Grup Baru</span>
                   </span>
                   <button
@@ -206,30 +208,29 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
                       setIsCreatingNewGroup(false);
                       setNewGroupName('');
                     }}
-                    className="text-[11px] text-text-secondary hover:text-text-primary cursor-pointer"
+                    className="text-[11px] text-text-muted hover:text-text-primary cursor-pointer transition-colors"
                   >
                     Batal
                   </button>
                 </div>
                 <input
                   type="text"
-                  autoFocus
                   placeholder="Contoh: Proyek Aktif, Referensi Penting..."
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-bg-primary text-xs text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/50"
+                  className="w-full px-3 py-2 rounded-lg bg-bg-primary text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent-primary/50 border-0"
                 />
               </div>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-3 border-t border-border-subtle flex items-center justify-between gap-2">
+          <div className="pt-2 flex items-center justify-between gap-2 border-0">
             {isBookmarked ? (
               <button
                 type="button"
                 onClick={handleRemove}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-status-error hover:bg-status-error-bg/30 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-status-error hover:bg-status-error-bg/30 transition-colors cursor-pointer border-0"
               >
                 <Trash2 size={13} />
                 <span>Hapus Bookmark</span>
@@ -242,13 +243,13 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3.5 py-2 rounded-xl text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-medium text-text-secondary hover:text-text-primary bg-bg-secondary hover:bg-bg-hover transition-colors cursor-pointer border-0"
               >
                 Batal
               </button>
               <button
                 type="submit"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-accent-primary text-text-inverse hover:opacity-90 transition-all active:scale-98 cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-accent-primary text-text-inverse hover:opacity-90 transition-all active:scale-98 cursor-pointer border-0"
               >
                 <Star size={13} className="fill-current text-current" />
                 <span>{isBookmarked ? 'Simpan Perubahan' : 'Bookmark'}</span>
@@ -259,4 +260,6 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };

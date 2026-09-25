@@ -9,6 +9,9 @@ import {
   FolderPlus,
   Search,
   ChevronsDownUp,
+  ListFilter,
+  ArrowUpDown,
+  Layers,
 } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { SidebarTabMode } from '../hooks/useLeftSidebarLogic';
@@ -37,6 +40,16 @@ interface LeftSidebarTabSwitcherProps {
   handleToggleExpandCollapseAllGroups?: () => void;
   areAllPropertiesCollapsed?: boolean;
   handleToggleExpandCollapseAllProperties?: () => void;
+  // Contextual controls for Tags
+  tagViewMode?: 'tree' | 'flat';
+  onToggleTagViewMode?: () => void;
+  tagSortMode?: 'name' | 'count';
+  onToggleTagSortMode?: () => void;
+  // Contextual controls for Properties
+  propertyScope?: 'all' | 'core' | 'custom';
+  onCyclePropertyScope?: () => void;
+  propertySortMode?: 'name' | 'count';
+  onTogglePropertySortMode?: () => void;
 }
 
 export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
@@ -57,6 +70,14 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
   handleToggleExpandCollapseAllGroups,
   areAllPropertiesCollapsed = false,
   handleToggleExpandCollapseAllProperties,
+  tagViewMode = 'tree',
+  onToggleTagViewMode,
+  tagSortMode = 'name',
+  onToggleTagSortMode,
+  propertyScope = 'all',
+  onCyclePropertyScope,
+  propertySortMode = 'count',
+  onTogglePropertySortMode,
 }) => {
   const [isTabMenuOpen, setIsTabMenuOpen] = useState(false);
   const tabMenuRef = useRef<HTMLDivElement>(null);
@@ -128,90 +149,167 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
       )}
     >
       {/* 1. SOFT GRADIENT FADE (Obsidian style - no harsh line) */}
-      <div className="w-full h-10 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent pointer-events-none" />
+      <div className="w-full h-8 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent pointer-events-none" />
 
       {/* 2. SOLID BOTTOM SECTION FOR ICONS & TAB SWITCHER */}
-      <div className="w-full bg-bg-secondary px-3 pb-3.5 pt-0.5 flex flex-col items-center gap-1.5 pointer-events-auto">
+      <div className="w-full bg-bg-secondary px-3 pb-3 pt-0 flex flex-col items-center gap-1.5 pointer-events-auto">
         {/* ----------------------------------------------------------- */}
-        {/* ACTION ICONS BAR (Minimalist pure icons, Obsidian style)   */}
+        {/* COMPACT CONTEXTUAL DOCK (Close spacing, unified pill)     */}
         {/* ----------------------------------------------------------- */}
-        <div className="w-full flex items-center justify-around px-1 py-0.5 text-text-muted select-none">
-          {/* 1. New Note */}
-          <button
-            type="button"
-            onClick={() => {
-              onCreateNote(null);
-              onCloseMobile();
-            }}
-            className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
-            title="Catatan Baru"
-          >
-            <SquarePen size={17} />
-          </button>
-
-          {/* 2. New Folder or New Bookmark Group */}
-          {activeTab === 'files' ? (
-            <button
-              type="button"
-              onClick={onCreateFolder}
-              className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
-              title="Folder Baru"
-            >
-              <FolderPlus size={17} />
-            </button>
-          ) : activeTab === 'bookmarks' ? (
-            <button
-              type="button"
-              onClick={onCreateBookmarkGroup}
-              className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
-              title="Grup Bookmark Baru"
-            >
-              <FolderPlus size={17} />
-            </button>
-          ) : null}
-
-          {/* 3. Search Toggle */}
-          <button
-            type="button"
-            onClick={() => setIsTreeSearchOpen((prev) => !prev)}
-            className={twMerge(
-              'p-1.5 rounded-lg transition-colors cursor-pointer',
-              isTreeSearchOpen
-                ? 'bg-bg-hover text-accent-primary'
-                : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+        <div className="w-full flex items-center justify-center select-none py-0.5">
+          <div className="flex items-center gap-1 px-1.5 py-1 rounded-xl bg-bg-primary shadow-xs border-0">
+            {/* 1. Contextual Action Buttons */}
+            {activeTab === 'files' && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onCreateNote(null);
+                    onCloseMobile();
+                  }}
+                  className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer border-0"
+                  title="Catatan Baru"
+                  aria-label="Catatan Baru"
+                >
+                  <SquarePen size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={onCreateFolder}
+                  className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer border-0"
+                  title="Folder Baru"
+                  aria-label="Folder Baru"
+                >
+                  <FolderPlus size={15} />
+                </button>
+              </>
             )}
-            title={isTreeSearchOpen ? 'Tutup pencarian' : 'Cari'}
-          >
-            <Search size={17} />
-          </button>
 
-          {/* 4. Expand / Collapse All */}
-          {expandCollapse.onToggle && (
+            {activeTab === 'tags' && (
+              <>
+                <button
+                  type="button"
+                  onClick={onToggleTagViewMode}
+                  className={twMerge(
+                    "p-1.5 rounded-lg transition-colors cursor-pointer border-0",
+                    tagViewMode === 'flat'
+                      ? "text-accent-primary bg-bg-hover"
+                      : "text-text-secondary hover:text-text-primary hover:bg-bg-hover"
+                  )}
+                  title={tagViewMode === 'tree' ? "Ganti ke Tampilan Daftar" : "Ganti ke Tampilan Hirarki"}
+                  aria-label="Ganti Tampilan Tag"
+                >
+                  {tagViewMode === 'tree' ? <FolderTree size={15} /> : <ListFilter size={15} />}
+                </button>
+                <button
+                  type="button"
+                  onClick={onToggleTagSortMode}
+                  className={twMerge(
+                    "p-1.5 rounded-lg transition-colors cursor-pointer border-0",
+                    tagSortMode === 'count'
+                      ? "text-accent-primary bg-bg-hover"
+                      : "text-text-secondary hover:text-text-primary hover:bg-bg-hover"
+                  )}
+                  title={tagSortMode === 'name' ? "Urutkan berdasarkan Jumlah Catatan" : "Urutkan berdasarkan Nama (A-Z)"}
+                  aria-label="Urutkan Tag"
+                >
+                  <ArrowUpDown size={15} />
+                </button>
+              </>
+            )}
+
+            {activeTab === 'bookmarks' && (
+              <button
+                type="button"
+                onClick={onCreateBookmarkGroup}
+                className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer border-0"
+                title="Grup Bookmark Baru"
+                aria-label="Grup Bookmark Baru"
+              >
+                <FolderPlus size={15} />
+              </button>
+            )}
+
+            {activeTab === 'properties' && (
+              <>
+                <button
+                  type="button"
+                  onClick={onCyclePropertyScope}
+                  className={twMerge(
+                    "p-1.5 rounded-lg transition-colors cursor-pointer border-0",
+                    propertyScope !== 'all'
+                      ? "text-accent-primary bg-bg-hover"
+                      : "text-text-secondary hover:text-text-primary hover:bg-bg-hover"
+                  )}
+                  title={`Filter Scope: ${propertyScope === 'all' ? 'Semua' : propertyScope === 'core' ? 'Core' : 'Custom'} (Klik untuk ganti)`}
+                  aria-label="Ganti Filter Properti"
+                >
+                  <Layers size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={onTogglePropertySortMode}
+                  className={twMerge(
+                    "p-1.5 rounded-lg transition-colors cursor-pointer border-0",
+                    propertySortMode === 'count'
+                      ? "text-accent-primary bg-bg-hover"
+                      : "text-text-secondary hover:text-text-primary hover:bg-bg-hover"
+                  )}
+                  title={propertySortMode === 'count' ? "Urutkan berdasarkan Nama (A-Z)" : "Urutkan berdasarkan Jumlah Catatan"}
+                  aria-label="Urutkan Properti"
+                >
+                  <ArrowUpDown size={15} />
+                </button>
+              </>
+            )}
+
+            {/* Subtle Divider */}
+            <div className="w-px h-3.5 bg-border-default/40 mx-0.5" />
+
+            {/* 2. Global Utilities (Search & Expand/Collapse) */}
             <button
               type="button"
-              onClick={expandCollapse.onToggle}
-              className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
-              title={expandCollapse.title}
-            >
-              {expandCollapse.isCollapsed ? (
-                <ChevronsUpDown size={17} />
-              ) : (
-                <ChevronsDownUp size={17} />
+              onClick={() => setIsTreeSearchOpen((prev) => !prev)}
+              className={twMerge(
+                'p-1.5 rounded-lg transition-colors cursor-pointer border-0',
+                isTreeSearchOpen
+                  ? 'bg-bg-hover text-accent-primary'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
               )}
+              title={isTreeSearchOpen ? 'Tutup pencarian' : 'Cari'}
+              aria-label="Pencarian"
+            >
+              <Search size={15} />
             </button>
-          )}
+
+            {expandCollapse.onToggle && (
+              <button
+                type="button"
+                onClick={expandCollapse.onToggle}
+                className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer border-0"
+                title={expandCollapse.title}
+                aria-label={expandCollapse.title}
+              >
+                {expandCollapse.isCollapsed ? (
+                  <ChevronsUpDown size={15} />
+                ) : (
+                  <ChevronsDownUp size={15} />
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ----------------------------------------------------------- */}
-        {/* FLOATING TAB SWITCHER PILL (Identical to RightSidebar)     */}
+        {/* FLOATING TAB SWITCHER PILL (Clean, Borderless, No Counter)  */}
         {/* ----------------------------------------------------------- */}
         <div
           ref={tabMenuRef}
-          className="w-full relative bg-bg-quaternary rounded-2xl border border-border-default/20 transition-all duration-150 shadow-sm"
+          className="w-full relative bg-bg-primary rounded-2xl border-0 transition-all duration-150 shadow-sm"
         >
           {/* EXPANDED TAB OPTIONS LIST (Opens Upwards Above Footer) */}
           {isTabMenuOpen && (
-            <div className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-bg-quaternary rounded-2xl shadow-2xl border border-border-default/30 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-bg-primary rounded-2xl shadow-2xl border-0 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
               {tabs.map((tab) => {
                 const TabIcon = tab.icon;
                 const isSelected = activeTab === tab.id;
@@ -224,10 +322,10 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
                       setIsTabMenuOpen(false);
                     }}
                     className={twMerge(
-                      'w-full flex items-center px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer group',
+                      'w-full flex items-center px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer group border-0',
                       isSelected
-                        ? 'bg-bg-hover text-text-primary'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+                        ? 'bg-bg-secondary text-text-primary font-semibold'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary/60'
                     )}
                   >
                     <div className="flex items-center gap-2.5">
@@ -236,7 +334,7 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
                         className={twMerge(
                           'transition-colors duration-150',
                           isSelected
-                            ? 'text-text-primary'
+                            ? 'text-accent-primary'
                             : 'text-icon-secondary group-hover:text-text-primary'
                         )}
                       />
@@ -253,7 +351,7 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
             type="button"
             onClick={() => setIsTabMenuOpen((prev) => !prev)}
             className={twMerge(
-              'w-full flex items-center justify-between px-4 py-2.5 transition-all cursor-pointer text-xs group rounded-2xl',
+              'w-full flex items-center justify-between px-4 py-2.5 transition-all cursor-pointer text-xs group rounded-2xl border-0',
               isTabMenuOpen
                 ? 'text-text-muted/40 hover:text-text-muted/60'
                 : 'text-text-primary hover:bg-bg-hover'
@@ -264,7 +362,7 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
                 size={15}
                 className={twMerge(
                   'shrink-0 transition-colors',
-                  isTabMenuOpen ? 'text-text-muted/40' : 'text-text-primary'
+                  isTabMenuOpen ? 'text-text-muted/40' : 'text-accent-primary'
                 )}
               />
               <span className="text-xs">{currentTabObj.label}</span>

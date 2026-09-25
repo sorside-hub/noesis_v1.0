@@ -169,7 +169,7 @@ export const DocumentPill: React.FC<DocumentPillProps> = ({
   return (
     <>
       <div
-        className={`noesis-document-pill my-3 rounded-2xl bg-bg-surface/90 dark:bg-[#0c0c0d] border border-border-default/80 hover:border-accent-primary/40 shadow-xs backdrop-blur-md select-none transition-all w-full max-w-xl overflow-hidden ${className}`}
+        className={`noesis-document-pill my-3 rounded-2xl bg-bg-secondary text-text-primary shadow-xs select-none transition-all w-full max-w-xl overflow-hidden border-0 ${className}`}
         data-no-swipe
         contentEditable={false}
         onMouseDown={(e) => e.stopPropagation()}
@@ -184,7 +184,7 @@ export const DocumentPill: React.FC<DocumentPillProps> = ({
           {/* Baris 1: Judul di kiri, Type file di kanan */}
           <div className="flex items-center justify-between gap-3 min-w-0">
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-500 shrink-0 flex items-center justify-center my-auto">
+              <div className="w-8 h-8 rounded-xl bg-bg-primary text-accent-primary shrink-0 flex items-center justify-center my-auto border-0">
                 {getFileIcon()}
               </div>
               <div className="flex items-center min-w-0 flex-1 my-auto">
@@ -198,13 +198,13 @@ export const DocumentPill: React.FC<DocumentPillProps> = ({
             </div>
 
             {/* Type file badge di kanan */}
-            <span className={`h-6 px-2 text-[10px] font-bold uppercase tracking-wider rounded-md border shrink-0 font-mono inline-flex items-center justify-center my-auto ${getBadgeColors()}`}>
+            <span className={`h-6 px-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border-0 shrink-0 font-mono inline-flex items-center justify-center my-auto ${getBadgeColors()}`}>
               {ext || 'BERKAS'}
             </span>
           </div>
 
           {/* Baris 2: Tombol-tombol aksi */}
-          <div className="flex items-center justify-between gap-2 pt-1 border-t border-border-subtle/60">
+          <div className="flex items-center justify-between gap-2 pt-1 border-0">
             {/* Kiri: Tombol Baca (Inline toggle) & Layar Penuh */}
             <div className="flex items-center gap-1.5">
               <button
@@ -214,10 +214,10 @@ export const DocumentPill: React.FC<DocumentPillProps> = ({
                   setIsExpanded(!isExpanded);
                 }}
                 title={isExpanded ? 'Tutup pratinjau catatan' : 'Buka pratinjau di dalam catatan'}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition-colors cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer border-0 ${
                   isExpanded 
-                    ? 'bg-accent-primary/10 border-accent-primary/30 text-accent-primary' 
-                    : 'border-border-default bg-bg-surface hover:bg-bg-hover text-text-muted hover:text-text-primary'
+                    ? 'bg-accent-primary text-accent-contrast' 
+                    : 'bg-bg-primary hover:bg-bg-hover text-text-secondary hover:text-text-primary'
                 }`}
               >
                 <Eye className="w-3.5 h-3.5" />
@@ -232,7 +232,7 @@ export const DocumentPill: React.FC<DocumentPillProps> = ({
                   setIsPreviewModalOpen(true);
                 }}
                 title="Pratinjau Layar Penuh"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-border-default bg-bg-surface hover:bg-bg-hover text-text-muted hover:text-text-primary text-xs transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-bg-primary hover:bg-bg-hover text-text-secondary hover:text-text-primary text-xs transition-colors cursor-pointer border-0"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Layar Penuh</span>
@@ -247,7 +247,7 @@ export const DocumentPill: React.FC<DocumentPillProps> = ({
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 title="Buka / Unduh berkas di tab baru"
-                className="p-1.5 rounded-xl border border-border-default bg-bg-surface hover:bg-bg-hover text-text-muted hover:text-text-primary text-xs transition-colors cursor-pointer"
+                className="p-1.5 rounded-xl bg-bg-primary hover:bg-bg-hover text-text-secondary hover:text-text-primary text-xs transition-colors cursor-pointer border-0"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>

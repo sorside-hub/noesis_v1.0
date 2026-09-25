@@ -168,12 +168,12 @@ export const VoiceMemoModal: React.FC<VoiceMemoModalProps> = ({ vaultState }) =>
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-bg-surface border border-border-default rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-150">
+      <div className="bg-bg-primary rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-150 border-0">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-bg-surface/50">
+        <div className="flex items-center justify-between px-6 pt-5 pb-3 bg-bg-primary">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-accent-primary/10 text-accent-primary flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-bg-secondary text-accent-primary flex items-center justify-center">
               <Mic size={16} />
             </div>
             <div>
@@ -183,7 +183,7 @@ export const VoiceMemoModal: React.FC<VoiceMemoModalProps> = ({ vaultState }) =>
           </div>
           <button
             onClick={handleClose}
-            className="w-8 h-8 flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-xl transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-xl transition-colors cursor-pointer border-0"
           >
             <X size={16} />
           </button>
@@ -314,12 +314,12 @@ export const VoiceMemoModal: React.FC<VoiceMemoModalProps> = ({ vaultState }) =>
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Beri judul memo suara..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-bg-primary border border-border-default focus:border-accent-primary focus:outline-none text-xs text-text-primary"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-bg-secondary border-0 focus:ring-1 focus:ring-accent-primary focus:outline-none text-xs text-text-primary placeholder:text-text-muted/60"
                 />
               </div>
 
               {/* Audio Preview Wave / Player Bar */}
-              <div className="p-3.5 rounded-2xl bg-bg-primary border border-border-subtle flex items-center gap-3">
+              <div className="p-3.5 rounded-2xl bg-bg-secondary border-0 flex items-center gap-3">
                 <button
                   type="button"
                   onClick={togglePreviewPlay}

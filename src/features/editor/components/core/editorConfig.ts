@@ -202,7 +202,7 @@ export const getEditorExtensions = (nodesRef: React.MutableRefObject<any>) => [
   TableRow,
   TableHeader.configure({
     HTMLAttributes: {
-      class: 'border border-border-default bg-bg-quaternary/50 px-3 py-2 font-bold text-text-primary',
+      class: 'border border-border-default bg-bg-secondary px-3 py-2 font-semibold text-text-primary',
     },
   }),
   TableCell.configure({
