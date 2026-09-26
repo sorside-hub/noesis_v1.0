@@ -38,8 +38,10 @@ export const RightSidebarTabSwitcher: React.FC<RightSidebarTabSwitcherProps> = (
         isKeyboardOpen && 'hidden'
       )}
     >
-      {/* 1. SOFT GRADIENT FADE (Obsidian style - no harsh line) */}
-      <div className="w-full h-10 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent pointer-events-none" />
+      {/* 1. SOFT GRADIENT FADE (Obsidian style - no harsh line, hidden on Copilot CHAT tab) */}
+      {activeTab !== 'CHAT' && (
+        <div className="w-full h-10 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent pointer-events-none" />
+      )}
 
       {/* 2. SOLID BOTTOM SECTION FOR TAB SWITCHER */}
       <div className="w-full bg-bg-secondary px-3 pb-3.5 pt-0.5 flex flex-col items-center pointer-events-auto">

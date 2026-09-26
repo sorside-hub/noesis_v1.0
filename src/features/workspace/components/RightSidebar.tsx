@@ -136,7 +136,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         className={`flex-1 ${
           activeTab === 'LOCAL_GRAPH'
             ? 'overflow-hidden flex flex-col p-0 pb-[4.5rem]'
-            : activeTab === 'CHAT' && isKeyboardOpen
+            : activeTab === 'CHAT'
+            ? isKeyboardOpen
+              ? 'overflow-hidden flex flex-col p-4 pb-3'
+              : 'overflow-hidden flex flex-col p-4 pb-16'
+            : isKeyboardOpen
             ? 'overflow-y-auto p-4 space-y-3 pb-3'
             : 'overflow-y-auto p-4 space-y-3 pb-28'
         }`}

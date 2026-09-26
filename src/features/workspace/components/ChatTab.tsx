@@ -25,6 +25,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [isScrolledTop, setIsScrolledTop] = useState(false);
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
 
   const handleCopyMessage = (msgId: string, content: string) => {
@@ -116,6 +117,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
     setShowScrollBtn(!isAtBottom);
+    setIsScrolledTop(scrollTop > 4);
     isAutoScrollRef.current = isAtBottom;
     if (activeNode.id) {
       nodeScrollMap.current.set(activeNode.id, scrollTop);
@@ -130,6 +132,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
         top: scrollContainerRef.current.scrollHeight,
         behavior: 'smooth'
       });
+      setIsScrolledTop(true);
     }
   };
 
@@ -173,6 +176,8 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
     if (shouldScrollToBottom) {
       scrollContainer.scrollTop = scrollContainer.scrollHeight;
     }
+
+    setIsScrolledTop(scrollContainer.scrollTop > 4);
   }, [messages, activeNode.id, renderedHtmlMap]);
 
   const updateMessages = (newMessages: ChatMessage[]) => {
@@ -232,9 +237,9 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
   };
 
   return (
-    <div className="flex flex-col h-full space-y-4 relative">
-      {/* Header section */}
-      <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
+    <div className="flex flex-col h-full relative overflow-hidden">
+      {/* Header section (clean, no border) */}
+      <div className="flex items-center justify-between pb-1.5 shrink-0 z-20 bg-bg-secondary">
         <h3 className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 uppercase tracking-wider">
           <Bot size={13} className="text-accent-primary" />
           <span>Noesis Copilot</span>
@@ -251,12 +256,19 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
         )}
       </div>
 
+      {/* Top Gradient Fade (messages smoothly fade under header only when scrolled down) */}
+      <div 
+        className={`w-full h-5 bg-gradient-to-b from-[var(--bg-secondary)] via-[var(--bg-secondary)]/80 to-transparent pointer-events-none -mb-5 z-10 shrink-0 transition-opacity duration-200 ${
+          isScrolledTop ? 'opacity-100' : 'opacity-0'
+        }`} 
+      />
+
       {/* Messages area */}
       <div 
         ref={scrollContainerRef} 
         onScroll={handleScroll} 
         onClick={handleFeedClick}
-        className="flex-1 overflow-y-auto pr-1 space-y-4 custom-scrollbar select-text" 
+        className="flex-1 overflow-y-auto pr-1 py-3 space-y-4 custom-scrollbar select-text" 
         style={{ overflowAnchor: 'none' }}
       >
         {messages.length === 0 ? (
@@ -331,18 +343,21 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
       {showScrollBtn && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-[60px] right-3 z-40 p-1.5 rounded-full bg-bg-primary text-text-primary shadow-lg hover:text-accent-primary transition-all animate-in fade-in slide-in-from-bottom-2 cursor-pointer flex items-center justify-center"
+          className="absolute bottom-[56px] right-3 z-40 p-1.5 rounded-full bg-bg-primary text-text-primary shadow-lg hover:text-accent-primary transition-all animate-in fade-in slide-in-from-bottom-2 cursor-pointer flex items-center justify-center"
           title="Scroll to bottom"
         >
           <ArrowDown size={14} />
         </button>
       )}
 
+      {/* Bottom Gradient Fade (messages smoothly fade directly above input box) */}
+      <div className="w-full h-6 bg-gradient-to-t from-[var(--bg-secondary)] via-[var(--bg-secondary)]/80 to-transparent pointer-events-none -mt-6 z-10 shrink-0" />
+
       {/* Input area */}
-      <div className="pt-2 border-t border-border-subtle">
+      <div className="relative pt-1 z-20 shrink-0 bg-bg-secondary">
         <form 
           onSubmit={handleSend}
-          className="relative flex items-center gap-2 bg-bg-primary focus-within:ring-1 focus-within:ring-accent-primary/50 rounded-2xl p-2 px-3 transition-all"
+          className="relative flex items-end gap-2 bg-bg-quaternary focus-within:ring-1 focus-within:ring-accent-primary/50 rounded-2xl p-2 px-3.5 shadow-sm transition-all"
         >
           <textarea
             ref={textareaRef}
@@ -350,14 +365,15 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Tanyakan sesuatu tentang catatan ini..."
-            className="w-full bg-transparent border-0 outline-none text-sm leading-relaxed text-text-primary placeholder:text-text-muted resize-none max-h-32 min-h-[36px] py-2 custom-scrollbar block font-sans"
+            className="flex-1 bg-transparent border-0 outline-hidden text-sm leading-relaxed text-text-primary placeholder:text-text-muted resize-none max-h-32 min-h-[32px] py-1.5 font-sans custom-scrollbar block"
             rows={1}
             disabled={isLoading}
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="p-2 rounded-xl bg-accent-primary text-accent-contrast disabled:opacity-40 disabled:bg-bg-hover disabled:text-text-muted hover:opacity-90 transition-all cursor-pointer flex items-center justify-center shrink-0"
+            className="p-2.5 rounded-xl bg-accent-primary text-accent-contrast disabled:opacity-50 disabled:bg-bg-secondary disabled:text-text-muted hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0 mb-0.5 shadow-xs"
+            title="Kirim Pesan"
           >
             <Send size={15} strokeWidth={2.2} className="text-accent-contrast" />
           </button>
