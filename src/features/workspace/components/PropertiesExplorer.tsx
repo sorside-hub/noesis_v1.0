@@ -194,7 +194,6 @@ export const PropertiesExplorer: React.FC<PropertiesExplorerProps> = ({
   // Render a Property Card/Row
   const renderPropertyRow = (prop: PropertyItem) => {
     const isExpanded = expandedProps.has(prop.id) || !!query;
-    const hasMultipleGroups = prop.valueGroups.length > 1;
 
     return (
       <div key={prop.id} className="flex flex-col">
@@ -225,8 +224,8 @@ export const PropertiesExplorer: React.FC<PropertiesExplorerProps> = ({
 
         {/* Expanded Content: Values and Matching Notes */}
         {isExpanded && (
-          <div className="pl-5 pr-1 py-1 space-y-1">
-            {hasMultipleGroups ? (
+          <div className="pl-4 pr-1 py-1 space-y-1">
+            {prop.valueGroups && prop.valueGroups.length > 0 ? (
               // Distinct values group list
               prop.valueGroups.map((vg, idx) => {
                 const groupKey = `${prop.id}_val_${idx}`;
@@ -265,7 +264,7 @@ export const PropertiesExplorer: React.FC<PropertiesExplorerProps> = ({
                 );
               })
             ) : (
-              // Single group or flat notes list
+              // Flat notes list fallback
               <div className="space-y-0.5">
                 {prop.allNotes.map((note) => renderNoteItem(note, note.displayValue))}
               </div>

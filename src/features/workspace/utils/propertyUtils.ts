@@ -166,7 +166,7 @@ export function extractAllPropertiesFromVault(vault: VaultData): VaultProperties
       });
     }
 
-    // F. Custom Properties from node.metadata.customProperties array
+    // F. Custom Properties exclusively from node.metadata.customProperties array
     if (Array.isArray(meta.customProperties)) {
       meta.customProperties.forEach((cp: CustomProperty) => {
         if (!cp || !cp.key || !cp.key.trim()) return;
@@ -207,63 +207,6 @@ export function extractAllPropertiesFromVault(vault: VaultData): VaultProperties
         acc.valueMap.get(displayVal)!.notes.push(noteItem);
       });
     }
-
-    // G. Additional keys in node.metadata (excluding known core fields)
-    const reservedKeys = new Set([
-      'noteType',
-      'status',
-      'tags',
-      'aliases',
-      'customProperties',
-      'bookmark',
-      'id',
-      'summary',
-      'keywords',
-      'concepts',
-      'emotion',
-      'ragMetadata',
-      'linkedNotes',
-      'outgoingLinks',
-    ]);
-
-    Object.entries(meta).forEach(([k, v]) => {
-      if (reservedKeys.has(k) || !k.trim() || v === undefined || v === null) return;
-      hasAnyProp = true;
-      const propKey = k.trim();
-      const rawVal = v;
-      const displayVal = formatPropertyValue(rawVal);
-
-      let inferredType: PropertyType | 'list' | 'unknown' = 'text';
-      if (typeof rawVal === 'boolean') inferredType = 'checkbox';
-      else if (typeof rawVal === 'number') inferredType = 'number';
-      else if (Array.isArray(rawVal)) inferredType = 'list';
-
-      if (!customPropsAcc.has(propKey)) {
-        customPropsAcc.set(propKey, {
-          key: propKey,
-          type: inferredType,
-          valueMap: new Map(),
-          allNotes: [],
-        });
-      }
-
-      const acc = customPropsAcc.get(propKey)!;
-      const noteItem: PropertyNoteItem = {
-        id: node.id,
-        name: node.name.replace(/\.md$/, ''),
-        value: rawVal,
-        displayValue: displayVal,
-        updatedAt: node.updatedAt || node.createdAt || 0,
-        rawNode: node,
-      };
-
-      acc.allNotes.push(noteItem);
-
-      if (!acc.valueMap.has(displayVal)) {
-        acc.valueMap.set(displayVal, { value: rawVal, notes: [] });
-      }
-      acc.valueMap.get(displayVal)!.notes.push(noteItem);
-    });
 
     if (hasAnyProp) {
       notesWithPropsSet.add(node.id);

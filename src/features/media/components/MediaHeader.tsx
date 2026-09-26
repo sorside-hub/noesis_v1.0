@@ -44,10 +44,10 @@ export const MediaHeader: React.FC<MediaHeaderProps> = ({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-subtle pb-5">
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-xs shrink-0 ${
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-xs shrink-0 bg-bg-secondary ${
           selectedCategory && currentCategoryMeta
-            ? `${currentCategoryMeta.iconBg} ${currentCategoryMeta.iconColor}`
-            : 'bg-accent-primary/10 text-accent-primary'
+            ? currentCategoryMeta.iconColor
+            : 'text-accent-primary'
         }`}>
           <IconComponent className="w-5 h-5" />
         </div>

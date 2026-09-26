@@ -234,7 +234,7 @@ export const useMediaManager = (externalVault?: any) => {
         navigateToNote(newNoteId);
       }
     } catch (err: any) {
-      alert(err.message || 'Gagal mengubah audio menjadi catatan AI.');
+      console.error('Gagal mengubah audio menjadi catatan AI:', err);
     } finally {
       setTranscribingId(null);
     }

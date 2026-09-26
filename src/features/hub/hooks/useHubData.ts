@@ -78,32 +78,28 @@ export function useHubData(vault: VaultData | null) {
       };
 
       // 1. Core metadata
+      const customPropsMap: Record<string, any> = {};
       if (node.metadata) {
         if (node.metadata.noteType) properties['type'] = node.metadata.noteType;
         if (node.metadata.status) properties['status'] = node.metadata.status;
         if (allNoteTags.length > 0) properties['tags'] = allNoteTags;
         if (node.metadata.aliases && node.metadata.aliases.length > 0) properties['aliases'] = node.metadata.aliases;
 
-        // 2. Unpack Custom Properties
+        // 2. Unpack Custom Properties exclusively from customProperties array
         if (Array.isArray(node.metadata.customProperties)) {
           node.metadata.customProperties.forEach((cp: any) => {
             if (cp && cp.key && typeof cp.key === 'string' && cp.key.trim()) {
-              properties[cp.key.trim()] = cp.value;
+              const key = cp.key.trim();
+              properties[key] = cp.value;
+              customPropsMap[key] = cp.value;
             }
           });
         }
-
-        // 3. Other metadata keys (exclude raw customProperties array and known core keys)
-        Object.keys(node.metadata).forEach(k => {
-          if (!['customProperties', 'noteType', 'status', 'tags', 'aliases'].includes(k)) {
-            properties[k] = (node.metadata as any)[k];
-          }
-        });
       } else if (allNoteTags.length > 0) {
         properties['tags'] = allNoteTags;
       }
 
-      // 4. AI Metadata
+      // 3. AI Metadata
       if (meta) {
         if (meta.summary) properties['summary'] = meta.summary;
         if (meta.keywords && meta.keywords.length > 0) properties['keywords'] = meta.keywords;
@@ -124,6 +120,7 @@ export function useHubData(vault: VaultData | null) {
         concepts: meta.concepts || [],
         emotion: meta.emotion,
         properties,
+        customProperties: customPropsMap,
         createdAt: node.createdAt,
         updatedAt: Math.max(
           node.updatedAt, 

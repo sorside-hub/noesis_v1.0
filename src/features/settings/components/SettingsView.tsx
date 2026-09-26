@@ -49,7 +49,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      alert('Gagal mengekspor data catatan.');
+      setImportStatus({ type: 'error', message: 'Gagal mengekspor data catatan ke file JSON.' });
     }
   };
 
@@ -83,11 +83,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
 
   return (
     <div className="w-full h-full overflow-y-auto bg-bg-primary text-text-primary select-text">
-      <div className="max-w-2xl mx-auto px-4 py-6 md:py-10 space-y-7 pb-28">
+      <div className="max-w-2xl mx-auto px-4 pt-3 sm:pt-4 pb-28 space-y-5">
         
         {/* HEADER SECTION */}
-        <header className="pb-4 border-b border-border-subtle">
-          <h1 className="text-xl md:text-2xl font-bold text-text-heading tracking-tight">Settings</h1>
+        <header className="pt-0.5">
+          <h1 className="text-xl font-bold text-text-heading tracking-tight">Settings</h1>
         </header>
 
         {/* 1. THEME & APPEARANCE */}

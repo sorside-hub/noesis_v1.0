@@ -14,7 +14,7 @@ export const CATEGORIES_CONFIG: CategoryConfig[] = [
     title: 'Voice Memo',
     description: 'Rekaman suara kilat dan memo audio instan',
     icon: Mic,
-    iconBg: 'bg-accent-primary/10',
+    iconBg: 'bg-bg-primary',
     iconColor: 'text-accent-primary',
     accentBorder: 'hover:border-accent-primary/40'
   },
@@ -23,7 +23,7 @@ export const CATEGORIES_CONFIG: CategoryConfig[] = [
     title: 'Audio',
     description: 'Musik, suara latar, dan rekaman audio eksternal',
     icon: Music,
-    iconBg: 'bg-accent-primary/10',
+    iconBg: 'bg-bg-primary',
     iconColor: 'text-accent-primary',
     accentBorder: 'hover:border-accent-primary/40'
   },
@@ -32,7 +32,7 @@ export const CATEGORIES_CONFIG: CategoryConfig[] = [
     title: 'Gambar',
     description: 'Diagram, foto lampiran, dan screenshot',
     icon: ImageIcon,
-    iconBg: 'bg-accent-primary/10',
+    iconBg: 'bg-bg-primary',
     iconColor: 'text-accent-primary',
     accentBorder: 'hover:border-accent-primary/40'
   },
@@ -41,7 +41,7 @@ export const CATEGORIES_CONFIG: CategoryConfig[] = [
     title: 'Dokumen',
     description: 'File PDF, dokumen teks, dan file pendukung',
     icon: FileText,
-    iconBg: 'bg-accent-primary/10',
+    iconBg: 'bg-bg-primary',
     iconColor: 'text-accent-primary',
     accentBorder: 'hover:border-accent-primary/40'
   },
@@ -50,7 +50,7 @@ export const CATEGORIES_CONFIG: CategoryConfig[] = [
     title: 'Tidak Digunakan',
     description: 'File yang belum disisipkan ke dalam catatan mana pun',
     icon: AlertCircle,
-    iconBg: 'bg-amber-500/10',
+    iconBg: 'bg-bg-primary',
     iconColor: 'text-amber-500',
     accentBorder: 'hover:border-amber-500/40'
   },
@@ -59,7 +59,7 @@ export const CATEGORIES_CONFIG: CategoryConfig[] = [
     title: 'Sampah',
     description: 'Media yang dihapus sementara',
     icon: Trash2,
-    iconBg: 'bg-red-500/10',
+    iconBg: 'bg-bg-primary',
     iconColor: 'text-red-500',
     accentBorder: 'hover:border-red-500/40'
   }

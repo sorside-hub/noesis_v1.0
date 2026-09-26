@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Bookmark, Star, Trash2, FolderPlus, X } from 'lucide-react';
+import { Bookmark, Star, Trash2, FolderPlus, X, ChevronDown, Check, Folder } from 'lucide-react';
+import { twMerge } from 'tailwind-merge';
 import { FileNode, VaultData } from '../../../types/vault';
 import { BookmarkGroup } from '../types/bookmarks';
 
@@ -35,6 +36,8 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [isCreatingNewGroup, setIsCreatingNewGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
+  const [showGroupMenu, setShowGroupMenu] = useState(false);
+  const groupMenuRef = useRef<HTMLDivElement>(null);
 
   // Calculate full breadcrumb path for the target node
   const nodePath = useMemo(() => {
@@ -49,6 +52,17 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
     return parts.join(' / ');
   }, [targetNode, vault]);
 
+  // Click outside listener for group dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (groupMenuRef.current && !groupMenuRef.current.contains(e.target as Node)) {
+        setShowGroupMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Sync state when modal opens or targetNode changes
   useEffect(() => {
     if (isOpen && targetNode) {
@@ -59,6 +73,7 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
       setSelectedGroupId(initialGroup);
       setIsCreatingNewGroup(false);
       setNewGroupName('');
+      setShowGroupMenu(false);
     }
   }, [isOpen, targetNode, currentTitle, currentGroupId]);
 
@@ -85,6 +100,8 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
     onRemoveBookmark(targetNode.id);
     onClose();
   };
+
+  const currentGroupObj = groups.find((g) => g.id === selectedGroupId);
 
   const modalContent = (
     <div
@@ -160,39 +177,111 @@ export const BookmarkModal: React.FC<BookmarkModalProps> = ({
             />
           </div>
 
-          {/* 3. Pilihan / Dropdown Grup Bookmark */}
-          <div className="space-y-1.5">
-            <label
-              htmlFor="bm-group-select"
-              className="text-[11px] font-semibold uppercase tracking-wider text-text-muted flex items-center justify-between"
-            >
+          {/* 3. Custom In-Flow / Expanding Group Selector */}
+          <div className="space-y-1.5" ref={groupMenuRef}>
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-text-muted flex items-center justify-between">
               <span>Grup Bookmark</span>
             </label>
 
             {!isCreatingNewGroup ? (
-              <div className="space-y-2">
-                <select
-                  id="bm-group-select"
-                  value={selectedGroupId || ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === '__CREATE_NEW__') {
-                      setIsCreatingNewGroup(true);
-                      setSelectedGroupId(null);
-                    } else {
-                      setSelectedGroupId(val ? val : null);
-                    }
-                  }}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-bg-secondary text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary/50 transition-all cursor-pointer border-0"
+              <div 
+                className={twMerge(
+                  "w-full bg-bg-secondary rounded-xl transition-all overflow-hidden",
+                  showGroupMenu ? "ring-1 ring-accent-primary/50" : ""
+                )}
+              >
+                {/* Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowGroupMenu(!showGroupMenu)}
+                  className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs text-text-primary hover:bg-bg-hover/50 cursor-pointer transition-colors text-left"
                 >
-                  <option value="">Tanpa Grup (Root)</option>
-                  {groups.map((grp) => (
-                    <option key={grp.id} value={grp.id}>
-                      📁 {grp.name}
-                    </option>
-                  ))}
-                  <option value="__CREATE_NEW__">+ Buat Grup Baru...</option>
-                </select>
+                  <div className="flex items-center gap-2 truncate">
+                    <Folder size={13} className="text-accent-primary shrink-0" />
+                    <span className="font-medium truncate">
+                      {currentGroupObj ? currentGroupObj.name : 'Tanpa Grup (Root)'}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={14}
+                    className={twMerge(
+                      "text-text-muted shrink-0 transition-transform duration-150",
+                      showGroupMenu ? "rotate-180 text-accent-primary" : ""
+                    )}
+                  />
+                </button>
+
+                {/* In-flow Group Options */}
+                {showGroupMenu && (
+                  <div className="animate-in fade-in duration-150">
+                    <div className="mx-3 h-px bg-border-subtle/30 my-0.5" />
+                    <div className="max-h-48 overflow-y-auto custom-scrollbar p-1 space-y-0.5">
+                      {/* Root option */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedGroupId(null);
+                          setShowGroupMenu(false);
+                        }}
+                        className={twMerge(
+                          "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left",
+                          selectedGroupId === null
+                            ? "bg-bg-primary text-text-primary font-medium"
+                            : "text-text-muted hover:text-text-primary hover:bg-bg-hover"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <Folder size={12} className="text-text-muted shrink-0" />
+                          <span>Tanpa Grup (Root)</span>
+                        </div>
+                        {selectedGroupId === null && <Check size={12} className="text-accent-primary shrink-0" />}
+                      </button>
+
+                      {/* Group items */}
+                      {groups.map((grp) => {
+                        const isSelected = selectedGroupId === grp.id;
+                        return (
+                          <button
+                            key={grp.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedGroupId(grp.id);
+                              setShowGroupMenu(false);
+                            }}
+                            className={twMerge(
+                              "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left",
+                              isSelected
+                                ? "bg-bg-primary text-text-primary font-medium"
+                                : "text-text-muted hover:text-text-primary hover:bg-bg-hover"
+                            )}
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <Folder size={12} className="text-accent-primary shrink-0" />
+                              <span className="truncate">{grp.name}</span>
+                            </div>
+                            {isSelected && <Check size={12} className="text-accent-primary shrink-0" />}
+                          </button>
+                        );
+                      })}
+
+                      {/* Create New Group Option */}
+                      <div className="pt-1 border-t border-border-subtle/20 mt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCreatingNewGroup(true);
+                            setSelectedGroupId(null);
+                            setShowGroupMenu(false);
+                          }}
+                          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-accent-primary hover:bg-accent-primary/10 transition-colors cursor-pointer text-left font-medium"
+                        >
+                          <FolderPlus size={13} className="shrink-0" />
+                          <span>+ Buat Grup Baru...</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               /* Inline New Group Input */

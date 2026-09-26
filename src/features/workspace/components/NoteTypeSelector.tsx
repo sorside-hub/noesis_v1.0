@@ -104,7 +104,7 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
                     e.preventDefault();
                     handleSelectSuggestion(type);
                   }}
-                  className="w-full text-left px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+                  className="w-full text-left px-2.5 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
                 >
                   {type}
                 </button>

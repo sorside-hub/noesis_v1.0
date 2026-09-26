@@ -62,23 +62,24 @@
   border-top-width: 1px !important;
 }
 
-/* Highlight Mark Styling */
+/* Modern Clean Stabilo Highlight Mark Styling */
 .prose mark,
 .ProseMirror mark {
-  background-color: rgba(245, 158, 11, 0.16) !important;
-  color: var(--text-primary, #1e293b) !important;
-  border-radius: 0.25rem !important;
-  padding: 0.1em 0.3em !important;
-  border-bottom: 1.5px solid rgba(245, 158, 11, 0.35) !important;
+  background-color: rgba(250, 204, 21, 0.38) !important;
+  color: inherit !important;
+  border-radius: 4px !important;
+  padding: 0.12em 0.35em !important;
+  border-bottom: none !important;
   box-decoration-break: clone !important;
   -webkit-box-decoration-break: clone !important;
+  transition: background-color 0.15s ease;
 }
 
 .dark .prose mark,
 .dark .ProseMirror mark {
-  background-color: rgba(245, 158, 11, 0.22) !important;
-  color: var(--text-primary, #f1f5f9) !important;
-  border-bottom: 1.5px solid rgba(245, 158, 11, 0.45) !important;
+  background-color: rgba(251, 191, 36, 0.28) !important;
+  color: inherit !important;
+  border-bottom: none !important;
 }
 
 /* Task List (Checkbox) Styling */

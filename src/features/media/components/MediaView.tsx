@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, 
   X, 
   AlertCircle, 
   CheckCircle2,
-  ChevronDown
+  ChevronDown,
+  Clock,
+  History,
+  ArrowDownAZ,
+  Check
 } from 'lucide-react';
+import { twMerge } from 'tailwind-merge';
 import { useMediaManager } from '../hooks/useMediaManager';
 import { MediaHeader } from './MediaHeader';
 import { MediaHubHome } from './MediaHubHome';
@@ -19,8 +24,26 @@ interface MediaViewProps {
   vaultState?: any;
 }
 
+const SORT_OPTIONS: Array<{ id: SortOption; label: string; icon: React.FC<{ className?: string }> }> = [
+  { id: 'newest', label: 'Terbaru', icon: Clock },
+  { id: 'oldest', label: 'Terlama', icon: History },
+  { id: 'name', label: 'Nama (A-Z)', icon: ArrowDownAZ },
+];
+
 export const MediaView: React.FC<MediaViewProps> = ({ vaultState }) => {
   const [previewDoc, setPreviewDoc] = useState<MediaAttachment | null>(null);
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+        setShowSortMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const {
     isLoading,
@@ -136,7 +159,7 @@ export const MediaView: React.FC<MediaViewProps> = ({ vaultState }) => {
           </div>
         )}
 
-        {/* 2. Search & Sort Bar (Clean Single Layer) */}
+        {/* 2. Search & Sort Bar (Clean Two-Element Layout) */}
         <div className="flex items-center gap-2.5">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
@@ -156,6 +179,7 @@ export const MediaView: React.FC<MediaViewProps> = ({ vaultState }) => {
                 type="button"
                 onClick={() => setSearchQuery('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary p-0.5 cursor-pointer"
+                title="Hapus pencarian"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -163,17 +187,62 @@ export const MediaView: React.FC<MediaViewProps> = ({ vaultState }) => {
           </div>
 
           {selectedCategory && (
-            <div className="relative shrink-0">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="appearance-none pl-3.5 pr-8 py-2.5 text-xs font-medium rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary outline-hidden focus:ring-1 focus:ring-accent-primary/50 cursor-pointer transition-all"
+            <div className="relative shrink-0" ref={sortMenuRef}>
+              <button
+                type="button"
+                onClick={() => setShowSortMenu(!showSortMenu)}
+                className={twMerge(
+                  "flex items-center gap-2 px-3 py-2.5 text-xs font-medium rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary/50 cursor-pointer transition-all",
+                  showSortMenu ? "bg-bg-tertiary text-accent-primary" : ""
+                )}
               >
-                <option value="newest" className="bg-bg-secondary text-text-primary">Terbaru</option>
-                <option value="oldest" className="bg-bg-secondary text-text-primary">Terlama</option>
-                <option value="name" className="bg-bg-secondary text-text-primary">Nama (A-Z)</option>
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                {(() => {
+                  const currentOpt = SORT_OPTIONS.find((o) => o.id === sortBy) || SORT_OPTIONS[0];
+                  const Icon = currentOpt.icon;
+                  return (
+                    <>
+                      <Icon className="w-3.5 h-3.5 text-accent-primary" />
+                      <span>{currentOpt.label}</span>
+                    </>
+                  );
+                })()}
+                <ChevronDown className={twMerge("w-3.5 h-3.5 text-text-muted transition-transform duration-150", showSortMenu ? "rotate-180" : "")} />
+              </button>
+
+              {/* Floating Custom Sort Dropdown Popover */}
+              {showSortMenu && (
+                <div className="absolute right-0 top-full mt-1.5 w-44 bg-bg-secondary rounded-xl shadow-2xl z-50 p-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 space-y-0.5">
+                  <div className="px-2.5 py-1 text-[10px] font-medium text-text-muted">
+                    Urutkan Berdasarkan
+                  </div>
+                  {SORT_OPTIONS.map((opt) => {
+                    const Icon = opt.icon;
+                    const isActive = sortBy === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          setSortBy(opt.id);
+                          setShowSortMenu(false);
+                        }}
+                        className={twMerge(
+                          "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left cursor-pointer transition-colors",
+                          isActive
+                            ? "bg-bg-tertiary text-text-primary font-medium"
+                            : "text-text-muted hover:text-text-primary hover:bg-bg-tertiary"
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon className={twMerge("w-3.5 h-3.5", isActive ? "text-accent-primary" : "text-text-muted")} />
+                          <span>{opt.label}</span>
+                        </div>
+                        {isActive && <Check className="w-3.5 h-3.5 text-accent-primary" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>

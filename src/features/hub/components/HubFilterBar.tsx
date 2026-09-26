@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Filter, Plus, X, Sparkles, Sliders, Database, ChevronDown } from 'lucide-react';
+import { Filter, Plus, X, Sparkles, Sliders, Database, Search, Check, CornerDownLeft } from 'lucide-react';
+import { twMerge } from 'tailwind-merge';
 import { EnrichedNoteItem } from '../types';
 
 export interface DynamicFilter {
@@ -47,33 +48,45 @@ export const isCoreProperty = (key: string): boolean => {
 export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onChange }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newProp, setNewProp] = useState('');
+  const [propQuery, setPropQuery] = useState('');
   const [newVal, setNewVal] = useState('');
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activePropIndex, setActivePropIndex] = useState(-1);
+  const [activeValIndex, setActiveValIndex] = useState(-1);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const propInputRef = useRef<HTMLInputElement>(null);
+  const valInputRef = useRef<HTMLInputElement>(null);
+
+  // Close suggestions or form on outside click
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Auto-focus property input when opening add form
+  useEffect(() => {
+    if (isAdding && !newProp) {
+      setShowSuggestions(true);
+      setTimeout(() => {
+        propInputRef.current?.focus();
+      }, 50);
+    }
+  }, [isAdding, newProp]);
+
   // Extract unique Custom Properties from all notes
   const customKeys = useMemo(() => {
     const keys = new Set<string>();
-    const knownKeys = new Set([
-      'type', 'noteType', 'status', 'tags', 'aliases', 'title',
-      'keywords', 'concepts', 'emotion', 'summary',
-      'id', 'note_id', 'user_id', 'created_at', 'updated_at', 'customProperties'
-    ]);
 
     notes.forEach(note => {
-      if (note.properties) {
-        Object.keys(note.properties).forEach(k => {
-          if (!knownKeys.has(k) && k.trim()) {
+      if (note.customProperties && typeof note.customProperties === 'object') {
+        Object.keys(note.customProperties).forEach(k => {
+          if (k && k.trim()) {
             keys.add(k.trim());
           }
         });
@@ -82,6 +95,30 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
 
     return Array.from(keys).sort();
   }, [notes]);
+
+  // Filtered property suggestions based on user search
+  const filteredPropGroups = useMemo(() => {
+    const q = propQuery.toLowerCase().trim();
+
+    const core = CORE_PROPERTIES.filter(p => !q || p.label.toLowerCase().includes(q) || p.key.toLowerCase().includes(q));
+    const custom = customKeys.filter(k => !q || k.toLowerCase().includes(q));
+    const ai = ANALYSIS_PROPERTIES.filter(p => !q || p.label.toLowerCase().includes(q) || p.key.toLowerCase().includes(q));
+
+    // Flatten for keyboard index navigation
+    const allItems: Array<{ key: string; label: string; group: 'core' | 'custom' | 'ai' }> = [
+      ...core.map(p => ({ key: p.key, label: p.label, group: 'core' as const })),
+      ...custom.map(k => ({ key: k, label: k, group: 'custom' as const })),
+      ...ai.map(p => ({ key: p.key, label: p.label, group: 'ai' as const })),
+    ];
+
+    return {
+      core,
+      custom,
+      ai,
+      allItems,
+      totalMatches: allItems.length
+    };
+  }, [propQuery, customKeys]);
 
   // Extract dynamic values for auto-complete for the selected property
   const propertyValues = useMemo(() => {
@@ -130,29 +167,132 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
     return Array.from(values).sort();
   }, [newProp, notes]);
 
-  const addFilter = () => {
-    if (newProp && newVal.trim()) {
+  const filteredValues = useMemo(() => {
+    if (!newVal) return propertyValues;
+    return propertyValues.filter(v => v.toLowerCase().includes(newVal.toLowerCase()));
+  }, [propertyValues, newVal]);
+
+  const selectProperty = (key: string) => {
+    setNewProp(key);
+    setPropQuery('');
+    setNewVal('');
+    setActivePropIndex(-1);
+    setActiveValIndex(-1);
+    setShowSuggestions(true);
+    setTimeout(() => {
+      valInputRef.current?.focus();
+    }, 50);
+  };
+
+  const addFilter = (overrideVal?: string) => {
+    const valToApply = (overrideVal !== undefined ? overrideVal : newVal).trim();
+    if (newProp && valToApply) {
       onChange([
         ...filters,
         {
           id: Math.random().toString(36).substring(2, 9),
           property: newProp,
-          value: newVal.trim(),
+          value: valToApply,
         },
       ]);
-      setIsAdding(false);
-      setNewProp('');
-      setNewVal('');
+      resetForm();
     }
+  };
+
+  const resetForm = () => {
+    setIsAdding(false);
+    setNewProp('');
+    setNewVal('');
+    setPropQuery('');
+    setShowSuggestions(false);
+    setActivePropIndex(-1);
+    setActiveValIndex(-1);
   };
 
   const removeFilter = (id: string) => {
     onChange(filters.filter(f => f.id !== id));
   };
 
+  // Keyboard navigation for Property selection
+  const handlePropKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const list = filteredPropGroups.allItems;
+    if (list.length > 0 && showSuggestions) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActivePropIndex(prev => (prev < list.length - 1 ? prev + 1 : 0));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActivePropIndex(prev => (prev > 0 ? prev - 1 : list.length - 1));
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activePropIndex >= 0 && activePropIndex < list.length) {
+          selectProperty(list[activePropIndex].key);
+        } else if (list.length > 0) {
+          selectProperty(list[0].key);
+        }
+        return;
+      }
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      resetForm();
+    }
+  };
+
+  // Keyboard navigation for Value selection
+  const handleValKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (filteredValues.length > 0 && showSuggestions) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveValIndex(prev => (prev < filteredValues.length - 1 ? prev + 1 : 0));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveValIndex(prev => (prev > 0 ? prev - 1 : filteredValues.length - 1));
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeValIndex >= 0 && activeValIndex < filteredValues.length) {
+          addFilter(filteredValues[activeValIndex]);
+        } else {
+          addFilter();
+        }
+        return;
+      }
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addFilter();
+      return;
+    }
+
+    if (e.key === 'Backspace' && !newVal) {
+      e.preventDefault();
+      setNewProp('');
+      setPropQuery('');
+      setShowSuggestions(true);
+      setTimeout(() => {
+        propInputRef.current?.focus();
+      }, 50);
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setShowSuggestions(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2 w-full text-xs">
-      {/* Active Filters & Add Button Row */}
+      {/* 1. Active Filters & Add Button Row */}
       {!isAdding && (
         <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none pb-0.5 w-full">
           {filters.length > 0 && (
@@ -169,7 +309,7 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
             return (
               <div
                 key={filter.id}
-                className="group flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 rounded-md text-[11px] sm:text-xs bg-bg-secondary hover:bg-bg-hover/80 text-text-primary transition-all shrink-0 cursor-default"
+                className="group flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 rounded-md text-[11px] sm:text-xs bg-bg-secondary hover:bg-bg-hover text-text-primary transition-all shrink-0 cursor-default"
               >
                 {isAnalysis && <Sparkles size={11} className="text-purple-400 shrink-0" />}
                 {isCore && <Sliders size={11} className="text-accent-primary shrink-0" />}
@@ -190,7 +330,12 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
           })}
 
           <button
-            onClick={() => setIsAdding(true)}
+            onClick={() => {
+              setIsAdding(true);
+              setNewProp('');
+              setNewVal('');
+              setPropQuery('');
+            }}
             className="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] sm:text-xs font-medium text-text-secondary hover:text-text-primary bg-bg-secondary hover:bg-bg-hover transition-colors cursor-pointer shrink-0"
           >
             <Plus size={12} className="text-text-muted group-hover:text-text-primary transition-colors" />
@@ -208,140 +353,245 @@ export const HubFilterBar: React.FC<HubFilterBarProps> = ({ notes, filters, onCh
         </div>
       )}
 
-      {/* Add Filter Form - Compact 1-Row Layout */}
+      {/* 2. Unified Expanding Filter Input Card (ChipInput Inspired) */}
       {isAdding && (
-        <div className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-lg bg-bg-secondary transition-all animate-in fade-in duration-150 w-full relative">
-          {/* Property Select */}
-          <div className="shrink-0 max-w-[110px] sm:max-w-[140px]">
-            <select
-              value={newProp}
-              onChange={(e) => {
-                setNewProp(e.target.value);
-                setNewVal('');
-              }}
-              className="w-full bg-bg-primary hover:bg-bg-primary/90 rounded-md px-2 py-1 text-[11px] sm:text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-primary/40 cursor-pointer transition-all truncate"
-            >
-              <option value="" className="bg-bg-primary text-text-muted">
-                -- Properti --
-              </option>
+        <div 
+          ref={containerRef}
+          className="w-full flex flex-col bg-bg-secondary rounded-xl transition-all focus-within:ring-1 focus-within:ring-accent-primary/50 overflow-hidden text-xs animate-in fade-in duration-150"
+        >
+          {/* Top Unified Input Row */}
+          <div className="min-h-[36px] px-2.5 py-1 flex items-center gap-1.5 flex-wrap">
+            {!newProp ? (
+              // Step 1: Search / Select Property
+              <div className="flex items-center gap-1.5 flex-1 min-w-[140px]">
+                <Search size={13} className="text-text-muted shrink-0 ml-0.5" />
+                <input
+                  ref={propInputRef}
+                  type="text"
+                  value={propQuery}
+                  onChange={(e) => {
+                    setPropQuery(e.target.value);
+                    setShowSuggestions(true);
+                    setActivePropIndex(-1);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onKeyDown={handlePropKeyDown}
+                  placeholder="Cari atau pilih properti..."
+                  className="w-full bg-transparent py-1 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
+                />
+              </div>
+            ) : (
+              // Step 2: Property Chip + Value Input
+              <div className="flex items-center gap-1.5 flex-1 min-w-[160px]">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-bg-primary text-text-primary shrink-0">
+                  {isAnalysisProperty(newProp) ? (
+                    <Sparkles size={11} className="text-purple-400 shrink-0" />
+                  ) : isCoreProperty(newProp) ? (
+                    <Sliders size={11} className="text-accent-primary shrink-0" />
+                  ) : (
+                    <Database size={11} className="text-blue-400 shrink-0" />
+                  )}
+                  <span className="max-w-[120px] truncate">{getPropertyLabel(newProp)}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewProp('');
+                      setPropQuery('');
+                      setShowSuggestions(true);
+                      setTimeout(() => propInputRef.current?.focus(), 50);
+                    }}
+                    className="hover:text-status-error text-text-muted p-0.5 rounded-full cursor-pointer transition-colors ml-0.5"
+                    title="Ganti Properti"
+                  >
+                    <X size={10} />
+                  </button>
+                </span>
 
-              {/* 1. Core Properties */}
-              <optgroup label="Core" className="bg-bg-primary text-accent-primary font-semibold">
-                {CORE_PROPERTIES.map(p => (
-                  <option key={p.key} value={p.key} className="bg-bg-primary text-text-primary font-normal">
-                    {p.label}
-                  </option>
-                ))}
-              </optgroup>
+                <span className="text-text-muted/50 font-mono text-xs select-none">:</span>
 
-              {/* 2. Custom Properties */}
-              {customKeys.length > 0 && (
-                <optgroup label="Custom" className="bg-bg-primary text-blue-400 font-semibold">
-                  {customKeys.map(k => (
-                    <option key={k} value={k} className="bg-bg-primary text-text-primary font-normal">
-                      {k}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-
-              {/* 3. Analysis Properties (AI) */}
-              <optgroup label="AI" className="bg-bg-primary text-purple-400 font-semibold">
-                {ANALYSIS_PROPERTIES.map(p => (
-                  <option key={p.key} value={p.key} className="bg-bg-primary text-text-primary font-normal">
-                    {p.label}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          </div>
-
-          {/* Dynamic Auto-complete Value Input with Floating Overlay Dropdown */}
-          <div 
-            className="relative flex-1 min-w-0 bg-bg-primary rounded-md flex items-center focus-within:ring-1 focus-within:ring-accent-primary/40" 
-            ref={dropdownRef}
-          >
-            <input
-              type="text"
-              value={newVal}
-              disabled={!newProp}
-              onChange={(e) => {
-                setNewVal(e.target.value);
-                setShowDropdown(true);
-              }}
-              onFocus={() => {
-                if (newProp) setShowDropdown(true);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && newProp && newVal.trim()) {
-                  addFilter();
-                  setShowDropdown(false);
-                }
-              }}
-              placeholder={newProp ? `Nilai ${getPropertyLabel(newProp)}...` : 'Pilih properti dulu...'}
-              className="w-full bg-transparent pl-2 pr-6 py-1 text-[11px] sm:text-xs text-text-primary placeholder:text-text-muted/50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed truncate"
-              autoFocus
-            />
-            {newProp && (
-              <button
-                type="button"
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="absolute right-1 text-text-muted hover:text-text-primary cursor-pointer p-0.5"
-              >
-                <ChevronDown size={11} className={`transition-transform duration-150 ${showDropdown ? 'rotate-180' : ''}`} />
-              </button>
-            )}
-
-            {/* Floating Autocomplete Dropdown Popup */}
-            {showDropdown && newProp && propertyValues.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-bg-secondary rounded-lg shadow-xl z-50 py-1 border border-border-default/60 max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-100 min-w-[140px]">
-                {propertyValues
-                  .filter(v => v.toLowerCase().includes(newVal.toLowerCase()))
-                  .map(v => (
-                    <button
-                      key={v}
-                      type="button"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setNewVal(v);
-                        setShowDropdown(false);
-                      }}
-                      className="w-full text-left px-2.5 py-1 text-[11px] sm:text-xs text-text-primary hover:bg-bg-hover hover:text-accent-primary transition-colors cursor-pointer truncate"
-                    >
-                      {v}
-                    </button>
-                  ))}
-                {propertyValues.filter(v => v.toLowerCase().includes(newVal.toLowerCase())).length === 0 && (
-                  <div className="px-2.5 py-1.5 text-[11px] text-text-muted text-center italic">
-                    Tidak ada opsi cocok
-                  </div>
-                )}
+                <input
+                  ref={valInputRef}
+                  type="text"
+                  value={newVal}
+                  onChange={(e) => {
+                    setNewVal(e.target.value);
+                    setShowSuggestions(true);
+                    setActiveValIndex(-1);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onKeyDown={handleValKeyDown}
+                  placeholder={`Ketik atau pilih nilai ${getPropertyLabel(newProp)}...`}
+                  className="flex-1 min-w-[100px] bg-transparent py-1 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
+                />
               </div>
             )}
+
+            {/* Right-Side Actions */}
+            <div className="flex items-center gap-1 shrink-0 ml-auto">
+              {newProp && newVal.trim() && (
+                <button
+                  type="button"
+                  onClick={() => addFilter()}
+                  className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-accent-primary text-accent-contrast font-medium text-[11px] hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
+                >
+                  <span>Terapkan</span>
+                  <CornerDownLeft size={10} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={resetForm}
+                className="p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
+                title="Batal"
+              >
+                <X size={13} />
+              </button>
+            </div>
           </div>
 
-          {/* Action Buttons: Add & Cancel */}
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={addFilter}
-              disabled={!newProp || !newVal.trim()}
-              className="px-2 sm:px-2.5 py-1 rounded-md bg-accent-primary text-accent-contrast font-medium text-[11px] sm:text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity cursor-pointer shadow-2xs"
-            >
-              Add
-            </button>
-            <button
-              onClick={() => {
-                setIsAdding(false);
-                setNewProp('');
-                setNewVal('');
-                setShowDropdown(false);
-              }}
-              className="p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
-              title="Batal"
-            >
-              <X size={13} />
-            </button>
-          </div>
+          {/* In-flow Expandable Suggestions (Unified Container) */}
+          {showSuggestions && (
+            <div className="animate-in fade-in duration-150">
+              <div className="mx-2.5 h-px bg-border-subtle/30 my-0.5" />
+
+              {!newProp ? (
+                // 1. Property Suggestions List
+                <div className="max-h-56 overflow-y-auto custom-scrollbar px-1 py-1 space-y-1">
+                  {filteredPropGroups.totalMatches === 0 ? (
+                    <div className="px-3 py-2.5 text-center text-text-muted text-[11px]">
+                      Tidak ada properti yang cocok
+                    </div>
+                  ) : (
+                    <>
+                      {/* Core Group */}
+                      {filteredPropGroups.core.length > 0 && (
+                        <div>
+                          <div className="px-2 py-1 text-[10px] font-semibold text-accent-primary uppercase tracking-wider flex items-center gap-1">
+                            <Sliders size={10} /> Core Properties
+                          </div>
+                          {filteredPropGroups.core.map((p) => {
+                            const itemIndex = filteredPropGroups.allItems.findIndex(it => it.key === p.key);
+                            const isActive = itemIndex === activePropIndex;
+                            return (
+                              <button
+                                key={p.key}
+                                type="button"
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  selectProperty(p.key);
+                                }}
+                                className={twMerge(
+                                  'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors cursor-pointer text-left',
+                                  isActive ? 'bg-bg-tertiary text-text-primary font-medium' : ''
+                                )}
+                              >
+                                <span className="font-medium">{p.label}</span>
+                                <span className="text-[10px] text-text-muted">Core</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Custom Group */}
+                      {filteredPropGroups.custom.length > 0 && (
+                        <div>
+                          <div className="px-2 py-1 text-[10px] font-semibold text-blue-400 uppercase tracking-wider flex items-center gap-1">
+                            <Database size={10} /> Custom Properties
+                          </div>
+                          {filteredPropGroups.custom.map((k) => {
+                            const itemIndex = filteredPropGroups.allItems.findIndex(it => it.key === k);
+                            const isActive = itemIndex === activePropIndex;
+                            return (
+                              <button
+                                key={k}
+                                type="button"
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  selectProperty(k);
+                                }}
+                                className={twMerge(
+                                  'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors cursor-pointer text-left',
+                                  isActive ? 'bg-bg-tertiary text-text-primary font-medium' : ''
+                                )}
+                              >
+                                <span className="font-medium truncate">{k}</span>
+                                <span className="text-[10px] text-blue-400/80">Custom</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* AI Group */}
+                      {filteredPropGroups.ai.length > 0 && (
+                        <div>
+                          <div className="px-2 py-1 text-[10px] font-semibold text-purple-400 uppercase tracking-wider flex items-center gap-1">
+                            <Sparkles size={10} /> AI Properties
+                          </div>
+                          {filteredPropGroups.ai.map((p) => {
+                            const itemIndex = filteredPropGroups.allItems.findIndex(it => it.key === p.key);
+                            const isActive = itemIndex === activePropIndex;
+                            return (
+                              <button
+                                key={p.key}
+                                type="button"
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  selectProperty(p.key);
+                                }}
+                                className={twMerge(
+                                  'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors cursor-pointer text-left',
+                                  isActive ? 'bg-bg-tertiary text-text-primary font-medium' : ''
+                                )}
+                              >
+                                <span className="font-medium">{p.label}</span>
+                                <span className="text-[10px] text-purple-400/80">AI</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ) : (
+                // 2. Value Suggestions List
+                <div className="max-h-48 overflow-y-auto custom-scrollbar px-1 py-1 space-y-0.5">
+                  <div className="px-2 py-1 text-[10px] font-medium text-text-muted">
+                    Pilihan Nilai Tersedia
+                  </div>
+                  {filteredValues.map((v, idx) => {
+                    const isActive = idx === activeValIndex;
+                    return (
+                      <button
+                        key={v}
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          addFilter(v);
+                        }}
+                        className={twMerge(
+                          'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors cursor-pointer text-left truncate',
+                          isActive ? 'bg-bg-tertiary text-text-primary font-medium' : ''
+                        )}
+                      >
+                        <span className="truncate">{v}</span>
+                        {newVal.toLowerCase() === v.toLowerCase() && (
+                          <Check size={12} className="text-accent-primary shrink-0 ml-1" />
+                        )}
+                      </button>
+                    );
+                  })}
+                  {filteredValues.length === 0 && (
+                    <div className="px-3 py-2 text-center text-text-muted text-[11px] italic">
+                      {newVal ? `Tekan Enter untuk menerapkan "${newVal}"` : 'Belum ada data nilai di vault'}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

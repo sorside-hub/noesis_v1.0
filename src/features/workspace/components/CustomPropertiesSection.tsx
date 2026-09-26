@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, ChevronDown, Check, Calendar } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { CustomProperty, PropertyType } from '../../../types/vault';
@@ -7,6 +7,78 @@ interface CustomPropertiesSectionProps {
   customProperties: CustomProperty[];
   onChange: (props: CustomProperty[]) => void;
 }
+
+const PROPERTY_TYPES: Array<{ id: PropertyType; label: string }> = [
+  { id: 'text', label: 'TEXT' },
+  { id: 'number', label: 'NUMBER' },
+  { id: 'date', label: 'DATE' },
+  { id: 'checkbox', label: 'BOOLEAN' },
+];
+
+interface PropertyTypeMenuProps {
+  currentType: PropertyType;
+  onSelect: (type: PropertyType) => void;
+}
+
+const PropertyTypeMenu: React.FC<PropertyTypeMenuProps> = ({ currentType, onSelect }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const currentLabel = PROPERTY_TYPES.find((t) => t.id === currentType)?.label || 'TEXT';
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={twMerge(
+          "bg-bg-secondary hover:bg-bg-tertiary rounded-lg text-[10px] text-text-muted hover:text-text-primary px-2 py-1 flex items-center gap-1.5 focus:outline-none cursor-pointer uppercase font-bold tracking-wider transition-colors",
+          isOpen ? "bg-bg-tertiary text-text-primary" : ""
+        )}
+      >
+        <span>{currentLabel}</span>
+        <ChevronDown size={10} className={twMerge("text-icon-secondary transition-transform duration-150", isOpen ? "rotate-180" : "")} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-1 w-28 bg-bg-secondary rounded-xl shadow-2xl z-50 p-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 space-y-0.5">
+          {PROPERTY_TYPES.map((t) => {
+            const isSelected = currentType === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => {
+                  onSelect(t.id);
+                  setIsOpen(false);
+                }}
+                className={twMerge(
+                  "w-full flex items-center justify-between px-2 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase text-left cursor-pointer transition-colors",
+                  isSelected
+                    ? "bg-bg-tertiary text-text-primary"
+                    : "text-text-muted hover:text-text-primary hover:bg-bg-tertiary"
+                )}
+              >
+                <span>{t.label}</span>
+                {isSelected && <Check size={10} className="text-accent-primary shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = ({
   customProperties,
@@ -63,19 +135,10 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <div className="relative">
-                  <select
-                    value={prop.type}
-                    onChange={(e) => handleUpdateProperty(prop.id, { type: e.target.value as PropertyType, value: '' })}
-                    className="appearance-none bg-bg-secondary rounded-lg text-[10px] text-text-secondary px-2.5 py-1 pr-6 focus:outline-none cursor-pointer uppercase font-bold tracking-wider shadow-2xs"
-                  >
-                    <option value="text">TEXT</option>
-                    <option value="number">NUMBER</option>
-                    <option value="date">DATE</option>
-                    <option value="checkbox">BOOLEAN</option>
-                  </select>
-                  <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-icon-secondary pointer-events-none" />
-                </div>
+                <PropertyTypeMenu
+                  currentType={prop.type}
+                  onSelect={(newType) => handleUpdateProperty(prop.id, { type: newType, value: '' })}
+                />
                 
                 <button
                   type="button"
@@ -112,64 +175,48 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
                     value={prop.value || ''}
                     onClick={(e) => {
                       try {
-                        // Type assertion to access showPicker which is standard in modern browsers
                         if ('showPicker' in e.currentTarget) {
                           (e.currentTarget as any).showPicker();
                         }
                       } catch (err) {
-                        // Fallback silently if unsupported
+                        // Fallback
                       }
                     }}
                     onChange={(e) => handleUpdateProperty(prop.id, { value: e.target.value })}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.currentTarget.blur();
-                      }
-                    }}
-                    className={twMerge(
-                      "w-full bg-bg-secondary rounded-lg px-2.5 py-1.5 text-xs focus:outline-none transition-colors cursor-pointer shadow-2xs [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer relative z-10",
-                      prop.value ? "text-text-primary" : "text-transparent"
-                    )}
+                    className="w-full bg-bg-secondary focus:ring-1 focus:ring-accent-primary/50 rounded-lg text-xs text-text-primary px-2.5 py-1.5 focus:outline-none cursor-pointer"
                   />
-                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-icon-secondary pointer-events-none z-0">
-                    <Calendar size={13} />
-                  </div>
-                  {/* Invisible placeholder if empty to look better */}
-                  {!prop.value && (
-                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted/60 text-xs pointer-events-none z-0">
-                      Select date...
-                    </div>
-                  )}
                 </div>
+              ) : prop.type === 'number' ? (
+                <input
+                  type="number"
+                  value={prop.value || ''}
+                  onChange={(e) => handleUpdateProperty(prop.id, { value: e.target.value })}
+                  placeholder="0"
+                  className="w-full bg-bg-secondary focus:ring-1 focus:ring-accent-primary/50 rounded-lg text-xs text-text-primary px-2.5 py-1.5 focus:outline-none placeholder:text-text-muted/40"
+                />
               ) : (
                 <input
-                  type={prop.type === 'number' ? 'number' : 'text'}
+                  type="text"
                   value={prop.value || ''}
-                  onChange={(e) => handleUpdateProperty(prop.id, { value: prop.type === 'number' ? Number(e.target.value) : e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  placeholder="Empty..."
-                  className="w-full bg-bg-secondary rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none transition-colors shadow-2xs"
+                  onChange={(e) => handleUpdateProperty(prop.id, { value: e.target.value })}
+                  placeholder="Value"
+                  className="w-full bg-bg-secondary focus:ring-1 focus:ring-accent-primary/50 rounded-lg text-xs text-text-primary px-2.5 py-1.5 focus:outline-none placeholder:text-text-muted/40"
                 />
               )}
             </div>
-            
+
           </div>
         ))}
+
+        <button
+          type="button"
+          onClick={handleAddProperty}
+          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 border border-dashed border-border-default hover:border-accent-primary/40 text-text-muted hover:text-accent-primary rounded-xl text-xs font-medium transition-all group cursor-pointer bg-bg-primary/50 hover:bg-bg-primary"
+        >
+          <Plus size={13} className="group-hover:scale-110 transition-transform" />
+          <span>Add Custom Property</span>
+        </button>
       </div>
-
-      <button
-        type="button"
-        onClick={handleAddProperty}
-        className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-bg-primary hover:bg-bg-hover text-text-secondary hover:text-text-primary rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
-      >
-        <Plus size={14} className="text-accent-primary transition-transform group-hover:scale-110" />
-        <span>Add Property</span>
-      </button>
-
     </div>
   );
 };

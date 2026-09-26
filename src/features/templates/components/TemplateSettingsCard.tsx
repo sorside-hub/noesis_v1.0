@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   Folder, 
   FolderPlus, 
@@ -8,8 +8,11 @@ import {
   Info, 
   Sparkles,
   Check,
-  ChevronDown
+  ChevronDown,
+  Search,
+  X
 } from 'lucide-react';
+import { twMerge } from 'tailwind-merge';
 import { VaultData } from '../../../types/vault';
 import { useTemplateSettings } from '../hooks/useTemplateSettings';
 import { formatTemplateDate, formatTemplateTime } from '../utils/templateUtils';
@@ -50,6 +53,48 @@ export const TemplateSettingsCard: React.FC<TemplateSettingsCardProps> = ({
   const [showDateTimeConfig, setShowDateTimeConfig] = useState(false);
   const [showVariablesGuide, setShowVariablesGuide] = useState(false);
 
+  // Dropdown open states
+  const [showFolderMenu, setShowFolderMenu] = useState(false);
+  const [folderQuery, setFolderQuery] = useState('');
+  const [showDateMenu, setShowDateMenu] = useState(false);
+  const [showTimeMenu, setShowTimeMenu] = useState(false);
+
+  const folderMenuRef = useRef<HTMLDivElement>(null);
+  const folderSearchInputRef = useRef<HTMLInputElement>(null);
+  const dateMenuRef = useRef<HTMLDivElement>(null);
+  const timeMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (folderMenuRef.current && !folderMenuRef.current.contains(e.target as Node)) {
+        setShowFolderMenu(false);
+      }
+      if (dateMenuRef.current && !dateMenuRef.current.contains(e.target as Node)) {
+        setShowDateMenu(false);
+      }
+      if (timeMenuRef.current && !timeMenuRef.current.contains(e.target as Node)) {
+        setShowTimeMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Filter available folders based on query
+  const filteredFolders = useMemo(() => {
+    if (!folderQuery.trim()) return availableFolders;
+    const q = folderQuery.toLowerCase().trim();
+    return availableFolders.filter((f) => f.name.toLowerCase().includes(q));
+  }, [availableFolders, folderQuery]);
+
+  // Focus search input when folder menu opens
+  useEffect(() => {
+    if (showFolderMenu) {
+      setFolderQuery('');
+      setTimeout(() => folderSearchInputRef.current?.focus(), 50);
+    }
+  }, [showFolderMenu]);
+
   const handleCreateFolder = () => {
     const id = createDefaultTemplateFolder();
     if (id) {
@@ -60,6 +105,9 @@ export const TemplateSettingsCard: React.FC<TemplateSettingsCardProps> = ({
 
   const previewDate = formatTemplateDate(new Date(), settings.dateFormat);
   const previewTime = formatTemplateTime(new Date(), settings.timeFormat);
+
+  const currentDateOption = DATE_FORMAT_OPTIONS.find((o) => o.value === settings.dateFormat) || DATE_FORMAT_OPTIONS[0];
+  const currentTimeOption = TIME_FORMAT_OPTIONS.find((o) => o.value === settings.timeFormat) || TIME_FORMAT_OPTIONS[0];
 
   return (
     <div className="bg-bg-secondary rounded-xl overflow-hidden shadow-2xs">
@@ -92,43 +140,139 @@ export const TemplateSettingsCard: React.FC<TemplateSettingsCardProps> = ({
 
       {/* 2. Folder Source Configuration */}
       <div className="p-3.5 sm:p-4 space-y-3">
-        <div className="space-y-1.5">
+        <div className="space-y-1.5" ref={folderMenuRef}>
           <label className="text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
             <Folder size={13} className="text-accent-primary" />
             <span>Folder Sumber Template</span>
           </label>
-          <div className="relative">
-            <select
-              value={activeTemplateFolder?.id || ''}
-              onChange={(e) => {
-                const folderId = e.target.value;
-                if (!folderId) {
-                  updateSettings({ templateFolderId: null, templateFolderPath: 'Templates' });
-                } else {
-                  const f = availableFolders.find((folder) => folder.id === folderId);
-                  updateSettings({
-                    templateFolderId: folderId,
-                    templateFolderPath: f ? f.name : 'Templates',
-                  });
-                }
-              }}
-              className="w-full appearance-none bg-bg-primary text-text-primary text-xs rounded-lg px-3 py-2.5 pr-8 focus:outline-hidden focus:ring-1 focus:ring-accent-primary transition-colors cursor-pointer font-medium"
+
+          {/* Custom In-Flow Folder Selector */}
+          <div 
+            className={twMerge(
+              "w-full bg-bg-primary rounded-xl transition-all overflow-hidden",
+              showFolderMenu ? "ring-1 ring-accent-primary/50" : ""
+            )}
+          >
+            <button
+              type="button"
+              onClick={() => setShowFolderMenu(!showFolderMenu)}
+              className="w-full px-3 py-2.5 flex items-center justify-between text-xs text-text-primary hover:bg-bg-secondary/40 cursor-pointer transition-colors text-left"
             >
-              <option value="">
-                {availableFolders.length === 0
-                  ? 'Belum ada folder di vault'
-                  : '-- Pilih Folder Template --'}
-              </option>
-              {availableFolders.map((folder) => (
-                <option key={folder.id} value={folder.id}>
-                  📁 {folder.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={14}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-            />
+              <div className="flex items-center gap-2 truncate">
+                <Folder size={13} className="text-accent-primary shrink-0" />
+                <span className="font-medium truncate">
+                  {activeTemplateFolder ? activeTemplateFolder.name : (
+                    availableFolders.length === 0 ? 'Belum ada folder di vault' : '-- Pilih Folder Template --'
+                  )}
+                </span>
+              </div>
+              <ChevronDown
+                size={14}
+                className={twMerge(
+                  "text-text-muted shrink-0 transition-transform duration-150",
+                  showFolderMenu ? "rotate-180 text-accent-primary" : ""
+                )}
+              />
+            </button>
+
+            {showFolderMenu && (
+              <div className="animate-in fade-in duration-150">
+                <div className="mx-2.5 h-px bg-border-subtle/30 my-0.5" />
+                
+                {/* Search Input Box */}
+                <div className="px-2 pt-1 pb-1.5">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-bg-secondary text-xs">
+                    <Search size={12} className="text-text-muted shrink-0" />
+                    <input
+                      ref={folderSearchInputRef}
+                      type="text"
+                      value={folderQuery}
+                      onChange={(e) => setFolderQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          setShowFolderMenu(false);
+                        } else if (e.key === 'Enter' && filteredFolders.length > 0) {
+                          updateSettings({
+                            templateFolderId: filteredFolders[0].id,
+                            templateFolderPath: filteredFolders[0].name,
+                          });
+                          setShowFolderMenu(false);
+                        }
+                      }}
+                      placeholder="Ketik untuk mencari folder..."
+                      className="w-full bg-transparent text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
+                    />
+                    {folderQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setFolderQuery('')}
+                        className="text-text-muted hover:text-text-primary p-0.5 rounded cursor-pointer"
+                      >
+                        <X size={11} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="max-h-48 overflow-y-auto custom-scrollbar p-1 space-y-0.5">
+                  {/* Empty/Root Option (only shown if not searching or if search matches) */}
+                  {(!folderQuery.trim() || 'kosongkan tanpa folder root'.includes(folderQuery.toLowerCase())) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSettings({ templateFolderId: null, templateFolderPath: 'Templates' });
+                        setShowFolderMenu(false);
+                      }}
+                      className={twMerge(
+                        "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left",
+                        !activeTemplateFolder
+                          ? "bg-bg-secondary text-text-primary font-medium"
+                          : "text-text-muted hover:text-text-primary hover:bg-bg-secondary/60"
+                      )}
+                    >
+                      <span className="text-text-muted">-- Kosongkan / Tanpa Folder --</span>
+                      {!activeTemplateFolder && <Check size={12} className="text-accent-primary shrink-0" />}
+                    </button>
+                  )}
+
+                  {/* Folder Items */}
+                  {filteredFolders.map((folder) => {
+                    const isSelected = activeTemplateFolder?.id === folder.id;
+                    return (
+                      <button
+                        key={folder.id}
+                        type="button"
+                        onClick={() => {
+                          updateSettings({
+                            templateFolderId: folder.id,
+                            templateFolderPath: folder.name,
+                          });
+                          setShowFolderMenu(false);
+                        }}
+                        className={twMerge(
+                          "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left",
+                          isSelected
+                            ? "bg-bg-secondary text-text-primary font-medium"
+                            : "text-text-muted hover:text-text-primary hover:bg-bg-secondary/60"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <Folder size={12} className="text-accent-primary shrink-0" />
+                          <span className="truncate">{folder.name}</span>
+                        </div>
+                        {isSelected && <Check size={12} className="text-accent-primary shrink-0" />}
+                      </button>
+                    );
+                  })}
+
+                  {filteredFolders.length === 0 && folderQuery.trim() && (
+                    <div className="px-3 py-3 text-center text-text-muted text-xs italic">
+                      Folder "{folderQuery}" tidak ditemukan
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -197,53 +341,123 @@ export const TemplateSettingsCard: React.FC<TemplateSettingsCardProps> = ({
 
         {showDateTimeConfig && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-            {/* Date Format */}
-            <div className="space-y-1.5">
+            {/* Custom Date Format Selector */}
+            <div className="space-y-1.5" ref={dateMenuRef}>
               <label className="text-[11px] font-medium text-text-secondary flex items-center gap-1">
                 <Calendar size={12} className="text-accent-primary" />
                 <span>Format Tanggal ({"{{date}}"})</span>
               </label>
-              <div className="relative">
-                <select
-                  value={settings.dateFormat}
-                  onChange={(e) => updateSettings({ dateFormat: e.target.value })}
-                  className="w-full appearance-none bg-bg-primary text-text-primary text-xs rounded-lg px-3 py-2 pr-8 focus:outline-hidden focus:ring-1 focus:ring-accent-primary transition-colors cursor-pointer"
+              
+              <div 
+                className={twMerge(
+                  "w-full bg-bg-primary rounded-xl transition-all overflow-hidden",
+                  showDateMenu ? "ring-1 ring-accent-primary/50" : ""
+                )}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowDateMenu(!showDateMenu)}
+                  className="w-full px-3 py-2 flex items-center justify-between text-xs text-text-primary hover:bg-bg-secondary/40 cursor-pointer transition-colors text-left"
                 >
-                  {DATE_FORMAT_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={14}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-                />
+                  <span className="font-medium truncate">{currentDateOption.label}</span>
+                  <ChevronDown
+                    size={14}
+                    className={twMerge(
+                      "text-text-muted shrink-0 transition-transform duration-150",
+                      showDateMenu ? "rotate-180 text-accent-primary" : ""
+                    )}
+                  />
+                </button>
+
+                {showDateMenu && (
+                  <div className="animate-in fade-in duration-150">
+                    <div className="mx-2.5 h-px bg-border-subtle/30 my-0.5" />
+                    <div className="max-h-44 overflow-y-auto custom-scrollbar p-1 space-y-0.5">
+                      {DATE_FORMAT_OPTIONS.map((opt) => {
+                        const isSelected = settings.dateFormat === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              updateSettings({ dateFormat: opt.value });
+                              setShowDateMenu(false);
+                            }}
+                            className={twMerge(
+                              "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left",
+                              isSelected
+                                ? "bg-bg-secondary text-text-primary font-medium"
+                                : "text-text-muted hover:text-text-primary hover:bg-bg-secondary/60"
+                            )}
+                          >
+                            <span className="truncate">{opt.label}</span>
+                            {isSelected && <Check size={12} className="text-accent-primary shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Time Format */}
-            <div className="space-y-1.5">
+            {/* Custom Time Format Selector */}
+            <div className="space-y-1.5" ref={timeMenuRef}>
               <label className="text-[11px] font-medium text-text-secondary flex items-center gap-1">
                 <Clock size={12} className="text-accent-primary" />
                 <span>Format Jam ({"{{time}}"})</span>
               </label>
-              <div className="relative">
-                <select
-                  value={settings.timeFormat}
-                  onChange={(e) => updateSettings({ timeFormat: e.target.value })}
-                  className="w-full appearance-none bg-bg-primary text-text-primary text-xs rounded-lg px-3 py-2 pr-8 focus:outline-hidden focus:ring-1 focus:ring-accent-primary transition-colors cursor-pointer"
+
+              <div 
+                className={twMerge(
+                  "w-full bg-bg-primary rounded-xl transition-all overflow-hidden",
+                  showTimeMenu ? "ring-1 ring-accent-primary/50" : ""
+                )}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowTimeMenu(!showTimeMenu)}
+                  className="w-full px-3 py-2 flex items-center justify-between text-xs text-text-primary hover:bg-bg-secondary/40 cursor-pointer transition-colors text-left"
                 >
-                  {TIME_FORMAT_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={14}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-                />
+                  <span className="font-medium truncate">{currentTimeOption.label}</span>
+                  <ChevronDown
+                    size={14}
+                    className={twMerge(
+                      "text-text-muted shrink-0 transition-transform duration-150",
+                      showTimeMenu ? "rotate-180 text-accent-primary" : ""
+                    )}
+                  />
+                </button>
+
+                {showTimeMenu && (
+                  <div className="animate-in fade-in duration-150">
+                    <div className="mx-2.5 h-px bg-border-subtle/30 my-0.5" />
+                    <div className="max-h-44 overflow-y-auto custom-scrollbar p-1 space-y-0.5">
+                      {TIME_FORMAT_OPTIONS.map((opt) => {
+                        const isSelected = settings.timeFormat === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              updateSettings({ timeFormat: opt.value });
+                              setShowTimeMenu(false);
+                            }}
+                            className={twMerge(
+                              "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left",
+                              isSelected
+                                ? "bg-bg-secondary text-text-primary font-medium"
+                                : "text-text-muted hover:text-text-primary hover:bg-bg-secondary/60"
+                            )}
+                          >
+                            <span className="truncate">{opt.label}</span>
+                            {isSelected && <Check size={12} className="text-accent-primary shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

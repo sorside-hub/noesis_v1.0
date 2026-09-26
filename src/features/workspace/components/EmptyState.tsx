@@ -18,12 +18,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onCreateNote, onQuickCap
           <div className="w-8 h-8 border-2 border-accent-contrast -rotate-45"></div>
         </div>
 
-        <h2 className="text-xl font-serif font-bold text-text-primary tracking-tight mb-1.5">
+        <h2 className="text-xl font-serif font-bold text-text-primary tracking-tight mb-8">
           NOESIS VAULT
         </h2>
-        <p className="text-xs text-text-primary/80 max-w-xs leading-relaxed mb-12">
-          Sistem siap. Pilih catatan yang ada atau gunakan aksi cepat di bawah ini.
-        </p>
 
         {/* Action Hub (4 Buttons Grid) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-8 w-full max-w-[280px] sm:max-w-lg mx-auto">
@@ -33,7 +30,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onCreateNote, onQuickCap
             onClick={onCreateNote}
             className="flex flex-col items-center justify-center text-center transition-all duration-200 cursor-pointer group outline-none"
           >
-            <div className="w-12 h-12 rounded-full border border-border-default text-icon-accent bg-bg-quaternary/40 flex items-center justify-center shadow-xs group-hover:bg-bg-hover group-hover:text-text-primary group-hover:scale-105 group-hover:shadow-sm transition-all duration-200 mb-3">
+            <div className="w-12 h-12 rounded-full text-icon-accent bg-bg-secondary flex items-center justify-center shadow-xs group-hover:bg-bg-hover group-hover:text-text-primary group-hover:scale-105 group-hover:shadow-sm transition-all duration-200 mb-3">
               <Plus size={20} strokeWidth={2} />
             </div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-text-primary group-hover:text-text-primary transition-colors">
@@ -47,7 +44,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onCreateNote, onQuickCap
             onClick={onQuickCapture || onCreateNote}
             className="flex flex-col items-center justify-center text-center transition-all duration-200 cursor-pointer group outline-none"
           >
-            <div className="w-12 h-12 rounded-full border border-border-default text-icon-accent bg-bg-quaternary/40 flex items-center justify-center shadow-xs group-hover:bg-bg-hover group-hover:text-text-primary group-hover:scale-105 group-hover:shadow-sm transition-all duration-200 mb-3">
+            <div className="w-12 h-12 rounded-full text-icon-accent bg-bg-secondary flex items-center justify-center shadow-xs group-hover:bg-bg-hover group-hover:text-text-primary group-hover:scale-105 group-hover:shadow-sm transition-all duration-200 mb-3">
               <Zap size={20} strokeWidth={2} />
             </div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-text-primary group-hover:text-text-primary transition-colors">
@@ -61,7 +58,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onCreateNote, onQuickCap
             onClick={() => openModal('voice-note')}
             className="flex flex-col items-center justify-center text-center transition-all duration-200 cursor-pointer group outline-none"
           >
-            <div className="w-12 h-12 rounded-full border border-border-default text-icon-accent bg-bg-quaternary/40 flex items-center justify-center shadow-xs group-hover:bg-bg-hover group-hover:text-text-primary group-hover:scale-105 group-hover:shadow-sm transition-all duration-200 mb-3">
+            <div className="w-12 h-12 rounded-full text-icon-accent bg-bg-secondary flex items-center justify-center shadow-xs group-hover:bg-bg-hover group-hover:text-text-primary group-hover:scale-105 group-hover:shadow-sm transition-all duration-200 mb-3">
               <AudioLines size={20} strokeWidth={2} />
             </div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-text-primary group-hover:text-text-primary transition-colors">
@@ -75,7 +72,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onCreateNote, onQuickCap
             onClick={() => openModal('voice-memo')}
             className="flex flex-col items-center justify-center text-center transition-all duration-200 cursor-pointer group outline-none"
           >
-            <div className="w-12 h-12 rounded-full border border-border-default text-icon-accent bg-bg-quaternary/40 flex items-center justify-center shadow-xs group-hover:bg-bg-hover group-hover:text-text-primary group-hover:scale-105 group-hover:shadow-sm transition-all duration-200 mb-3">
+            <div className="w-12 h-12 rounded-full text-icon-accent bg-bg-secondary flex items-center justify-center shadow-xs group-hover:bg-bg-hover group-hover:text-text-primary group-hover:scale-105 group-hover:shadow-sm transition-all duration-200 mb-3">
               <Mic size={20} strokeWidth={2} />
             </div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-text-primary group-hover:text-text-primary transition-colors">

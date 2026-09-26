@@ -9,6 +9,7 @@ import { FileNode } from '../../../types/vault';
 import { ChipInput } from './ChipInput';
 import { CustomPropertiesSection } from './CustomPropertiesSection';
 import { NoteTypeSelector } from './NoteTypeSelector';
+import { StatusSelector } from './StatusSelector';
 import { NoteRagCard } from './NoteRagCard';
 import { NoteAutoDetectCard } from './NoteAutoDetectCard';
 import { NoteStatsSection } from './NoteStatsSection';
@@ -118,30 +119,11 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({
         onChange={handleTypeChange}
       />
 
-      {/* 4. Status Dropdown */}
-      <div className="space-y-1.5">
-        <label className="text-[11px] font-semibold text-text-muted tracking-wider uppercase">
-          Status
-        </label>
-        <div className="relative">
-          <select
-            value={status}
-            onChange={(e) => handleStatusChange(e.target.value)}
-            className="w-full px-3 py-2 bg-bg-primary focus:ring-1 focus:ring-accent-primary/50 rounded-xl text-xs text-text-primary appearance-none focus:outline-none pr-8 cursor-pointer transition-all shadow-2xs"
-          >
-            <option value="">-</option>
-            <option value="Inbox">Inbox</option>
-            <option value="Inbox (Refine)">Inbox (Refine)</option>
-            <option value="Inbox (Keeper)">Inbox (Keeper)</option>
-            <option value="Idea">Idea</option>
-            <option value="Draft">Draft</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-            <option value="Archived">Archived</option>
-          </select>
-          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-icon-secondary pointer-events-none" />
-        </div>
-      </div>
+      {/* 4. Status Selector */}
+      <StatusSelector
+        status={status}
+        onChange={handleStatusChange}
+      />
 
       {/* 5. Tags Input */}
       <ChipInput
