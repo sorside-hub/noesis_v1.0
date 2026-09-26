@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Palette,
   Moon,
+  Sun,
   Check,
   Contrast,
   ClipboardList
@@ -97,22 +98,60 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
             Tema & Tampilan
           </h2>
           
-          <div className="grid grid-cols-1 gap-3">
-            <div
-              className="p-3.5 rounded-xl bg-bg-secondary flex items-center justify-between gap-2.5"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Dark Mode */}
+            <button
+              type="button"
+              onClick={() => setTheme('charcoal-navy')}
+              className={`p-3.5 rounded-xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer ${
+                theme === 'charcoal-navy'
+                  ? 'bg-bg-secondary border-accent-primary/60 ring-1 ring-accent-primary/40 shadow-xs'
+                  : 'bg-bg-secondary/60 border-border-subtle hover:border-border-default hover:bg-bg-secondary'
+              }`}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2.5 rounded-xl bg-bg-primary text-accent-primary shrink-0">
-                  <Moon size={18} className="text-accent-primary" />
+                <div className="p-2.5 rounded-xl bg-[#262626] text-[#78929F] border border-white/10 shrink-0">
+                  <Moon size={18} />
                 </div>
                 <div className="min-w-0">
                   <span className="text-sm font-semibold text-text-primary block truncate">Mode Gelap</span>
                 </div>
               </div>
-              <span className="text-[11px] font-medium bg-accent-primary/10 text-accent-primary px-2 py-0.5 rounded-md shrink-0">
-                Aktif
-              </span>
-            </div>
+              {theme === 'charcoal-navy' ? (
+                <div className="w-5 h-5 rounded-full bg-accent-primary flex items-center justify-center text-white shrink-0">
+                  <Check size={12} strokeWidth={3} />
+                </div>
+              ) : (
+                <div className="w-5 h-5 rounded-full border border-border-default shrink-0" />
+              )}
+            </button>
+
+            {/* Light Mode */}
+            <button
+              type="button"
+              onClick={() => setTheme('editorial-light')}
+              className={`p-3.5 rounded-xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer ${
+                theme === 'editorial-light'
+                  ? 'bg-bg-secondary border-accent-primary/60 ring-1 ring-accent-primary/40 shadow-xs'
+                  : 'bg-bg-secondary/60 border-border-subtle hover:border-border-default hover:bg-bg-secondary'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2.5 rounded-xl bg-[#FAF8F5] text-[#8E5338] border border-black/10 shrink-0">
+                  <Sun size={18} />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-sm font-semibold text-text-primary block truncate">Mode Terang</span>
+                </div>
+              </div>
+              {theme === 'editorial-light' ? (
+                <div className="w-5 h-5 rounded-full bg-accent-primary flex items-center justify-center text-white shrink-0">
+                  <Check size={12} strokeWidth={3} />
+                </div>
+              ) : (
+                <div className="w-5 h-5 rounded-full border border-border-default shrink-0" />
+              )}
+            </button>
           </div>
         </section>
 

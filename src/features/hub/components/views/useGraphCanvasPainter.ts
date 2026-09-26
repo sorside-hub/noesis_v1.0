@@ -25,8 +25,9 @@ export function useGraphCanvasPainter({
       const isHighlighted = highlightNodes.has(n.id);
       const isDimmed = activeNode !== null && !isHighlighted;
       
-      // Dynamic Custom Group Color Palette (Obsidian dark style)
-      let color = '#9CA3AF';
+      // Dynamic Custom Group Color Palette
+      const isLight = typeof document !== 'undefined' && document.documentElement.classList.contains('light');
+      let color = isLight ? '#786F66' : '#9CA3AF';
 
       // Evaluate Custom Groups (first match wins in true Obsidian fashion)
       for (const group of customGroups) {
@@ -108,11 +109,15 @@ export function useGraphCanvasPainter({
         const labelY = y + size + 4 / globalScale;
 
         // 2. Draw Clean Text Label directly on Canvas without background box (Obsidian style)
-        ctx.fillStyle = isActive
-          ? '#fbbf24'
-          : isHighlighted && activeNode
-          ? '#fcd34d'
+        const defaultLabelColor = isLight 
+          ? `rgba(45, 42, 38, ${Math.min(1, textOpacity * 0.95 + 0.05)})`
           : `rgba(220, 220, 225, ${Math.min(1, textOpacity * 0.9 + 0.1)})`;
+
+        ctx.fillStyle = isActive
+          ? (isLight ? '#b45309' : '#fbbf24')
+          : isHighlighted && activeNode
+          ? (isLight ? '#d97706' : '#fcd34d')
+          : defaultLabelColor;
 
         ctx.fillText(truncatedLabel, x, labelY);
       }
@@ -125,6 +130,7 @@ export function useGraphCanvasPainter({
   // Custom Rendering: Links with subtle directional indicators and linkThickness
   const paintLink = useCallback(
     (link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+      const isLight = typeof document !== 'undefined' && document.documentElement.classList.contains('light');
       const start = link.source;
       const end = link.target;
 
@@ -151,18 +157,18 @@ export function useGraphCanvasPainter({
 
       if (isHighlightedLink) {
         ctx.lineWidth = ((isSemantic || isVirtual ? 1.25 : 1.75) * thickness) / globalScale;
-        ctx.strokeStyle = 'rgba(251, 191, 36, 0.8)';
+        ctx.strokeStyle = isLight ? 'rgba(180, 83, 9, 0.9)' : 'rgba(251, 191, 36, 0.8)';
       } else {
         ctx.lineWidth = ((isSemantic || isVirtual ? 0.75 : 1.25) * thickness) / globalScale;
         if (isVirtual) {
           ctx.setLineDash([3 / globalScale, 5 / globalScale]);
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+          ctx.strokeStyle = isLight ? 'rgba(2, 132, 199, 0.45)' : 'rgba(56, 189, 248, 0.35)';
         } else if (isSemantic) {
           ctx.setLineDash([4 / globalScale, 4 / globalScale]);
-          ctx.strokeStyle = 'rgba(167, 139, 250, 0.5)';
+          ctx.strokeStyle = isLight ? 'rgba(124, 58, 237, 0.55)' : 'rgba(167, 139, 250, 0.5)';
         } else {
           ctx.setLineDash([]);
-          ctx.strokeStyle = 'rgba(209, 213, 219, 0.4)';
+          ctx.strokeStyle = isLight ? 'rgba(60, 55, 50, 0.22)' : 'rgba(209, 213, 219, 0.4)';
         }
       }
       

@@ -88,9 +88,11 @@
 }
 
 @layer base {
+  /* 1. Universal Dark Theme (Charcoal Navy) */
   :root,
-  html {
-    /* 1. Universal Dark Theme Canvas & Backgrounds */
+  html.dark,
+  html[data-theme="charcoal-navy"] {
+    /* 1. Canvas & Backgrounds */
     --bg-primary: #262626;
     --bg-secondary: #212121;
     --bg-tertiary: #353535;
@@ -144,20 +146,99 @@
     --status-info-bg: rgba(96, 165, 250, 0.12);
     --status-info-border: rgba(96, 165, 250, 0.25);
   }
+
+  /* 2. Editorial Light Theme (Warm Paper & Ink) */
+  html.light,
+  html[data-theme="editorial-light"] {
+    /* 1. Canvas & Backgrounds */
+    --bg-primary: #FAF8F5;
+    --bg-secondary: #F2ECE4;
+    --bg-tertiary: #E8E1D7;
+    --bg-quaternary: #DFD7CB;
+    --bg-hover: #E6DFD4;
+    --bg-input: #FFFFFF;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #FFFFFF;
+
+    /* 2. Borders */
+    --border-default: rgba(45, 42, 38, 0.12);
+    --border-subtle: rgba(45, 42, 38, 0.06);
+
+    /* 3. Typography & Text */
+    --text-primary: #2D2A26;
+    --text-secondary: #6E685F;
+    --text-muted: #8C8479;
+    --text-disabled: rgba(45, 42, 38, 0.25);
+    --text-heading: #1F1C19;
+    --text-bold: #1F1C19;
+    --text-inverse: #FFFFFF;
+    --text-code: #9B3828;
+    --text-quote: #6E685F;
+
+    /* 4. Icons */
+    --icon-primary: #59534B;
+    --icon-secondary: #8C8479;
+    --icon-accent: #8E5338;
+
+    /* 5. Accents & Links */
+    --accent-primary: #8E5338;
+    --accent-soft: rgba(142, 83, 56, 0.12);
+    --accent-contrast: #FFFFFF;
+    --link-primary: #8E5338;
+    --text-link: var(--link-primary);
+
+    /* 6. Semantic Status Badges & Alerts */
+    --status-success: #16A34A;
+    --status-success-bg: rgba(22, 163, 74, 0.12);
+    --status-success-border: rgba(22, 163, 74, 0.25);
+
+    --status-warning: #D97706;
+    --status-warning-bg: rgba(217, 119, 6, 0.12);
+    --status-warning-border: rgba(217, 119, 6, 0.25);
+
+    --status-error: #DC2626;
+    --status-error-bg: rgba(220, 38, 38, 0.12);
+    --status-error-border: rgba(220, 38, 38, 0.25);
+
+    --status-info: #2563EB;
+    --status-info-bg: rgba(37, 99, 235, 0.12);
+    --status-info-border: rgba(37, 99, 235, 0.25);
+  }
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
 }
 
 html {
-  color-scheme: dark;
-  background-color: #262626;
+  background-color: var(--bg-primary);
 }
 
 body {
   @apply bg-bg-primary text-text-primary;
-  color-scheme: dark;
-  background-color: #262626;
+  background-color: var(--bg-primary);
   margin: 0;
   padding: 0;
   overflow: hidden; /* App container handles scrolling */
+}
+
+/* Universal outline and focus ring reset */
+input,
+textarea,
+select,
+button {
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Hide scrollbar for Chrome, Safari, Opera and modern browsers */

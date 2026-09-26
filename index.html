@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="dark" data-theme="charcoal-navy" style="background-color: #262626; color-scheme: dark;">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
@@ -16,16 +16,21 @@
     <meta name="apple-mobile-web-app-title" content="Noesis" />
     <meta name="application-name" content="Noesis" />
 
-    <!-- Instant Pre-paint Dark Mode to prevent any white flash -->
-    <style>
-      :root, html, body {
-        background-color: #262626 !important;
-        color-scheme: dark !important;
-      }
-      #root {
-        background-color: #262626 !important;
-      }
-    </style>
+    <!-- Instant Pre-paint Theme Init (Zero-Flicker & Persistent) -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('noesis_theme_mode');
+          var isLight = saved === 'editorial-light' || saved === 'light';
+          var root = document.documentElement;
+          root.classList.remove(isLight ? 'dark' : 'light');
+          root.classList.add(isLight ? 'light' : 'dark');
+          root.setAttribute('data-theme', isLight ? 'editorial-light' : 'charcoal-navy');
+          root.style.backgroundColor = isLight ? '#FAF8F5' : '#262626';
+          root.style.colorScheme = isLight ? 'light' : 'dark';
+        } catch (e) {}
+      })();
+    </script>
 
     <!-- Icons & Manifest -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -86,19 +91,9 @@
       })();
     </script>
 
-    <!-- Default Unified Dark Theme Script -->
-    <script>
-      (function() {
-        try {
-          document.documentElement.classList.remove('light');
-          document.documentElement.classList.add('dark');
-          document.documentElement.setAttribute('data-theme', 'charcoal-navy');
-          localStorage.setItem('noesis_theme_mode', 'charcoal-navy');
-        } catch (e) {}
-      })();
-    </script>
+    <!-- Default Unified Dark Theme Script removed: now handled by Instant Pre-paint script -->
   </head>
-  <body class="bg-bg-primary text-text-primary antialiased select-none overflow-hidden touch-manipulation" style="background-color: #262626;">
+  <body class="bg-bg-primary text-text-primary antialiased select-none overflow-hidden touch-manipulation">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>

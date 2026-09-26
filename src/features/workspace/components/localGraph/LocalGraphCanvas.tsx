@@ -97,11 +97,14 @@ export const LocalGraphCanvas: React.FC<LocalGraphCanvasProps> = ({
           label.length > 22 && !isHovered && !isCenter ? label.substring(0, 20) + '...' : label;
 
         // Obsidian style clean text directly on Canvas
+        const isLight = typeof document !== 'undefined' && document.documentElement.classList.contains('light');
         ctx.fillStyle = isCenter
-          ? '#F5E8D2'
+          ? (isLight ? '#7c2d12' : '#F5E8D2')
           : isHovered
-          ? '#FFFFFF'
-          : `rgba(209, 209, 209, ${Math.min(1, textOpacity * 0.9 + 0.1)})`;
+          ? (isLight ? '#1c1917' : '#FFFFFF')
+          : (isLight 
+              ? `rgba(45, 42, 38, ${Math.min(1, textOpacity * 0.95 + 0.05)})` 
+              : `rgba(209, 209, 209, ${Math.min(1, textOpacity * 0.9 + 0.1)})`);
 
         const labelY = y + radius + 3 / globalScale;
         ctx.fillText(truncatedLabel, x, labelY);

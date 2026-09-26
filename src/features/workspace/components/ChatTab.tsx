@@ -357,7 +357,7 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
       <div className="relative pt-1 z-20 shrink-0 bg-bg-secondary">
         <form 
           onSubmit={handleSend}
-          className="relative flex items-end gap-2 bg-bg-quaternary focus-within:ring-1 focus-within:ring-accent-primary/50 rounded-2xl p-2 px-3.5 shadow-sm transition-all"
+          className="relative flex items-end gap-1.5 bg-bg-quaternary border border-border-default/30 hover:border-border-default/50 focus-within:border-accent-primary/60 focus-within:ring-1 focus-within:ring-accent-primary/40 rounded-xl p-1.5 px-3 shadow-xs transition-all"
         >
           <textarea
             ref={textareaRef}
@@ -365,17 +365,17 @@ export const ChatTab: React.FC<ChatTabProps> = ({ activeNode, onUpdateMetadata }
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Tanyakan sesuatu tentang catatan ini..."
-            className="flex-1 bg-transparent border-0 outline-hidden text-sm leading-relaxed text-text-primary placeholder:text-text-muted resize-none max-h-32 min-h-[32px] py-1.5 font-sans custom-scrollbar block"
+            className="flex-1 bg-transparent border-0 outline-none focus:outline-none focus:ring-0 text-[13px] leading-relaxed text-text-primary placeholder:text-text-muted resize-none max-h-28 min-h-[28px] py-1 font-sans custom-scrollbar block shadow-none"
             rows={1}
             disabled={isLoading}
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="p-2.5 rounded-xl bg-accent-primary text-accent-contrast disabled:opacity-50 disabled:bg-bg-secondary disabled:text-text-muted hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0 mb-0.5 shadow-xs"
+            className="p-2 rounded-lg bg-accent-primary text-accent-contrast disabled:opacity-40 disabled:bg-bg-secondary disabled:text-text-muted hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0 mb-0.5 shadow-xs"
             title="Kirim Pesan"
           >
-            <Send size={15} strokeWidth={2.2} className="text-accent-contrast" />
+            <Send size={14} strokeWidth={2.2} className="text-accent-contrast" />
           </button>
         </form>
       </div>
