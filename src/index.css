@@ -172,7 +172,7 @@
     --text-heading: #1F1C19;
     --text-bold: #1F1C19;
     --text-inverse: #FFFFFF;
-    --text-code: #9B3828;
+    --text-code: var(--text-primary);
     --text-quote: #6E685F;
 
     /* 4. Icons */

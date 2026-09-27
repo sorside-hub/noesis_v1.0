@@ -97,7 +97,7 @@ export const InboxTriageColumn: React.FC<InboxTriageColumnProps> = ({
           </div>
         </div>
 
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${details.badge}`}>
+        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${details.badge} shrink-0`}>
           {notes.length}
         </span>
       </div>

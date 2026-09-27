@@ -108,7 +108,8 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-top: calc((var(--text-body-height, 1.7) * 1em - 1.1em) / 2) !important;
+  height: calc(1em * var(--text-body-height, 1.65)) !important;
+  margin-top: 0 !important;
   line-height: 1 !important;
 }
 
@@ -116,40 +117,78 @@
 .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"] {
   appearance: none !important;
   -webkit-appearance: none !important;
-  width: 1.1em !important;
-  height: 1.1em !important;
+  width: 1.15em !important;
+  height: 1.15em !important;
   margin: 0 !important;
-  border: 1.5px solid var(--border-default) !important;
+  border: 1.5px solid var(--text-secondary) !important;
   border-radius: 0.25rem !important;
   outline: none !important;
   cursor: pointer !important;
   display: grid !important;
   place-content: center !important;
   background-color: var(--bg-surface) !important;
-  transition: all 0.15s ease !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease !important;
   box-sizing: border-box !important;
 }
 
+/* Crisp Ink styling specifically for UNCHECKED light & dark themes */
+html.light .prose ul[data-type="taskList"] li > label input[type="checkbox"]:not(:checked),
+html.light .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:not(:checked),
+html[data-theme="editorial-light"] .prose ul[data-type="taskList"] li > label input[type="checkbox"]:not(:checked),
+html[data-theme="editorial-light"] .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:not(:checked) {
+  border-color: rgba(45, 42, 38, 0.45) !important;
+  background-color: #FAF8F5 !important;
+}
+
+html.dark .prose ul[data-type="taskList"] li > label input[type="checkbox"]:not(:checked),
+html.dark .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:not(:checked),
+html[data-theme="charcoal-navy"] .prose ul[data-type="taskList"] li > label input[type="checkbox"]:not(:checked),
+html[data-theme="charcoal-navy"] .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:not(:checked) {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
 @media (hover: hover) {
-  .prose ul[data-type="taskList"] li > label input[type="checkbox"]:hover,
-  .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:hover {
+  .prose ul[data-type="taskList"] li > label input[type="checkbox"]:not(:checked):hover,
+  .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:not(:checked):hover {
     border-color: var(--accent-primary) !important;
+    box-shadow: 0 0 0 2px var(--accent-soft) !important;
   }
 }
 
+.prose ul[data-type="taskList"] li > label input[type="checkbox"]:focus-visible,
+.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:focus-visible {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 2px var(--accent-soft) !important;
+}
+
+/* CHECKED STATE: Solid Accent in both Light and Dark, High Specificity */
 .prose ul[data-type="taskList"] li > label input[type="checkbox"]:checked,
-.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked {
+.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked,
+html.light .prose ul[data-type="taskList"] li > label input[type="checkbox"]:checked,
+html.light .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked,
+html[data-theme="editorial-light"] .prose ul[data-type="taskList"] li > label input[type="checkbox"]:checked,
+html[data-theme="editorial-light"] .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked,
+html.dark .prose ul[data-type="taskList"] li > label input[type="checkbox"]:checked,
+html.dark .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked,
+html[data-theme="charcoal-navy"] .prose ul[data-type="taskList"] li > label input[type="checkbox"]:checked,
+html[data-theme="charcoal-navy"] .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked {
   background-color: var(--accent-primary) !important;
   border-color: var(--accent-primary) !important;
+  box-shadow: none !important;
 }
 
 .prose ul[data-type="taskList"] li > label input[type="checkbox"]:checked::before,
-.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked::before {
+.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked::before,
+html.light .prose ul[data-type="taskList"] li > label input[type="checkbox"]:checked::before,
+html.light .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked::before,
+html.dark .prose ul[data-type="taskList"] li > label input[type="checkbox"]:checked::before,
+html.dark .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]:checked::before {
   content: "" !important;
   width: 0.6em !important;
   height: 0.35em !important;
-  border-left: 2px solid var(--accent-contrast) !important;
-  border-bottom: 2px solid var(--accent-contrast) !important;
+  border-left: 2px solid #FFFFFF !important;
+  border-bottom: 2px solid #FFFFFF !important;
   transform: rotate(-45deg) translate(0.05em, -0.05em) !important;
 }
 
@@ -163,7 +202,13 @@
 .ProseMirror ul[data-type="taskList"] li > div {
   flex: 1 1 auto !important;
   min-width: 0 !important;
-  line-height: 1.7 !important;
+  line-height: var(--text-body-height, 1.65) !important;
+}
+
+.prose ul[data-type="taskList"] li > div > p,
+.ProseMirror ul[data-type="taskList"] li > div > p {
+  margin: 0 !important;
+  line-height: var(--text-body-height, 1.65) !important;
 }
 
 .prose {
