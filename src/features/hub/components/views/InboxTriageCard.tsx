@@ -109,9 +109,9 @@ export const InboxTriageCard: React.FC<InboxTriageCardProps> = ({
           </h4>
         </div>
 
-        {/* Top Hover Actions */}
+        {/* Top Hover / Action Buttons */}
         <div 
-          className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+          className="flex items-center gap-1 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0"
           onClick={(e) => e.stopPropagation()}
         >
           <button

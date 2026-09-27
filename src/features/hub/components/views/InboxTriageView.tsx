@@ -21,7 +21,8 @@ import {
   X,
   Sparkles,
   Loader2,
-  CheckCheck
+  CheckCheck,
+  Search
 } from 'lucide-react';
 import { EnrichedNoteItem } from '../../types';
 import { VaultData, FileNode } from '../../../../types/vault';
@@ -56,6 +57,7 @@ export const InboxTriageView: React.FC<InboxTriageViewProps> = ({
   // Modals state
   const [movingNote, setMovingNote] = useState<EnrichedNoteItem | null>(null);
   const [deletingNote, setDeletingNote] = useState<EnrichedNoteItem | null>(null);
+  const [folderSearchQuery, setFolderSearchQuery] = useState('');
 
   // Sensors for drag and drop: MouseSensor for desktop, TouchSensor for mobile with 200ms hold delay (matching Kanban board)
   const sensors = useSensors(
@@ -91,10 +93,14 @@ export const InboxTriageView: React.FC<InboxTriageViewProps> = ({
   // Extract all folders in the vault (excluding inbox) for the "Move to Folder" modal
   const targetFolders = useMemo(() => {
     if (!vault?.nodes) return [];
-    return Object.values(vault.nodes).filter(
+    const all = Object.values(vault.nodes).filter(
       (n) => n.type === 'folder' && n.id !== inboxFolderId
     ).sort((a, b) => a.name.localeCompare(b.name));
-  }, [vault, inboxFolderId]);
+
+    if (!folderSearchQuery.trim()) return all;
+    const q = folderSearchQuery.toLowerCase();
+    return all.filter((f) => f.name.toLowerCase().includes(q));
+  }, [vault, inboxFolderId, folderSearchQuery]);
 
   // Filter notes that belong strictly to the Inbox system:
   // Must match Inbox, Refine, or Keeper criteria (and excludes post-inbox statuses like Idea, Draft, etc.)
@@ -464,65 +470,102 @@ export const InboxTriageView: React.FC<InboxTriageViewProps> = ({
       {/* 4. Modal: Move to Vault Folder (Graduating from Inbox) */}
       {movingNote && (
         <div
-          className="fixed inset-0 z-70 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
-          onClick={() => setMovingNote(null)}
+          className="fixed inset-0 z-70 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+          onClick={() => {
+            setMovingNote(null);
+            setFolderSearchQuery('');
+          }}
         >
           <div
-            className="w-full max-w-md bg-bg-surface border border-border-default rounded-2xl shadow-2xl p-5 flex flex-col gap-4"
+            className="w-full max-w-sm bg-bg-primary border-0 rounded-2xl shadow-2xl p-5 flex flex-col gap-3.5 animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-2 border-b border-border-default">
+            {/* Header */}
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FolderInput size={18} className="text-accent-primary" />
-                <h3 className="text-sm font-bold text-text-heading">
-                  Pindahkan ke Folder Vault
-                </h3>
+                <div className="p-1.5 rounded-lg bg-accent-primary/10 text-accent-primary">
+                  <FolderInput size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-text-heading">
+                    Pindahkan ke Folder
+                  </h3>
+                  <p className="text-[11px] text-text-muted truncate max-w-[200px]" title={movingNote.title}>
+                    {movingNote.title || 'Tanpa Judul'}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
-                onClick={() => setMovingNote(null)}
-                className="text-text-muted hover:text-text-primary cursor-pointer"
+                onClick={() => {
+                  setMovingNote(null);
+                  setFolderSearchQuery('');
+                }}
+                className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Pilih folder permanen untuk mempromosikan catatan{' '}
-              <strong className="text-text-primary">&quot;{movingNote.title}&quot;</strong>{' '}
-              keluar dari Inbox. Status akan otomatis diperbarui menjadi <span className="font-semibold text-accent-primary">Idea</span>.
-            </p>
+            {/* Search Input */}
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <input
+                type="text"
+                value={folderSearchQuery}
+                onChange={(e) => setFolderSearchQuery(e.target.value)}
+                placeholder="Cari folder..."
+                className="w-full pl-8.5 pr-3 py-2 text-xs bg-bg-secondary text-text-primary placeholder:text-text-muted rounded-xl border-0 focus:outline-hidden focus:ring-1.5 focus:ring-accent-primary/40 transition-all"
+              />
+              {folderSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setFolderSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-[10px]"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
 
-            <div className="max-h-60 overflow-y-auto space-y-1.5 custom-scrollbar p-1">
+            {/* Folder List */}
+            <div className="max-h-60 overflow-y-auto space-y-1.5 custom-scrollbar py-0.5">
               {targetFolders.length > 0 ? (
                 targetFolders.map((folder) => (
                   <button
                     key={folder.id}
                     type="button"
-                    onClick={() => handleConfirmMoveToFolder(folder.id)}
-                    className="w-full flex items-center justify-between p-2.5 rounded-xl border border-border-default hover:border-accent-primary/40 hover:bg-bg-hover text-left transition-all cursor-pointer group"
+                    onClick={() => {
+                      handleConfirmMoveToFolder(folder.id);
+                      setFolderSearchQuery('');
+                    }}
+                    className="w-full flex items-center justify-between p-2.5 rounded-xl bg-bg-secondary hover:bg-bg-hover text-left transition-all cursor-pointer group"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <Folder size={15} className="text-text-muted group-hover:text-accent-primary transition-colors" />
-                      <span className="text-xs font-medium text-text-primary">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Folder size={15} className="text-text-muted group-hover:text-accent-primary shrink-0 transition-colors" />
+                      <span className="text-xs font-medium text-text-primary truncate">
                         {folder.name}
                       </span>
                     </div>
-                    <ArrowRight size={13} className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowRight size={13} className="text-text-muted opacity-0 group-hover:opacity-100 shrink-0 transition-opacity" />
                   </button>
                 ))
               ) : (
-                <p className="text-xs text-text-muted italic py-4 text-center">
-                  Tidak ada folder lain di vault.
-                </p>
+                <div className="py-6 text-center text-xs text-text-muted">
+                  {folderSearchQuery ? 'Folder tidak ditemukan' : 'Tidak ada folder lain di vault'}
+                </div>
               )}
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-border-default">
+            {/* Footer */}
+            <div className="flex justify-end pt-1">
               <button
                 type="button"
-                onClick={() => setMovingNote(null)}
-                className="px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+                onClick={() => {
+                  setMovingNote(null);
+                  setFolderSearchQuery('');
+                }}
+                className="px-3.5 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
               >
                 Batal
               </button>
@@ -534,26 +577,31 @@ export const InboxTriageView: React.FC<InboxTriageViewProps> = ({
       {/* 5. Modal: Delete Note Confirmation */}
       {deletingNote && (
         <div
-          className="fixed inset-0 z-70 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+          className="fixed inset-0 z-70 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150"
           onClick={() => setDeletingNote(null)}
         >
           <div
-            className="w-full max-w-sm bg-bg-surface border border-border-default rounded-2xl shadow-2xl p-5 flex flex-col gap-4"
+            className="w-full max-w-sm bg-bg-surface border-0 rounded-2xl shadow-2xl p-5 flex flex-col gap-4 animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 text-status-error">
-              <Trash2 size={18} />
-              <h3 className="text-sm font-bold text-text-heading">
-                Hapus Catatan Inbox?
-              </h3>
+            <div className="flex items-center gap-2.5 text-status-error">
+              <div className="p-2 rounded-xl bg-status-error-bg">
+                <Trash2 size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-text-heading">
+                  Hapus Catatan Inbox?
+                </h3>
+                <p className="text-[11px] text-text-muted">Tindakan ini tidak dapat dibatalkan</p>
+              </div>
             </div>
 
             <p className="text-xs text-text-secondary leading-relaxed">
-              Apakah kamu yakin ingin menghapus{' '}
-              <strong className="text-text-primary">&quot;{deletingNote.title}&quot;</strong>? Catatan ini akan dihapus secara permanen dari Inbox.
+              Apakah kamu yakin ingin menghapus catatan{' '}
+              <strong className="text-text-primary">&quot;{deletingNote.title || 'Tanpa Judul'}&quot;</strong>? Catatan ini akan dihapus secara permanen dari Inbox.
             </p>
 
-            <div className="flex justify-end gap-2 mt-2">
+            <div className="flex justify-end gap-2 mt-1">
               <button
                 type="button"
                 onClick={() => setDeletingNote(null)}
@@ -564,9 +612,10 @@ export const InboxTriageView: React.FC<InboxTriageViewProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className="px-3.5 py-1.5 text-xs font-medium bg-status-error-bg text-status-error border border-status-error-border hover:bg-status-error hover:text-white rounded-lg transition-colors cursor-pointer"
+                className="px-4 py-1.5 text-xs font-medium bg-status-error text-white hover:bg-status-error/90 rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-1.5"
               >
-                Hapus
+                <Trash2 size={13} />
+                <span>Hapus</span>
               </button>
             </div>
           </div>

@@ -503,7 +503,12 @@ export const HubView: React.FC<HubViewProps> = ({ vault, vaultState }) => {
                 />
               )}
               {activeSubView === 'table' && (
-                <TableView notes={filteredNotes} filters={tabFilters['table'] || []} onOpenNote={navigateToNote} />
+                <TableView 
+                  notes={filteredNotes} 
+                  filters={tabFilters['table'] || []} 
+                  onOpenNote={navigateToNote}
+                  onDeleteNote={(id) => vaultState?.deleteNode(id)}
+                />
               )}
               {activeSubView === 'board' && (
                 <BoardView 

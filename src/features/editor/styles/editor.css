@@ -1,9 +1,57 @@
 /* TipTap & Markdown Custom Styles */
 
-/* Remove decorative quotes from blockquotes */
-.prose blockquote p:first-of-type::before,
-.prose blockquote p:last-of-type::after {
+/* ==========================================================================
+   Editorial Blockquote Styling (Option B: Editorial Quote ala Medium/Obsidian)
+   ========================================================================== */
+.prose blockquote:not(.callout-box),
+.ProseMirror blockquote:not(.callout-box) {
+  position: relative;
+  font-style: italic !important;
+  font-weight: 400 !important;
+  border-left-width: 3px !important;
+  border-left-style: solid !important;
+  border-left-color: var(--accent-primary) !important;
+  padding: 0.25rem 0 0.25rem 1.125rem !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 1.25rem !important;
+  background-color: transparent !important;
+  border-top-left-radius: 2px !important;
+  border-bottom-left-radius: 2px !important;
+  quotes: none !important;
+}
+
+/* Remove default quotes / quotation marks pseudo-elements */
+.prose blockquote:not(.callout-box)::before,
+.prose blockquote:not(.callout-box)::after,
+.ProseMirror blockquote:not(.callout-box)::before,
+.ProseMirror blockquote:not(.callout-box)::after,
+.prose blockquote:not(.callout-box) p:first-of-type::before,
+.prose blockquote:not(.callout-box) p:last-of-type::after {
   content: none !important;
+}
+
+.prose blockquote:not(.callout-box) p,
+.ProseMirror blockquote:not(.callout-box) p {
+  font-style: italic !important;
+  font-weight: 400 !important;
+  color: var(--text-quote) !important;
+  line-height: 1.7 !important;
+}
+
+/* Separation between paragraphs in the same quote */
+.prose blockquote:not(.callout-box) p + p,
+.ProseMirror blockquote:not(.callout-box) p + p {
+  margin-top: 0.5rem !important;
+}
+
+/* Highlighted or bold text inside blockquote retains strong weight for clear contrast */
+.prose blockquote:not(.callout-box) strong,
+.ProseMirror blockquote:not(.callout-box) strong,
+.prose blockquote:not(.callout-box) b,
+.ProseMirror blockquote:not(.callout-box) b {
+  font-weight: 600 !important;
+  font-style: italic !important;
+  color: var(--text-primary) !important;
 }
 
 /* Typography Overrides */
