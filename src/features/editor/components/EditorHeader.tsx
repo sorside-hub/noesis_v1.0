@@ -137,8 +137,8 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
                 }}
                 className={`group flex items-center gap-2 h-8 px-3 text-xs font-medium min-w-[110px] max-w-[170px] shrink-0 cursor-pointer transition-colors relative select-none ${
                   isActive
-                    ? 'border-t-2 border-l border-r border-t-accent-primary border-l-border-default/40 border-r-border-default/40 rounded-t-lg bg-bg-primary text-text-primary z-10 before:absolute before:-bottom-px before:left-0 before:right-0 before:h-px before:bg-bg-primary font-semibold'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary rounded-t-lg border-t-2 border-l border-r border-transparent'
+                    ? 'border-t-2 border-l border-r border-t-accent-primary border-l-border-default/40 border-r-border-default/40 rounded-t-lg bg-bg-secondary text-text-primary z-10 font-semibold'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary/60 rounded-t-lg border-t-2 border-l border-r border-transparent'
                 }`}
               >
                 <span className="truncate flex-1">{tabTitle}</span>
