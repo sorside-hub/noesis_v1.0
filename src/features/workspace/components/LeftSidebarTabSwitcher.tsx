@@ -157,7 +157,7 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
         {/* COMPACT CONTEXTUAL DOCK (Close spacing, unified pill)     */}
         {/* ----------------------------------------------------------- */}
         <div className="w-full flex items-center justify-center select-none py-0.5">
-          <div className="flex items-center gap-1 px-1.5 py-1 rounded-xl bg-bg-primary shadow-xs border-0">
+          <div className="flex items-center gap-1 px-1.5 py-1 rounded-xl bg-bg-quaternary shadow-xs border border-border-default/20">
             {/* 1. Contextual Action Buttons */}
             {activeTab === 'files' && (
               <>
@@ -305,11 +305,11 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
         {/* ----------------------------------------------------------- */}
         <div
           ref={tabMenuRef}
-          className="w-full relative bg-bg-primary rounded-2xl border-0 transition-all duration-150 shadow-sm"
+          className="w-full relative bg-bg-quaternary rounded-2xl border border-border-default/20 transition-all duration-150 shadow-sm"
         >
           {/* EXPANDED TAB OPTIONS LIST (Opens Upwards Above Footer) */}
           {isTabMenuOpen && (
-            <div className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-bg-primary rounded-2xl shadow-2xl border-0 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-bg-quaternary rounded-2xl shadow-2xl border border-border-default/30 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
               {tabs.map((tab) => {
                 const TabIcon = tab.icon;
                 const isSelected = activeTab === tab.id;
@@ -322,10 +322,10 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
                       setIsTabMenuOpen(false);
                     }}
                     className={twMerge(
-                      'w-full flex items-center px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer group border-0',
+                      'w-full flex items-center px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer group',
                       isSelected
-                        ? 'bg-bg-secondary text-text-primary font-semibold'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary/60'
+                        ? 'bg-bg-hover text-text-primary'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
                     )}
                   >
                     <div className="flex items-center gap-2.5">
@@ -334,7 +334,7 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
                         className={twMerge(
                           'transition-colors duration-150',
                           isSelected
-                            ? 'text-accent-primary'
+                            ? 'text-text-primary'
                             : 'text-icon-secondary group-hover:text-text-primary'
                         )}
                       />
@@ -351,7 +351,7 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
             type="button"
             onClick={() => setIsTabMenuOpen((prev) => !prev)}
             className={twMerge(
-              'w-full flex items-center justify-between px-4 py-2.5 transition-all cursor-pointer text-xs group rounded-2xl border-0',
+              'w-full flex items-center justify-between px-4 py-2.5 transition-all cursor-pointer text-xs group rounded-2xl',
               isTabMenuOpen
                 ? 'text-text-muted/40 hover:text-text-muted/60'
                 : 'text-text-primary hover:bg-bg-hover'
@@ -362,7 +362,7 @@ export const LeftSidebarTabSwitcher: React.FC<LeftSidebarTabSwitcherProps> = ({
                 size={15}
                 className={twMerge(
                   'shrink-0 transition-colors',
-                  isTabMenuOpen ? 'text-text-muted/40' : 'text-accent-primary'
+                  isTabMenuOpen ? 'text-text-muted/40' : 'text-text-primary'
                 )}
               />
               <span className="text-xs">{currentTabObj.label}</span>
