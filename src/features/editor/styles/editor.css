@@ -1325,4 +1325,223 @@ img[data-align="center"],
   margin: 0 0.05rem;
 }
 
+/* ==========================================================================
+   Obsidian-style List Indentation Guide Lines
+   ========================================================================== */
+.prose ul,
+.prose ol,
+.ProseMirror ul,
+.ProseMirror ol {
+  position: relative !important;
+}
+
+.prose li,
+.ProseMirror li {
+  position: relative !important;
+}
+
+.prose ul ul,
+.prose ul ol,
+.prose ol ul,
+.prose ol ol,
+.ProseMirror ul ul,
+.ProseMirror ul ol,
+.ProseMirror ol ul,
+.ProseMirror ol ol {
+  position: relative !important;
+  margin-top: 0.15rem !important;
+  margin-bottom: 0.15rem !important;
+}
+
+/* Vertical guide lines connecting parent to nested children */
+.prose li > ul::before,
+.prose li > ol::before,
+.ProseMirror li > ul::before,
+.ProseMirror li > ol::before {
+  content: '' !important;
+  position: absolute !important;
+  left: -1.05rem !important;
+  top: 0.15rem !important;
+  bottom: 0.25rem !important;
+  width: 1px !important;
+  background-color: var(--border-default) !important;
+  opacity: 0.4 !important;
+  pointer-events: none !important;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+/* Active hierarchy line highlight on hover */
+.prose li:hover > ul::before,
+.prose li:hover > ol::before,
+.ProseMirror li:hover > ul::before,
+.ProseMirror li:hover > ol::before {
+  opacity: 0.9 !important;
+  background-color: var(--accent-primary) !important;
+}
+
+/* ==========================================================================
+   Obsidian-style List Item Folding
+   ========================================================================== */
+/* Keep bullet / number markers intact and highlight when folded ala Obsidian */
+ul > li.is-folded-list-item::marker {
+  color: var(--accent-primary) !important;
+}
+
+ol > li.is-folded-list-item::marker {
+  color: var(--accent-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* List fold toggle button - Placed in the far-left gutter margin */
+.list-fold-toggle {
+  position: absolute !important;
+  left: -2.35rem !important;
+  top: 0.2rem !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  border-radius: 4px !important;
+  transition: all 0.15s ease !important;
+  z-index: 10 !important;
+}
+
+/* Folded State: Chevron > in far left gutter */
+.list-fold-toggle.is-folded {
+  opacity: 1 !important;
+  color: var(--text-muted) !important;
+  transform: rotate(0deg);
+}
+
+.list-fold-toggle.is-folded:hover {
+  color: var(--accent-primary) !important;
+  background-color: var(--bg-secondary) !important;
+  transform: scale(1.15);
+}
+
+/* Expanded State: subtle hover gutter icon */
+.list-fold-toggle.is-expanded {
+  opacity: 0 !important;
+  transform: rotate(90deg);
+}
+
+.ProseMirror li:hover > .list-fold-toggle.is-expanded,
+.list-fold-toggle.is-expanded:focus-visible {
+  opacity: 0.65 !important;
+}
+
+.list-fold-toggle.is-expanded:hover {
+  opacity: 1 !important;
+  color: var(--accent-primary) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
+/* ==========================================================================
+   Obsidian-style Heading Folding
+   ========================================================================== */
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  position: relative !important;
+}
+
+/* Heading fold toggle - Positioned in the left gutter margin (does not push text) */
+.heading-fold-toggle {
+  position: absolute !important;
+  left: -1.35rem !important;
+  top: 0.25rem !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  border-radius: 4px !important;
+  transition: all 0.15s ease !important;
+  z-index: 10 !important;
+}
+
+.heading-fold-toggle.is-expanded {
+  opacity: 0 !important;
+  transform: rotate(90deg);
+}
+
+.ProseMirror h1:hover .heading-fold-toggle.is-expanded,
+.ProseMirror h2:hover .heading-fold-toggle.is-expanded,
+.ProseMirror h3:hover .heading-fold-toggle.is-expanded,
+.ProseMirror h4:hover .heading-fold-toggle.is-expanded,
+.ProseMirror h5:hover .heading-fold-toggle.is-expanded,
+.ProseMirror h6:hover .heading-fold-toggle.is-expanded,
+.heading-fold-toggle.is-expanded:focus-visible {
+  opacity: 0.65 !important;
+}
+
+.heading-fold-toggle.is-expanded:hover {
+  opacity: 1 !important;
+  color: var(--accent-primary) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
+.heading-fold-toggle.is-folded {
+  opacity: 1 !important;
+  color: var(--text-muted) !important;
+  transform: rotate(0deg);
+}
+
+.heading-fold-toggle.is-folded:hover {
+  color: var(--accent-primary) !important;
+  background-color: var(--bg-secondary) !important;
+  transform: scale(1.15);
+}
+
+/* Folded Heading Ellipsis - Clean text without pill/box/border */
+.folded-heading-badge {
+  display: inline !important;
+  margin-left: 0.35rem !important;
+  padding: 0 0.2rem !important;
+  font-size: 0.85em !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.08em !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--text-muted) !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  vertical-align: middle !important;
+  transition: color 0.15s ease !important;
+}
+
+.folded-heading-badge:hover {
+  color: var(--accent-primary) !important;
+  background: transparent !important;
+  border: none !important;
+  transform: none !important;
+}
+
+/* Hidden Content when collapsed */
+.folded-hidden-content,
+.folded-hidden-list {
+  display: none !important;
+}
+
+
 

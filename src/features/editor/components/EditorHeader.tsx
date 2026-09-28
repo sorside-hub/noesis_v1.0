@@ -77,7 +77,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
   }, [checkScrollOverflow]);
 
   return (
-    <header className="flex items-center justify-between bg-bg-primary border-b border-border-default z-30 relative px-2 h-10 shrink-0 select-none">
+    <header className="flex items-center justify-between bg-bg-primary border-b border-border-default/20 shadow-sm z-30 relative px-2 h-10 shrink-0 select-none">
       {/* Left Controls (Sidebar Toggle + Divider) */}
       <div className="flex items-center shrink-0 pr-1">
         {/* Mobile Left Sidebar Toggle */}
@@ -113,7 +113,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
 
         <div
           ref={tabsContainerRef}
-          className="flex items-end gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth w-full h-full px-1.5"
+          className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth w-full h-full px-1.5"
         >
           {(vault.openTabs || []).map((tabId) => {
             const isTabEmpty = tabId.startsWith('empty_');
@@ -138,10 +138,10 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
                   }
                   navigateToNote(tabId);
                 }}
-                className={`group flex items-center gap-2 h-8 px-3 text-xs font-medium min-w-[110px] max-w-[170px] shrink-0 cursor-pointer transition-colors relative select-none ${
+                className={`group flex items-center gap-2 h-7.5 px-3 text-xs font-medium min-w-[110px] max-w-[170px] shrink-0 cursor-pointer transition-all relative select-none rounded-lg ${
                   isActive
-                    ? 'border-t-2 border-l border-r border-t-accent-primary border-l-border-default border-r-border-default rounded-t-lg bg-bg-primary text-text-primary z-10 before:absolute before:-bottom-px before:left-0 before:right-0 before:h-px before:bg-bg-primary font-semibold'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover/60 rounded-t-lg border-t-2 border-l border-r border-transparent'
+                    ? 'bg-bg-secondary text-text-primary font-semibold shadow-xs border border-border-default/20'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover/50 border border-transparent'
                 }`}
               >
                 <span className="truncate flex-1">{tabTitle}</span>
@@ -161,7 +161,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
           })}
 
           {/* Add New Tab Button (+) */}
-          <div className="flex items-center h-8 shrink-0">
+          <div className="flex items-center shrink-0">
             <button
               type="button"
               onClick={() => openInNewTab(null)}

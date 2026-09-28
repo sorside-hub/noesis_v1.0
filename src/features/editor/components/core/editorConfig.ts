@@ -22,6 +22,7 @@ import { Columns, Column } from '../../extensions/ColumnsExtension';
 import { CustomImageExtension } from '../../extensions/CustomImageExtension';
 import { ReminderExtension } from '../../extensions/ReminderExtension';
 import { SafeDeleteExtension } from '../../extensions/SafeDeleteExtension';
+import { FoldingExtension } from '../../extensions/FoldingExtension';
 import { TextSelection } from '@tiptap/pm/state';
 import Link from '@tiptap/extension-link';
 import { Markdown } from 'tiptap-markdown';
@@ -214,6 +215,7 @@ export const getEditorExtensions = (nodesRef: React.MutableRefObject<any>) => [
     types: ['heading', 'paragraph', 'tableCell', 'tableHeader', 'blockquote'],
   }),
   SafeDeleteExtension,
+  FoldingExtension,
   Markdown.configure({
     html: true,
     transformPastedText: true,
@@ -236,7 +238,7 @@ export const getEditorProps = (
 
   return {
   attributes: {
-    class: 'prose dark:prose-invert prose-zinc max-w-none focus:outline-none min-h-[300px] px-4 sm:px-6 py-4 text-text-primary',
+    class: 'prose dark:prose-invert prose-zinc max-w-none focus:outline-none min-h-[300px] px-6 sm:px-8 py-4 text-text-primary',
   },
   handleDOMEvents: {
     pointerdown(view: any, event: any) {
