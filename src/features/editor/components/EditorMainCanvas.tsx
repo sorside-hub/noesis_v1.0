@@ -9,7 +9,6 @@ import { hasChordsInContent, hasEditorChords, transposeEditorChords } from '../l
 import { FileNode, VaultData } from '../../../types/vault';
 import { EditorMode } from '../../../types/editor';
 import { Wand2, Lock, Unlock } from 'lucide-react';
-import { useScrollDirection } from '../../../hooks/useScrollDirection';
 import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
 import { useNavigation } from '../../../context/NavigationContext';
 import { InsertTemplateModal, TemplateInsertionMode } from '../../templates/components/InsertTemplateModal';
@@ -77,11 +76,10 @@ export const EditorMainCanvas: React.FC<EditorMainCanvasProps> = ({
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState<boolean>(false);
 
-  const { activeTabId, isMobileRightSidebarOpen } = useNavigation();
-  const { isVisible: isNavVisible } = useScrollDirection(['vault', activeTabId]);
+  const { isMobileRightSidebarOpen } = useNavigation();
   const { isKeyboardOpen } = useVirtualKeyboard();
 
-  const shouldShowMobileLock = isNavVisible && !isKeyboardOpen && !isMobileRightSidebarOpen;
+  const shouldShowMobileLock = !isKeyboardOpen && !isMobileRightSidebarOpen;
 
   // Listen for template modal open events (e.g. from slash command /template or toolbar)
   useEffect(() => {
@@ -269,11 +267,11 @@ export const EditorMainCanvas: React.FC<EditorMainCanvasProps> = ({
             onReset={handleResetTranspose}
           />
 
-          {/* Mobile Floating Reading Lock Button - Aligned with Bottom Nav Pill */}
+          {/* Mobile Floating Reading Lock Button - Fixed position */}
           <button
             type="button"
             onClick={handleToggleLock}
-            className={`sm:hidden fixed right-3 sm:right-4 bottom-3 sm:bottom-3.5 z-40 flex items-center justify-center w-9 h-9 rounded-full bg-bg-quaternary transition-all duration-200 ease-out active:scale-95 cursor-pointer ${
+            className={`sm:hidden fixed right-3 sm:right-4 bottom-3 sm:bottom-3.5 z-40 flex items-center justify-center w-9 h-9 rounded-full bg-bg-quaternary border border-border-default/20 shadow-md transition-all duration-150 ease-out active:scale-95 cursor-pointer ${
               shouldShowMobileLock
                 ? 'translate-y-0 opacity-100'
                 : 'translate-y-20 opacity-0 pointer-events-none'

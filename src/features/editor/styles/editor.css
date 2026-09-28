@@ -82,21 +82,26 @@
   color: var(--text-primary) !important;
   font-weight: 700 !important;
 }
-.prose h1 {
+.prose h1,
+.ProseMirror h1 {
   font-size: var(--text-h1-size) !important;
   font-weight: var(--text-h1-weight) !important;
   line-height: 1.3 !important;
   margin-top: var(--space-6) !important;
   margin-bottom: var(--space-4) !important;
+  padding-bottom: 0.4rem !important;
+  border-bottom: 1px solid var(--border-default) !important;
 }
-.prose h2 {
+.prose h2,
+.ProseMirror h2 {
   font-size: var(--text-h2-size) !important;
   font-weight: var(--text-h2-weight) !important;
   line-height: 1.3 !important;
   margin-top: var(--space-5) !important;
   margin-bottom: var(--space-3) !important;
 }
-.prose h3 {
+.prose h3,
+.ProseMirror h3 {
   font-size: var(--text-h3-size) !important;
   font-weight: var(--text-h3-weight) !important;
   line-height: 1.3 !important;
@@ -104,10 +109,54 @@
   margin-bottom: var(--space-2) !important;
 }
 
-.prose hr {
-  margin-top: 0.75rem !important;
-  margin-bottom: 0.75rem !important;
-  border-top-width: 1px !important;
+/* ==========================================================================
+   Editorial Thematic Break / Divider (hr) with Centered Diamond ✦ Accent
+   ========================================================================== */
+.prose hr,
+.ProseMirror hr {
+  position: relative !important;
+  border: none !important;
+  height: 1px !important;
+  width: 75% !important;
+  max-width: 440px !important;
+  margin: 2.25rem auto !important;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--border-default) 20%,
+    var(--border-default) 80%,
+    transparent 100%
+  ) !important;
+  overflow: visible !important;
+  clear: both !important;
+  cursor: pointer !important;
+}
+
+.prose hr::after,
+.ProseMirror hr::after {
+  content: '✦' !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--accent-primary) !important;
+  padding: 0 0.65rem !important;
+  font-size: 0.85rem !important;
+  line-height: 1 !important;
+  user-select: none !important;
+  pointer-events: none !important;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.ProseMirror hr.ProseMirror-selectednode {
+  outline: 1.5px solid var(--accent-primary) !important;
+  outline-offset: 6px !important;
+  border-radius: 4px !important;
+}
+
+.ProseMirror hr.ProseMirror-selectednode::after {
+  transform: translate(-50%, -50%) scale(1.15) !important;
 }
 
 /* Modern Clean Stabilo Highlight Mark Styling */
