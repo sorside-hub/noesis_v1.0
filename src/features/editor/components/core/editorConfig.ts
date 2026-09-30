@@ -152,7 +152,14 @@ export const CustomTextAlign = TextAlign.extend({
   },
 });
 
-export const getEditorExtensions = (nodesRef: React.MutableRefObject<any>) => [
+export interface EditorExtensionOptions {
+  enableChords?: boolean;
+}
+
+export const getEditorExtensions = (
+  nodesRef: React.MutableRefObject<any>,
+  options: EditorExtensionOptions = {}
+) => [
   StarterKit.configure({
     // Use default codeBlock to prevent nodeview crashes
     link: false,
@@ -173,7 +180,7 @@ export const getEditorExtensions = (nodesRef: React.MutableRefObject<any>) => [
   }),
   TagExtension,
   ReminderExtension,
-  ChordExtension,
+  ...(options.enableChords ? [ChordExtension] : []),
   MarkdownHighlight.configure({
     multicolor: true,
   }),

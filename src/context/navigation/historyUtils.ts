@@ -1,5 +1,7 @@
 import { ActiveTab } from '../../components/navigation/BottomNavPill';
 
+export type MusicSubView = 'overview' | 'editor' | 'premise' | 'scratchpad';
+
 export interface NavigationHistoryEntry {
   view: ActiveTab;
   activeTabId: string | null;
@@ -7,6 +9,8 @@ export interface NavigationHistoryEntry {
   isMobileRightSidebarOpen: boolean;
   activeModal: string | null;
   mediaCategory?: string | null;
+  musicSongId?: string | null;
+  musicSubView?: MusicSubView | null;
   seq: number;
 }
 

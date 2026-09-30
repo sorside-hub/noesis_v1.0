@@ -1,10 +1,11 @@
 import React from 'react';
-import { Folder, LayoutGrid, MessageSquare, HardDrive, Settings } from 'lucide-react';
+import { Folder, LayoutGrid, MessageSquare, HardDrive, Settings, Music2 } from 'lucide-react';
 import { useScrollDirection } from '../../hooks/useScrollDirection';
 import { useVirtualKeyboard } from '../../hooks/useVirtualKeyboard';
 import { useNavigation } from '../../context/NavigationContext';
+import { useMusicianMode } from '../../features/music/hooks/useMusicianMode';
 
-export type ActiveTab = 'vault' | 'hub' | 'chat' | 'media' | 'settings';
+export type ActiveTab = 'vault' | 'hub' | 'chat' | 'media' | 'music' | 'settings';
 
 interface BottomNavPillProps {
   activeTab: ActiveTab;
@@ -15,6 +16,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
   const { activeTabId, isMobileRightSidebarOpen } = useNavigation();
   const { isVisible } = useScrollDirection([activeTab, activeTabId]);
   const { isKeyboardOpen } = useVirtualKeyboard();
+  const { isMusicianModeEnabled } = useMusicianMode();
 
   const shouldShow = isVisible && !isKeyboardOpen && !isMobileRightSidebarOpen;
   const isChatView = activeTab === 'chat';
@@ -85,6 +87,22 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
         >
           <LayoutGrid size={15} />
         </button>
+
+        {isMusicianModeEnabled && (
+          <button
+            type="button"
+            aria-label="Music Studio"
+            title="Music Studio Hub"
+            onClick={() => handleTabChange('music')}
+            className={`p-2 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center ${
+              activeTab === 'music'
+                ? 'bg-accent-primary text-accent-contrast font-semibold'
+                : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
+            }`}
+          >
+            <Music2 size={15} />
+          </button>
+        )}
 
         <button
           type="button"

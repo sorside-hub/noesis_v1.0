@@ -7,30 +7,57 @@ import {
   ArrowUp,
   Music,
   RotateCcw,
-  ChevronRight,
+  Activity,
+  ChevronDown,
 } from 'lucide-react';
+import { transposeNoteName } from '../lib/transposeUtils';
 
 const SPEED_STORAGE_KEY = 'noesis_autoscroll_speed';
 const DOCK_OPEN_KEY = 'noesis_reading_dock_open';
 
+const CIRCLE_OF_FIFTHS = [
+  { major: 'C', minor: 'Cm' },
+  { major: 'G', minor: 'Gm' },
+  { major: 'D', minor: 'Dm' },
+  { major: 'A', minor: 'Am' },
+  { major: 'E', minor: 'Em' },
+  { major: 'B', minor: 'Bm' },
+  { major: 'F#', minor: 'F#m' },
+  { major: 'Db', minor: 'C#m' },
+  { major: 'Ab', minor: 'G#m' },
+  { major: 'Eb', minor: 'Ebm' },
+  { major: 'Bb', minor: 'Bbm' },
+  { major: 'F', minor: 'Fm' },
+];
+
 interface CollapsibleReadingDockProps {
-  hasChords: boolean;
+  hasChords?: boolean;
   semitones: number;
   onTranspose: (delta: number) => void;
   onReset: () => void;
+  musicalKey?: string;
+  onUpdateKey?: (key: string) => void;
+  bpm?: number;
+  onOpenBpmModal?: () => void;
+  capo?: number;
+  onUpdateCapo?: (capo: number) => void;
 }
 
 export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
-  hasChords,
+  hasChords = true,
   semitones,
   onTranspose,
   onReset,
+  musicalKey = 'C',
+  onUpdateKey,
+  bpm = 120,
+  onOpenBpmModal,
+  capo = 0,
+  onUpdateCapo,
 }) => {
-  // Default is folded (closed) as requested
   const [isOpen, setIsOpen] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem(DOCK_OPEN_KEY);
-      // Default to false (folded) if not saved
       return saved === 'true';
     } catch {
       return false;
@@ -40,7 +67,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
   // Auto-scroll playing state
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Speed state (persisted to localStorage, increments in 0.5x)
+  // Speed state
   const [speed, setSpeed] = useState<number>(() => {
     try {
       const saved = localStorage.getItem(SPEED_STORAGE_KEY);
@@ -55,6 +82,12 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
     }
     return 1.5;
   });
+
+  // Popups state inside dock
+  const [showKeyPicker, setShowKeyPicker] = useState(false);
+  const [showCapoPicker, setShowCapoPicker] = useState(false);
+  const [keyMode, setKeyMode] = useState<'major' | 'minor'>('major');
+  const [customKeyInput, setCustomKeyInput] = useState('');
 
   const [lockedTop, setLockedTop] = useState<number | null>(null);
   const animFrameRef = useRef<number | null>(null);
@@ -90,6 +123,8 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
     const handlePointerDown = (e: MouseEvent | TouchEvent) => {
       if (dockRef.current && !dockRef.current.contains(e.target as Node)) {
         toggleDock(false);
+        setShowKeyPicker(false);
+        setShowCapoPicker(false);
       }
     };
 
@@ -196,6 +231,9 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
   };
 
   const displaySemitones = semitones > 0 ? `+${semitones}` : `${semitones}`;
+  
+  // Real-time current transposed key calculation
+  const currentSoundingKey = musicalKey ? transposeNoteName(musicalKey, semitones) : 'C';
 
   return (
     <div
@@ -205,139 +243,83 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         top: lockedTop !== null ? `${lockedTop}px` : '44lvh',
       }}
       className={`fixed right-0 -translate-y-1/2 z-40 flex items-center transition-transform duration-300 ease-out select-none ${
-        isOpen ? 'translate-x-0' : 'translate-x-[48px]'
+        isOpen ? 'translate-x-0' : 'translate-x-[56px]'
       }`}
     >
       {/* 
         TRIGGER TAB (Trapesium Siku-siku Vertikal)
-        Menempel di sisi kiri panel dock. Saat dock terlipat (translate-x-[48px]),
-        bagian dock bergeser keluar layar, dan trigger tab ini persis menempel
-        di tepi kanan layar (right: 0).
-        Tinggi dan icon beradaptasi dinamis:
-        - Jika ada chord: h-[82px] dengan icon Auto-Scroll & Transpose.
-        - Jika tidak ada chord: h-[54px] kompak hanya dengan icon Auto-Scroll.
+        Menempel di sisi kiri panel dock. Saat dock terlipat (translate-x-[56px]),
+        dock tersembunyi dan tab ini persis menempel di tepi kanan layar.
       */}
       <button
         type="button"
         onClick={() => toggleDock()}
-        className={`relative w-[30px] flex flex-col items-center justify-center cursor-pointer group focus:outline-hidden transition-all duration-300 active:scale-95 ${
-          hasChords ? 'h-[82px]' : 'h-[54px]'
-        }`}
-        title={
-          isOpen
-            ? 'Lipat panel alat'
-            : hasChords
-            ? 'Buka panel alat (Auto-Scroll & Transpose)'
-            : 'Buka Auto-Scroll'
-        }
+        className="relative w-[30px] h-[86px] flex flex-col items-center justify-center cursor-pointer group focus:outline-hidden transition-all duration-300 active:scale-95"
+        title={isOpen ? 'Lipat panel dock' : 'Buka Live Performance Dock (Scroll, Key, Transpose, BPM, Capo)'}
         aria-label="Toggle Reading Tools Dock"
       >
         {/* SVG Trapesium Siku-siku Vertikal */}
-        {hasChords ? (
-          <svg
-            viewBox="0 0 30 82"
-            className="absolute inset-0 w-full h-full overflow-visible transition-all"
-          >
-            <path
-              d="M 30 0 L 14 14 Q 2 22 2 30 L 2 76 Q 2 82 7 82 L 30 82 Z"
-              style={{
-                fill: 'var(--bg-quaternary)',
-              }}
-              className="group-hover:opacity-90 transition-opacity"
-            />
-          </svg>
-        ) : (
-          <svg
-            viewBox="0 0 30 54"
-            className="absolute inset-0 w-full h-full overflow-visible transition-all"
-          >
-            <path
-              d="M 30 0 L 14 12 Q 2 18 2 24 L 2 48 Q 2 54 7 54 L 30 54 Z"
-              style={{
-                fill: 'var(--bg-quaternary)',
-              }}
-              className="group-hover:opacity-90 transition-opacity"
-            />
-          </svg>
-        )}
+        <svg
+          viewBox="0 0 30 86"
+          className="absolute inset-0 w-full h-full overflow-visible transition-all"
+        >
+          <path
+            d="M 30 0 L 14 14 Q 2 22 2 30 L 2 80 Q 2 86 7 86 L 30 86 Z"
+            style={{
+              fill: 'var(--bg-quaternary)',
+            }}
+            className="group-hover:opacity-90 transition-opacity"
+          />
+        </svg>
 
         {/* Icon di dalam trigger */}
-        {hasChords ? (
-          <div className="relative z-10 flex flex-col items-center justify-between h-[52px] mt-4 pr-0.5 text-text-primary group-hover:text-accent-primary transition-colors">
-            {/* Icon 1: Auto-Scroll */}
-            <div
-              className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${
-                isPlaying
-                  ? 'text-accent-primary animate-pulse'
-                  : 'text-text-primary group-hover:text-accent-primary'
-              }`}
-              title={isPlaying ? 'Auto-Scroll Aktif (Sedang Berjalan)' : 'Auto-Scroll'}
-            >
-              {isPlaying ? (
-                <Pause size={12} />
-              ) : (
-                <Play size={12} className="translate-x-[0.5px]" />
-              )}
-            </div>
-
-            {/* Separator Titik Halus */}
-            <div className="w-1 h-1 rounded-full bg-border-default group-hover:bg-accent-primary/60 transition-colors" />
-
-            {/* Icon 2: Transpose */}
-            <div
-              className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${
-                semitones !== 0
-                  ? 'text-accent-primary font-bold'
-                  : 'text-text-primary group-hover:text-accent-primary'
-              }`}
-              title={
-                semitones !== 0
-                  ? `Transpose aktif (${displaySemitones})`
-                  : 'Transpose Chord'
-              }
-            >
-              <Music size={12} />
-            </div>
+        <div className="relative z-10 flex flex-col items-center justify-between h-[56px] mt-4 pr-0.5 text-text-primary group-hover:text-accent-primary transition-colors">
+          {/* Icon 1: Auto-Scroll */}
+          <div
+            className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${
+              isPlaying
+                ? 'text-accent-primary animate-pulse'
+                : 'text-text-primary group-hover:text-accent-primary'
+            }`}
+            title={isPlaying ? 'Auto-Scroll Aktif (Sedang Berjalan)' : 'Auto-Scroll'}
+          >
+            {isPlaying ? (
+              <Pause size={12} />
+            ) : (
+              <Play size={12} className="translate-x-[0.5px]" />
+            )}
           </div>
-        ) : (
-          <div className="relative z-10 flex flex-col items-center justify-center h-full mt-2.5 pr-0.5 text-text-primary group-hover:text-accent-primary transition-colors">
-            {/* Hanya Icon Auto-Scroll saat tidak ada chord di catatan */}
-            <div
-              className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                isPlaying
-                  ? 'text-accent-primary animate-pulse'
-                  : 'text-text-primary group-hover:text-accent-primary'
-              }`}
-              title={isPlaying ? 'Auto-Scroll Aktif (Sedang Berjalan)' : 'Auto-Scroll'}
-            >
-              {isPlaying ? (
-                <Pause size={13} />
-              ) : (
-                <Play size={13} className="translate-x-[0.5px]" />
-              )}
-            </div>
+
+          {/* Separator Titik Halus */}
+          <div className="w-1 h-1 rounded-full bg-border-default group-hover:bg-accent-primary/60 transition-colors" />
+
+          {/* Icon 2: Key / Music */}
+          <div
+            className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${
+              semitones !== 0
+                ? 'text-accent-primary font-bold'
+                : 'text-text-primary group-hover:text-accent-primary'
+            }`}
+            title={
+              semitones !== 0
+                ? `Key: ${currentSoundingKey} (${displaySemitones})`
+                : `Key: ${musicalKey}`
+            }
+          >
+            <Music size={12} />
           </div>
-        )}
+        </div>
       </button>
 
       {/* 
-        PANEL ALAT MEMBACA (DOCK BODY)
-        Lebar terkunci 48px, tersusun rapi dalam satu kolom vertikal.
-        Jika catatan memiliki chord -> menampilkan seksi Auto-Scroll dan Transpose.
-        Jika catatan biasa tanpa chord -> HANYA menampilkan seksi Auto-Scroll (Transpose disembunyikan total).
+        PANEL ALAT MEMBACA & LIVE PERFORMANCE (DOCK BODY)
+        Lebar 56px, tersusun rapi dalam 3 modul vertikal:
+        1. Auto-Scroll (Play/Pause, +/-, Speed, Top)
+        2. Key & Transpose (Root Key, +/-, Offset, Reset)
+        3. Tempo & Capo (BPM Tap Tempo, Capo Fret)
       */}
-      <div className="w-[48px] bg-bg-quaternary rounded-l-2xl p-1.5 flex flex-col items-center gap-1 transition-all">
-        {/* Tombol Lipat / Tutup Kecil di Atas */}
-        <button
-          type="button"
-          onClick={() => toggleDock(false)}
-          className="w-7 h-5 flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-hover rounded transition-colors cursor-pointer"
-          title="Lipat panel ke kanan"
-          aria-label="Fold Dock"
-        >
-          <ChevronRight size={13} />
-        </button>
-
+      <div className="w-[56px] bg-bg-quaternary rounded-l-2xl p-1.5 flex flex-col items-center gap-1 transition-all border-y border-l border-border-default/30">
+        
         {/* =================================================== */}
         {/* SEKSI 1: AUTO-SCROLL CONTROLS                       */}
         {/* =================================================== */}
@@ -346,18 +328,18 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         <button
           type="button"
           onClick={() => setIsPlaying(!isPlaying)}
-          className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all cursor-pointer ${
+          className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all cursor-pointer ${
             isPlaying
-              ? 'bg-accent-primary text-accent-contrast shadow-xs'
+              ? 'bg-accent-primary text-accent-contrast'
               : 'bg-bg-secondary text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
           }`}
           title={isPlaying ? 'Jeda Auto-Scroll' : 'Mulai Auto-Scroll'}
           aria-label="Toggle Auto-Scroll"
         >
           {isPlaying ? (
-            <Pause size={14} />
+            <Pause size={15} />
           ) : (
-            <Play size={14} className="translate-x-[1px]" />
+            <Play size={15} className="translate-x-[1px]" />
           )}
         </button>
 
@@ -366,7 +348,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
           type="button"
           onClick={() => setSpeed((s) => Math.min(8, Math.round((s + 0.5) * 10) / 10))}
           disabled={speed >= 8}
-          className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
+          className="w-7 h-6 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
           title="Percepat Auto-Scroll (+0.5x)"
           aria-label="Speed Up"
         >
@@ -376,7 +358,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         {/* Speed Display Badge */}
         <div
           className="w-full text-[9px] font-mono font-bold text-text-secondary text-center tracking-tight select-none"
-          title={`Kecepatan: ${speed}x (Tersimpan otomatis)`}
+          title={`Kecepatan: ${speed}x`}
         >
           {speed}x
         </div>
@@ -386,7 +368,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
           type="button"
           onClick={() => setSpeed((s) => Math.max(0.5, Math.round((s - 0.5) * 10) / 10))}
           disabled={speed <= 0.5}
-          className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
+          className="w-7 h-6 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
           title="Perlambat Auto-Scroll (-0.5x)"
           aria-label="Speed Down"
         >
@@ -397,79 +379,238 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         <button
           type="button"
           onClick={handleScrollToTop}
-          className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors cursor-pointer"
-          title="Ke Atas Halaman"
+          className="w-7 h-6 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors cursor-pointer"
+          title="Kembali ke Paling Atas"
           aria-label="Scroll to Top"
         >
           <ArrowUp size={12} />
         </button>
 
         {/* =================================================== */}
-        {/* SEKSI 2: TRANSPOSE CONTROLS (HANYA JIKA ADA CHORD)  */}
+        {/* SEKSI 2: KEY & TRANSPOSE CONTROLS                   */}
         {/* =================================================== */}
-        {hasChords && (
-          <>
-            {/* Pemisah Rapi */}
-            <div className="w-6 border-t border-border-subtle my-0.5" />
+        <div className="w-8 border-t border-border-subtle my-0.5" />
 
-            {/* Key Header Badge */}
-            <div
-              className="w-8 h-8 flex flex-col items-center justify-center rounded-xl select-none transition-colors text-accent-primary"
-              title="Transpose Chord Musik"
-            >
-              <Music size={12} />
-              <span className="text-[7px] font-extrabold uppercase tracking-tight leading-none mt-0.5">
-                Key
-              </span>
+        {/* Key Root Button + Popup Dropdown */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              setShowKeyPicker(!showKeyPicker);
+              setShowCapoPicker(false);
+            }}
+            className={`w-10 h-9 flex flex-col items-center justify-center rounded-xl transition-all cursor-pointer ${
+              semitones !== 0
+                ? 'bg-accent-primary/15 text-accent-primary font-bold'
+                : 'hover:bg-bg-secondary text-text-primary'
+            }`}
+            title={`Nada Dasar: ${musicalKey} (Saat ini: ${currentSoundingKey})`}
+          >
+            <span className="text-[7px] uppercase font-bold text-text-muted tracking-tight leading-none">KEY</span>
+            <span className="text-[11px] font-extrabold font-mono leading-none mt-0.5">{currentSoundingKey}</span>
+          </button>
+
+          {/* Key Picker Popup */}
+          {showKeyPicker && onUpdateKey && (
+            <div className="absolute right-full top-0 mr-2 w-48 bg-bg-secondary rounded-2xl p-2 z-50 shadow-2xl border border-border-default/40 animate-in fade-in zoom-in-95 duration-150 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider">
+                  Pilih Nada Dasar
+                </span>
+                {/* Mode Toggle: Mayor / Minor */}
+                <div className="flex bg-bg-primary rounded-lg p-0.5 text-[9px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setKeyMode('major')}
+                    className={`px-1.5 py-0.5 rounded-md transition-colors cursor-pointer ${
+                      keyMode === 'major' ? 'bg-accent-primary text-accent-contrast' : 'text-text-muted hover:text-text-primary'
+                    }`}
+                  >
+                    Mayor
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setKeyMode('minor')}
+                    className={`px-1.5 py-0.5 rounded-md transition-colors cursor-pointer ${
+                      keyMode === 'minor' ? 'bg-accent-primary text-accent-contrast' : 'text-text-muted hover:text-text-primary'
+                    }`}
+                  >
+                    Minor
+                  </button>
+                </div>
+              </div>
+
+              {/* Custom Key Input */}
+              <div className="flex items-center gap-1">
+                <input
+                  type="text"
+                  placeholder="Ketik key lain..."
+                  value={customKeyInput}
+                  onChange={(e) => setCustomKeyInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && customKeyInput.trim()) {
+                      onUpdateKey(customKeyInput.trim());
+                      setShowKeyPicker(false);
+                      setCustomKeyInput('');
+                    }
+                  }}
+                  className="w-full px-2 py-1 text-[10px] font-mono font-bold rounded-lg bg-bg-primary text-text-primary focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (customKeyInput.trim()) {
+                      onUpdateKey(customKeyInput.trim());
+                      setShowKeyPicker(false);
+                      setCustomKeyInput('');
+                    }
+                  }}
+                  className="px-2 py-1 text-[9px] font-bold rounded-lg bg-accent-primary text-accent-contrast cursor-pointer"
+                >
+                  OK
+                </button>
+              </div>
+
+              {/* Grid of Keys */}
+              <div className="grid grid-cols-4 gap-1">
+                {CIRCLE_OF_FIFTHS.map((item) => {
+                  const displayKey = keyMode === 'major' ? item.major : item.minor;
+                  const isActive = musicalKey === displayKey;
+                  return (
+                    <button
+                      key={item.major}
+                      type="button"
+                      onClick={() => {
+                        onUpdateKey(displayKey);
+                        setShowKeyPicker(false);
+                      }}
+                      className={`py-1 rounded-lg text-[11px] font-mono font-bold transition-colors cursor-pointer text-center ${
+                        isActive
+                          ? 'bg-accent-primary text-accent-contrast shadow-xs'
+                          : 'text-text-primary bg-bg-primary hover:bg-bg-hover'
+                      }`}
+                    >
+                      {displayKey}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+          )}
+        </div>
 
-            {/* Transpose Up (+1 Semitone) */}
-            <button
-              type="button"
-              onClick={() => onTranspose(1)}
-              className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors cursor-pointer"
-              title="Naikkan +1 Semitone (Setengah Nada)"
-              aria-label="Transpose Up"
-            >
-              <Plus size={12} />
-            </button>
+        {/* Transpose Up (+1 Semitone) */}
+        <button
+          type="button"
+          onClick={() => onTranspose(1)}
+          className="w-7 h-6 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors cursor-pointer"
+          title="Naikkan +1 Semitone"
+          aria-label="Transpose Up"
+        >
+          <Plus size={12} />
+        </button>
 
-            {/* Semitone Offset Indicator */}
-            <div
-              className={`w-full text-[10px] font-mono font-bold text-center py-0.5 rounded select-none transition-colors ${
-                semitones !== 0
-                  ? 'bg-accent-primary/15 text-accent-primary font-bold'
-                  : 'text-text-secondary'
-              }`}
-              title={`Offset nada dasar: ${displaySemitones} semitone`}
-            >
-              {displaySemitones}
+        {/* Semitone Offset Indicator */}
+        <div
+          className={`w-full text-[9px] font-mono font-bold text-center select-none transition-colors ${
+            semitones !== 0
+              ? 'text-accent-primary font-bold'
+              : 'text-text-secondary'
+          }`}
+          title={`Offset: ${displaySemitones} semitone`}
+        >
+          {displaySemitones}
+        </div>
+
+        {/* Transpose Down (-1 Semitone) */}
+        <button
+          type="button"
+          onClick={() => onTranspose(-1)}
+          className="w-7 h-6 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors cursor-pointer"
+          title="Turunkan -1 Semitone"
+          aria-label="Transpose Down"
+        >
+          <Minus size={12} />
+        </button>
+
+        {/* Reset Transpose */}
+        <button
+          type="button"
+          onClick={onReset}
+          disabled={semitones === 0}
+          className="w-7 h-6 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
+          title={semitones !== 0 ? 'Kembalikan Nada Asli' : 'Sudah di nada asli'}
+          aria-label="Reset Transpose"
+        >
+          <RotateCcw size={11} />
+        </button>
+
+        {/* =================================================== */}
+        {/* SEKSI 3: TEMPO & CAPO CONTROLS                      */}
+        {/* =================================================== */}
+        <div className="w-8 border-t border-border-subtle my-0.5" />
+
+        {/* BPM Tap Tempo Button */}
+        <button
+          type="button"
+          onClick={onOpenBpmModal}
+          className="w-10 h-8 flex flex-col items-center justify-center rounded-xl bg-bg-secondary hover:bg-bg-hover text-text-primary transition-colors cursor-pointer group"
+          title="Atur BPM / Tap Tempo"
+        >
+          <span className="text-[7px] font-bold text-accent-primary uppercase tracking-tight leading-none">BPM</span>
+          <span className="text-[10px] font-extrabold font-mono leading-none mt-0.5">{bpm}</span>
+        </button>
+
+        {/* Capo Selector Button + Popup */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              setShowCapoPicker(!showCapoPicker);
+              setShowKeyPicker(false);
+            }}
+            className={`w-10 h-8 flex flex-col items-center justify-center rounded-xl transition-colors cursor-pointer ${
+              capo > 0
+                ? 'bg-accent-primary/15 text-accent-primary font-bold'
+                : 'bg-bg-secondary hover:bg-bg-hover text-text-primary'
+            }`}
+            title={capo === 0 ? 'No Capo' : `Capo Fret ${capo}`}
+          >
+            <span className="text-[7px] font-bold text-text-muted uppercase tracking-tight leading-none">CAPO</span>
+            <span className="text-[10px] font-extrabold font-mono leading-none mt-0.5">
+              {capo === 0 ? 'NO' : `${capo}`}
+            </span>
+          </button>
+
+          {/* Capo Fret Picker Popup */}
+          {showCapoPicker && onUpdateCapo && (
+            <div className="absolute right-full bottom-0 mr-2 w-32 bg-bg-secondary rounded-xl p-1.5 z-50 border border-border-default/40 animate-in fade-in zoom-in-95 duration-150 max-h-52 overflow-y-auto">
+              <div className="text-[9px] font-bold text-text-muted uppercase px-1 py-0.5 mb-1">
+                Posisi Capo
+              </div>
+              <div className="space-y-0.5">
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => {
+                      onUpdateCapo(c);
+                      setShowCapoPicker(false);
+                    }}
+                    className={`w-full text-left px-2 py-1 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer ${
+                      capo === c
+                        ? 'bg-accent-primary text-accent-contrast font-bold'
+                        : 'text-text-primary hover:bg-bg-hover'
+                    }`}
+                  >
+                    {c === 0 ? 'No Capo' : `Capo Fret ${c}`}
+                  </button>
+                ))}
+              </div>
             </div>
+          )}
+        </div>
 
-            {/* Transpose Down (-1 Semitone) */}
-            <button
-              type="button"
-              onClick={() => onTranspose(-1)}
-              className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors cursor-pointer"
-              title="Turunkan -1 Semitone (Setengah Nada)"
-              aria-label="Transpose Down"
-            >
-              <Minus size={12} />
-            </button>
-
-            {/* Reset Transpose */}
-            <button
-              type="button"
-              onClick={onReset}
-              disabled={semitones === 0}
-              className="w-7 h-7 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors border-t border-border-subtle"
-              title={semitones !== 0 ? 'Kembalikan Nada Asli' : 'Sudah di nada asli (0)'}
-              aria-label="Reset Transpose"
-            >
-              <RotateCcw size={11} />
-            </button>
-          </>
-        )}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check, Circle } from 'lucide-react';
+import { ChevronDown, Check } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
+import { scrollElementIntoViewAboveKeyboard } from '../../../utils/scrollUtils';
 
 interface StatusOption {
   value: string;
@@ -28,6 +29,7 @@ interface StatusSelectorProps {
 export const StatusSelector: React.FC<StatusSelectorProps> = ({ status, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const expandedCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -50,43 +52,53 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({ status, onChange
     setIsOpen(false);
   };
 
+  useEffect(() => {
+    if (isOpen && expandedCardRef.current) {
+      scrollElementIntoViewAboveKeyboard(expandedCardRef.current);
+    }
+  }, [isOpen]);
+
   return (
     <div className="space-y-1.5" ref={containerRef}>
       <label className="text-[11px] font-semibold text-text-muted tracking-wider uppercase">
         Status
       </label>
-      <div 
-        className={twMerge(
-          "w-full bg-bg-primary rounded-xl transition-all overflow-hidden",
-          isOpen ? "ring-1 ring-accent-primary/50" : ""
-        )}
-      >
-        {/* Toggle Button */}
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 flex items-center justify-between text-xs text-text-primary hover:bg-bg-secondary/40 cursor-pointer transition-colors text-left"
-        >
-          <div className="flex items-center gap-2 truncate">
-            <span className={twMerge("w-2 h-2 rounded-full shrink-0", currentOption.dotColor)} />
-            <span className={status ? "font-medium" : "text-text-muted/60"}>
-              {currentOption.label}
-            </span>
-          </div>
-          <ChevronDown 
-            size={14} 
-            className={twMerge(
-              "text-icon-secondary shrink-0 transition-transform duration-150", 
-              isOpen ? "rotate-180 text-accent-primary" : ""
-            )} 
-          />
-        </button>
+      <div className="w-full h-9 relative">
+        {!isOpen ? (
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="w-full h-9 px-3 flex items-center justify-between text-xs text-text-primary bg-bg-primary hover:bg-bg-secondary/40 rounded-xl cursor-pointer transition-colors text-left"
+          >
+            <div className="flex items-center gap-2 truncate">
+              <span className={twMerge("w-2 h-2 rounded-full shrink-0", currentOption.dotColor)} />
+              <span className={status ? "font-medium" : "text-text-muted/60"}>
+                {currentOption.label}
+              </span>
+            </div>
+            <ChevronDown size={14} className="text-icon-secondary shrink-0" />
+          </button>
+        ) : (
+          /* Single Seamless Floating Card starting at top-0 */
+          <div
+            ref={expandedCardRef}
+            className="absolute top-0 left-0 right-0 z-50 bg-bg-primary rounded-2xl shadow-2xl ring-1 ring-accent-primary/60 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+          >
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="w-full h-9 px-3 flex items-center justify-between text-xs text-text-primary hover:bg-bg-secondary/40 cursor-pointer transition-colors text-left"
+            >
+              <div className="flex items-center gap-2 truncate font-bold">
+                <span className={twMerge("w-2 h-2 rounded-full shrink-0", currentOption.dotColor)} />
+                <span className="text-text-primary">{currentOption.label}</span>
+              </div>
+              <ChevronDown size={14} className="text-accent-primary shrink-0 rotate-180 transition-transform" />
+            </button>
 
-        {/* In-flow Expandable Status List */}
-        {isOpen && (
-          <div className="animate-in fade-in duration-150">
-            <div className="mx-2.5 h-px bg-border-default/30 my-0.5" />
-            <div className="max-h-48 overflow-y-auto custom-scrollbar px-1 pb-1 space-y-0.5">
+            <div className="mx-2.5 h-px bg-border-default/30" />
+
+            <div className="max-h-52 overflow-y-auto custom-scrollbar p-1 space-y-0.5">
               {STATUS_OPTIONS.map((opt) => {
                 const isSelected = status === opt.value;
                 return (
@@ -97,7 +109,7 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({ status, onChange
                     className={twMerge(
                       "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left",
                       isSelected 
-                        ? "bg-bg-secondary text-text-primary font-medium" 
+                        ? "bg-bg-secondary text-accent-primary font-bold" 
                         : "text-text-muted hover:text-text-primary hover:bg-bg-secondary/70"
                     )}
                   >

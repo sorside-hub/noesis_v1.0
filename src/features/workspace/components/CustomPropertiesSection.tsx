@@ -43,15 +43,16 @@ const PropertyTypeMenu: React.FC<PropertyTypeMenuProps> = ({ currentType, onSele
         onClick={() => setIsOpen(!isOpen)}
         className={twMerge(
           "bg-bg-secondary hover:bg-bg-tertiary rounded-lg text-[10px] text-text-muted hover:text-text-primary px-2 py-1 flex items-center gap-1.5 focus:outline-none cursor-pointer uppercase font-bold tracking-wider transition-colors",
-          isOpen ? "bg-bg-tertiary text-text-primary" : ""
+          isOpen ? "bg-bg-tertiary text-text-primary ring-1 ring-accent-primary/50" : ""
         )}
       >
         <span>{currentLabel}</span>
-        <ChevronDown size={10} className={twMerge("text-icon-secondary transition-transform duration-150", isOpen ? "rotate-180" : "")} />
+        <ChevronDown size={10} className={twMerge("text-icon-secondary transition-transform duration-150", isOpen ? "rotate-180 text-accent-primary" : "")} />
       </button>
 
+      {/* Single Seamless Floating Card */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 w-28 bg-bg-secondary rounded-xl shadow-2xl z-50 p-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 space-y-0.5">
+        <div className="absolute right-0 top-full mt-1.5 w-32 bg-bg-secondary rounded-xl shadow-2xl ring-1 ring-accent-primary/60 z-50 p-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 space-y-0.5">
           {PROPERTY_TYPES.map((t) => {
             const isSelected = currentType === t.id;
             return (
@@ -63,10 +64,10 @@ const PropertyTypeMenu: React.FC<PropertyTypeMenuProps> = ({ currentType, onSele
                   setIsOpen(false);
                 }}
                 className={twMerge(
-                  "w-full flex items-center justify-between px-2 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase text-left cursor-pointer transition-colors",
+                  "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase text-left cursor-pointer transition-colors",
                   isSelected
-                    ? "bg-bg-tertiary text-text-primary"
-                    : "text-text-muted hover:text-text-primary hover:bg-bg-tertiary"
+                    ? "bg-bg-tertiary text-accent-primary"
+                    : "text-text-muted hover:text-text-primary hover:bg-bg-tertiary/80"
                 )}
               >
                 <span>{t.label}</span>
@@ -158,32 +159,25 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
                     "w-4 h-4 rounded flex items-center justify-center transition-colors",
                     prop.value ? "bg-accent-primary text-accent-contrast" : "bg-bg-secondary"
                   )}>
-                    {prop.value && <Check size={12} strokeWidth={3} />}
+                    {prop.value && <Check size={11} className="stroke-[3]" />}
                   </div>
                   <input
                     type="checkbox"
                     checked={!!prop.value}
                     onChange={(e) => handleUpdateProperty(prop.id, { value: e.target.checked })}
-                    className="hidden"
+                    className="sr-only"
                   />
-                  <span className="text-xs text-text-secondary">{prop.value ? 'True' : 'False'}</span>
+                  <span className="text-xs text-text-secondary select-none font-medium">
+                    {prop.value ? 'True' : 'False'}
+                  </span>
                 </label>
               ) : prop.type === 'date' ? (
-                <div className="relative w-full">
+                <div className="relative flex items-center">
                   <input
                     type="date"
                     value={prop.value || ''}
-                    onClick={(e) => {
-                      try {
-                        if ('showPicker' in e.currentTarget) {
-                          (e.currentTarget as any).showPicker();
-                        }
-                      } catch (err) {
-                        // Fallback
-                      }
-                    }}
                     onChange={(e) => handleUpdateProperty(prop.id, { value: e.target.value })}
-                    className="w-full bg-bg-secondary focus:ring-1 focus:ring-accent-primary/50 rounded-lg text-xs text-text-primary px-2.5 py-1.5 focus:outline-none cursor-pointer"
+                    className="bg-bg-secondary text-xs text-text-primary rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-primary w-full font-mono cursor-pointer"
                   />
                 </div>
               ) : prop.type === 'number' ? (
@@ -192,28 +186,27 @@ export const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = (
                   value={prop.value || ''}
                   onChange={(e) => handleUpdateProperty(prop.id, { value: e.target.value })}
                   placeholder="0"
-                  className="w-full bg-bg-secondary focus:ring-1 focus:ring-accent-primary/50 rounded-lg text-xs text-text-primary px-2.5 py-1.5 focus:outline-none placeholder:text-text-muted/40"
+                  className="bg-bg-secondary text-xs text-text-primary font-mono rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-primary w-full"
                 />
               ) : (
                 <input
                   type="text"
                   value={prop.value || ''}
                   onChange={(e) => handleUpdateProperty(prop.id, { value: e.target.value })}
-                  placeholder="Value"
-                  className="w-full bg-bg-secondary focus:ring-1 focus:ring-accent-primary/50 rounded-lg text-xs text-text-primary px-2.5 py-1.5 focus:outline-none placeholder:text-text-muted/40"
+                  placeholder="Value..."
+                  className="bg-bg-secondary text-xs text-text-primary rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-primary w-full font-medium"
                 />
               )}
             </div>
-
           </div>
         ))}
 
         <button
           type="button"
           onClick={handleAddProperty}
-          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 border border-dashed border-border-default hover:border-accent-primary/40 text-text-muted hover:text-accent-primary rounded-xl text-xs font-medium transition-all group cursor-pointer bg-bg-primary/50 hover:bg-bg-primary"
+          className="w-full py-2 px-3 rounded-xl bg-bg-primary hover:bg-bg-secondary/60 text-text-muted hover:text-text-primary text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border border-dashed border-border-default/60 hover:border-accent-primary/50 cursor-pointer"
         >
-          <Plus size={13} className="group-hover:scale-110 transition-transform" />
+          <Plus size={13} className="text-accent-primary" />
           <span>Add Custom Property</span>
         </button>
       </div>

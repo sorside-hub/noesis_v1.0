@@ -4,6 +4,7 @@ import { SettingsView } from './features/settings/components/SettingsView';
 import { ChatView } from './features/chat/components/ChatView';
 import { HubView } from './features/hub/components/HubView';
 import { MediaView } from './features/media/components/MediaView';
+import { MusicStudioHub } from './features/music/components/MusicStudioHub';
 import { BottomNavPill } from './components/navigation/BottomNavPill';
 import { ActivityBar } from './components/navigation/ActivityBar';
 import { useVault } from './hooks/useVault';
@@ -100,6 +101,11 @@ function AppContent({ vaultState }: { vaultState: ReturnType<typeof useVault> })
         {/* Media Library View */}
         <div className={`absolute inset-0 ${view === 'media' ? 'block' : 'hidden'}`}>
           <MediaView vaultState={vaultState} />
+        </div>
+
+        {/* Music Studio Hub View */}
+        <div className={`absolute inset-0 ${view === 'music' ? 'block' : 'hidden'}`}>
+          <MusicStudioHub vaultState={vaultState} />
         </div>
 
         {/* Settings View */}

@@ -59,9 +59,9 @@ export function useFolderTree({ vault }: UseFolderTreeOptions) {
     expandedFolders,
     setExpandedFolders,
     toggleFolder,
+    handleToggleExpandCollapseAll,
     areAllFoldersExpanded,
     areAllFoldersCollapsed,
-    handleToggleExpandCollapseAll,
     getChildrenCount,
     getChildren,
   };

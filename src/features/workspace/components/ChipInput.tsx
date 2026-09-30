@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Plus } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
+import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
+import { scrollElementIntoViewAboveKeyboard } from '../../../utils/scrollUtils';
 
 interface ChipInputProps {
   label: string;
@@ -32,6 +34,19 @@ export const ChipInput: React.FC<ChipInputProps> = ({
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const expandedCardRef = useRef<HTMLDivElement>(null);
+
+  const { isKeyboardOpen } = useVirtualKeyboard();
+  const wasKeyboardOpenRef = useRef(false);
+
+  // Automatically blur cursor & hide dropdown when mobile virtual keyboard closes
+  useEffect(() => {
+    if (wasKeyboardOpenRef.current && !isKeyboardOpen) {
+      inputRef.current?.blur();
+      setShowSuggestions(false);
+    }
+    wasKeyboardOpenRef.current = isKeyboardOpen;
+  }, [isKeyboardOpen]);
 
   const normalizedItems = forceLowerCase ? items.map((i) => i.toLowerCase()) : items;
   const filteredSuggestions = suggestions.filter(
@@ -71,11 +86,6 @@ export const ChipInput: React.FC<ChipInputProps> = ({
     if (inputRef.current) {
       inputRef.current.value = '';
     }
-    
-    // Retain focus on this input
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
   };
 
   const isDelimiter = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -111,6 +121,7 @@ export const ChipInput: React.FC<ChipInputProps> = ({
       if (e.key === 'Escape') {
         e.preventDefault();
         setShowSuggestions(false);
+        inputRef.current?.blur();
         return;
       }
     }
@@ -127,18 +138,114 @@ export const ChipInput: React.FC<ChipInputProps> = ({
     }
   };
 
-  const handleRemove = (itemToRemove: string, e?: React.MouseEvent) => {
+  const handleRemove = (itemToRemove: string, e?: React.SyntheticEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
     onChange(items.filter((item) => item !== itemToRemove));
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    // If focus leaves the container, close suggestions
+    if (containerRef.current && !containerRef.current.contains(e.relatedTarget as Node)) {
+      setShowSuggestions(false);
+    }
   };
 
   const isSuggestionsOpen = showSuggestions && filteredSuggestions.length > 0;
+
+  // Smart Auto-Scroll when suggestions open or input receives focus
+  useEffect(() => {
+    if (isSuggestionsOpen && expandedCardRef.current) {
+      scrollElementIntoViewAboveKeyboard(expandedCardRef.current);
+    }
+  }, [isSuggestionsOpen]);
+
+  const renderInputContent = () => (
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          inputRef.current?.focus();
+        }
+      }}
+      className="min-h-[36px] px-2.5 py-1 flex flex-wrap gap-1 items-center cursor-text"
+    >
+      {items.map((item) => (
+        <span
+          key={item}
+          className={twMerge(
+            'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all select-none',
+            chipColorClass
+          )}
+        >
+          <span className="flex items-center leading-none">
+            {prefix && (
+              <span className={twMerge('font-bold select-none mr-0.5', prefixColorClass)}>
+                {prefix}
+              </span>
+            )}
+            <span>{item}</span>
+          </span>
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleRemove(item, e);
+            }}
+            className="hover:text-status-error rounded-full p-0.5 cursor-pointer text-text-muted transition-colors leading-none"
+            title="Hapus"
+          >
+            <X size={10} />
+          </button>
+        </span>
+      ))}
+      <div className="flex items-center gap-1 flex-1 min-w-[100px]">
+        <input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={(e) => {
+            const val = forceLowerCase ? e.target.value.toLowerCase() : e.target.value;
+            setInputValue(val);
+            setShowSuggestions(true);
+            setActiveIndex(-1);
+          }}
+          onFocus={() => {
+            setShowSuggestions(true);
+            scrollElementIntoViewAboveKeyboard(containerRef.current);
+          }}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          enterKeyHint="done"
+          autoComplete="off"
+          autoCapitalize={forceLowerCase ? 'none' : undefined}
+          autoCorrect={forceLowerCase ? 'off' : undefined}
+          spellCheck={forceLowerCase ? false : undefined}
+          placeholder={items.length === 0 ? placeholder : 'Add...'}
+          className="w-full bg-transparent text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none px-1 py-1 font-medium"
+        />
+        {inputValue && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              commitValue();
+            }}
+            className="p-1 rounded-md text-text-secondary hover:text-text-primary hover:bg-bg-hover cursor-pointer shrink-0 transition-colors"
+          >
+            <Plus size={13} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-1.5" ref={containerRef}>
@@ -152,78 +259,23 @@ export const ChipInput: React.FC<ChipInputProps> = ({
           </span>
         )}
       </div>
-      <div className="relative w-full bg-bg-primary rounded-xl transition-all focus-within:ring-1 focus-within:ring-accent-primary/50 overflow-hidden">
-        <div
-          onClick={() => inputRef.current?.focus()}
-          className="min-h-[34px] px-2.5 py-1 flex flex-wrap gap-1 items-center cursor-text"
-        >
-          {items.map((item) => (
-            <span
-              key={item}
-              className={twMerge(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all',
-                chipColorClass
-              )}
-            >
-              <span className="flex items-center leading-none">
-                {prefix && (
-                  <span className={twMerge('font-bold select-none mr-0.5', prefixColorClass)}>
-                    {prefix}
-                  </span>
-                )}
-                <span>{item}</span>
-              </span>
-              <button
-                type="button"
-                onClick={(e) => handleRemove(item, e)}
-                className="hover:text-status-error rounded-full p-0.5 cursor-pointer text-text-muted transition-colors leading-none"
-              >
-                <X size={10} />
-              </button>
-            </span>
-          ))}
-          <div className="flex items-center gap-1 flex-1 min-w-[100px]">
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputValue}
-              onChange={(e) => {
-                const val = forceLowerCase ? e.target.value.toLowerCase() : e.target.value;
-                setInputValue(val);
-                setShowSuggestions(true);
-                setActiveIndex(-1);
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              onKeyDown={handleKeyDown}
-              enterKeyHint="done"
-              autoComplete="off"
-              autoCapitalize={forceLowerCase ? 'none' : undefined}
-              autoCorrect={forceLowerCase ? 'off' : undefined}
-              spellCheck={forceLowerCase ? false : undefined}
-              placeholder={items.length === 0 ? placeholder : 'Add...'}
-              className="w-full bg-transparent text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none px-1 py-1"
-            />
-            {inputValue && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  commitValue();
-                }}
-                className="p-1 rounded-md text-text-secondary hover:text-text-primary hover:bg-bg-hover cursor-pointer shrink-0 transition-colors"
-              >
-                <Plus size={13} />
-              </button>
-            )}
+
+      <div className="w-full min-h-[36px] relative">
+        {!isSuggestionsOpen ? (
+          <div className="w-full bg-bg-primary rounded-xl focus-within:ring-1 focus-within:ring-accent-primary/50 transition-all overflow-hidden">
+            {renderInputContent()}
           </div>
-        </div>
-        
-        {/* In-flow Suggestions list inside the unified expanding container */}
-        {isSuggestionsOpen && (
-          <div className="animate-in fade-in duration-150">
-            <div className="mx-2.5 h-px bg-border-default/30 my-0.5" />
-            <div className="max-h-48 overflow-y-auto px-1 pb-1 space-y-0.5">
+        ) : (
+          /* Single Seamless Floating Card starting at top-0 (Same as NoteType & Status) */
+          <div
+            ref={expandedCardRef}
+            className="absolute top-0 left-0 right-0 z-50 bg-bg-primary rounded-2xl shadow-2xl ring-1 ring-accent-primary/60 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+          >
+            {renderInputContent()}
+
+            <div className="mx-2.5 h-px bg-border-default/30" />
+
+            <div className="max-h-48 overflow-y-auto custom-scrollbar p-1 space-y-0.5">
               {filteredSuggestions.map((suggestion, index) => (
                 <button
                   key={suggestion}
@@ -233,8 +285,8 @@ export const ChipInput: React.FC<ChipInputProps> = ({
                     commitValue(suggestion);
                   }}
                   className={twMerge(
-                    'w-full text-left px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer',
-                    index === activeIndex ? 'bg-bg-hover' : ''
+                    'w-full text-left px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer font-medium',
+                    index === activeIndex ? 'bg-bg-hover text-accent-primary font-bold' : ''
                   )}
                 >
                   {prefix && (

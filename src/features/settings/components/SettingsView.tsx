@@ -21,6 +21,7 @@ import { ApiKeyStatusSection } from './ApiKeyStatusSection';
 import { SupabaseUnifiedCard } from './SupabaseUnifiedCard';
 import { NotificationSettingsCard } from './NotificationSettingsCard';
 import { TemplateSettingsCard } from '../../templates/components/TemplateSettingsCard';
+import { MusicianModeSettingsCard } from './MusicianModeSettingsCard';
 import { exportVaultToJSON, importVaultFromJSON } from '../../../lib/storage';
 import { useTheme } from '../../../hooks/useTheme';
 
@@ -180,6 +181,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
             Template Catatan
           </h2>
           <TemplateSettingsCard vault={vault} createFolder={createFolder} />
+        </section>
+
+        {/* 2.8 MUSICIAN SUITE & SONGWRITING */}
+        <section className="space-y-2.5">
+          <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider px-1 flex items-center gap-2">
+            <BookOpen size={14} className="text-accent-primary" /> 
+            Modul & Ekstensi Khusus
+          </h2>
+          <MusicianModeSettingsCard />
         </section>
 
         {/* 3. API KEYS & FAILOVER */}

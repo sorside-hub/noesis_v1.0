@@ -35,6 +35,8 @@ export interface EditorCoreProps {
   onAiMenuStateChange?: (isOpen: boolean) => void;
   onEditorReady?: (editor: any) => void;
   isReadOnly?: boolean;
+  enableChords?: boolean;
+  hideTitle?: boolean;
 }
 
 export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
@@ -49,6 +51,8 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
   onAiMenuStateChange,
   onEditorReady,
   isReadOnly = false,
+  enableChords = false,
+  hideTitle = false,
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isRestoringScrollRef = useRef(false);
@@ -78,7 +82,9 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
   });
 
   const onChordClickRef = useRef((chordName: string) => {
-    setChordModalState({ isOpen: true, chordName });
+    if (enableChords) {
+      setChordModalState({ isOpen: true, chordName });
+    }
   });
 
   const updateDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -114,7 +120,7 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
   }, [onChange]);
 
   const editor = useEditor({
-    extensions: getEditorExtensions(nodesRef),
+    extensions: getEditorExtensions(nodesRef, { enableChords }),
     content: initialContent,
     onUpdate: ({ editor }) => {
       pendingEditorRef.current = editor;
@@ -362,17 +368,19 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-full overflow-y-auto bg-bg-primary text-text-primary flex flex-col relative"
+      className="editor-scroll-container w-full h-full overflow-y-auto bg-bg-primary text-text-primary flex flex-col relative"
     >
       {/* Integrated Title inside the unified scroll container */}
-      <div className="flex-none relative z-10">
-        <NoteTitle
-          title={title}
-          onChange={onTitleChange}
-          onEnterPress={handleTitleEnter}
-          isReadOnly={isReadOnly}
-        />
-      </div>
+      {!hideTitle && (
+        <div className="flex-none relative z-10">
+          <NoteTitle
+            title={title}
+            onChange={onTitleChange}
+            onEnterPress={handleTitleEnter}
+            isReadOnly={isReadOnly}
+          />
+        </div>
+      )}
 
       {/* TipTap Rich Text / Markdown Editor */}
       <div className="w-full flex-1 pb-[50vh] relative z-10">

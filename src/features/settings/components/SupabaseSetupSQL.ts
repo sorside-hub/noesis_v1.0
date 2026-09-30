@@ -295,4 +295,108 @@ BEGIN
 END $$;
 `;
 
+export const SUPABASE_MUSIC_STUDIO_SQL = `-- ========================================================
+-- NOESIS MUSIC STUDIO SCHEMA SETUP
+-- Jalankan skrip ini di SQL Editor dashboard Supabase Anda.
+-- ========================================================
+
+-- 1. TABEL PROYEK MUSIK (Album, EP, Single)
+CREATE TABLE IF NOT EXISTS studio_projects (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'album', -- 'album' | 'ep' | 'single'
+  genre TEXT,
+  target_release_date TEXT,
+  cover_url TEXT,
+  description TEXT,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE studio_projects ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'studio_projects' AND policyname = 'Users can manage their own studio projects'
+  ) THEN
+    CREATE POLICY "Users can manage their own studio projects" 
+    ON studio_projects FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;
+
+-- 2. TABEL LAGU STUDIO (Songs)
+CREATE TABLE IF NOT EXISTS studio_songs (
+  id TEXT PRIMARY KEY,
+  project_id TEXT REFERENCES studio_projects(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  content_lyrics TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'idea', -- 'idea' | 'demo' | 'recording' | 'mixing' | 'ready' | 'released'
+  release_type TEXT DEFAULT 'single', -- 'single' | 'ep' | 'album'
+  track_number INTEGER,
+  musical_key TEXT DEFAULT 'C',
+  bpm INTEGER DEFAULT 120,
+  capo INTEGER DEFAULT 0,
+  time_signature TEXT DEFAULT '4/4',
+  tuning TEXT DEFAULT 'Standard (E A D G B E)',
+  genre TEXT,
+  target_release_date TEXT,
+  scratchpad TEXT DEFAULT '',
+  reference_link TEXT,
+  audio_url TEXT,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE studio_songs ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'studio_songs' AND policyname = 'Users can manage their own studio songs'
+  ) THEN
+    CREATE POLICY "Users can manage their own studio songs" 
+    ON studio_songs FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;
+
+-- 3. TABEL VERSI LIRIK & DRAFT (Lyric Versions)
+CREATE TABLE IF NOT EXISTS studio_lyric_versions (
+  id TEXT PRIMARY KEY,
+  song_id TEXT NOT NULL REFERENCES studio_songs(id) ON DELETE CASCADE,
+  version_name TEXT NOT NULL,
+  content TEXT NOT NULL,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE studio_lyric_versions ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'studio_lyric_versions' AND policyname = 'Users can manage their own lyric versions'
+  ) THEN
+    CREATE POLICY "Users can manage their own lyric versions" 
+    ON studio_lyric_versions FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;
+
+-- 4. AKTIFKAN SUPABASE REALTIME UNTUK STUDIO MUSIK
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'studio_projects') THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE studio_projects';
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'studio_songs') THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE studio_songs';
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'studio_lyric_versions') THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE studio_lyric_versions';
+  END IF;
+END $$;
+`;
+
 export const SUPABASE_SETUP_SQL = SUPABASE_NOESIS_SQL;
+

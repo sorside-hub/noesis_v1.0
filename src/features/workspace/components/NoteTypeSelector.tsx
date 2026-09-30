@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
+import { scrollElementIntoViewAboveKeyboard } from '../../../utils/scrollUtils';
 
 interface NoteTypeSelectorProps {
   noteType: string;
@@ -16,7 +18,21 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
   const [localNoteType, setLocalNoteType] = useState(noteType);
   const [showNoteTypeSuggestions, setShowNoteTypeSuggestions] = useState(false);
   const noteTypeContainerRef = useRef<HTMLDivElement>(null);
+  const expandedCardRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { isKeyboardOpen } = useVirtualKeyboard();
+  const wasKeyboardOpenRef = useRef(false);
+
+  // When mobile virtual keyboard closes, immediately remove cursor focus & hide suggestions
+  useEffect(() => {
+    if (wasKeyboardOpenRef.current && !isKeyboardOpen) {
+      inputRef.current?.blur();
+      setShowNoteTypeSuggestions(false);
+    }
+    wasKeyboardOpenRef.current = isKeyboardOpen;
+  }, [isKeyboardOpen]);
 
   // Keep local noteType in sync with prop changes
   useEffect(() => {
@@ -50,13 +66,19 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
     setLocalNoteType(val);
     setShowNoteTypeSuggestions(false);
     onChange(val);
+    inputRef.current?.blur();
   };
 
-  const handleInputBlur = () => {
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
     onChange(localNoteType);
+    
+    // Close suggestions if focus left the container
+    if (noteTypeContainerRef.current && !noteTypeContainerRef.current.contains(e.relatedTarget as Node)) {
+      setShowNoteTypeSuggestions(false);
+    }
   };
 
   const filteredNoteTypes = existingNoteTypes.filter(
@@ -77,25 +99,53 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
 
   const isSuggestionsOpen = showNoteTypeSuggestions && filteredNoteTypes.length > 0;
 
+  // Smart Auto-Scroll when suggestions open or focus occurs
+  useEffect(() => {
+    if (isSuggestionsOpen) {
+      scrollElementIntoViewAboveKeyboard(expandedCardRef.current);
+    }
+  }, [isSuggestionsOpen]);
+
   return (
     <div className="space-y-1.5" ref={noteTypeContainerRef}>
       <label className="text-[11px] font-semibold text-text-muted tracking-wider uppercase">
         Note Type
       </label>
-      <div className="relative w-full bg-bg-primary rounded-xl transition-all focus-within:ring-1 focus-within:ring-accent-primary/50 overflow-hidden">
-        <input
-          type="text"
-          value={localNoteType}
-          onChange={(e) => handleInputChange(e.target.value)}
-          onBlur={handleInputBlur}
-          onFocus={() => setShowNoteTypeSuggestions(true)}
-          placeholder="e.g. Daily, Project, Concept"
-          className="w-full px-3 py-2 bg-transparent text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
-        />
-        {isSuggestionsOpen && (
-          <div className="animate-in fade-in duration-150">
-            <div className="mx-2.5 h-px bg-border-default/30 my-0.5" />
-            <div className="max-h-48 overflow-y-auto px-1 pb-1 space-y-0.5">
+      <div className="w-full h-9 relative">
+        {!isSuggestionsOpen ? (
+          <div className="w-full h-9 bg-bg-primary rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-accent-primary/50 transition-all">
+            <input
+              ref={inputRef}
+              type="text"
+              value={localNoteType}
+              onChange={(e) => handleInputChange(e.target.value)}
+              onBlur={handleInputBlur}
+              onFocus={() => {
+                setShowNoteTypeSuggestions(true);
+                scrollElementIntoViewAboveKeyboard(noteTypeContainerRef.current);
+              }}
+              placeholder="e.g. Daily, Project, Concept"
+              className="w-full h-full px-3 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
+            />
+          </div>
+        ) : (
+          /* Single Seamless Floating Card starting at top-0 */
+          <div
+            ref={expandedCardRef}
+            className="absolute top-0 left-0 right-0 z-50 bg-bg-primary rounded-2xl shadow-2xl ring-1 ring-accent-primary/60 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={localNoteType}
+              onChange={(e) => handleInputChange(e.target.value)}
+              onBlur={handleInputBlur}
+              onFocus={() => setShowNoteTypeSuggestions(true)}
+              placeholder="e.g. Daily, Project, Concept"
+              className="w-full h-9 px-3 text-xs font-semibold text-text-primary placeholder:text-text-muted/60 focus:outline-none"
+            />
+            <div className="mx-2.5 h-px bg-border-default/30" />
+            <div className="max-h-48 overflow-y-auto custom-scrollbar p-1 space-y-0.5">
               {filteredNoteTypes.map((type) => (
                 <button
                   key={type}
@@ -104,7 +154,7 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
                     e.preventDefault();
                     handleSelectSuggestion(type);
                   }}
-                  className="w-full text-left px-2.5 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+                  className="w-full text-left px-2.5 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer font-medium"
                 >
                   {type}
                 </button>

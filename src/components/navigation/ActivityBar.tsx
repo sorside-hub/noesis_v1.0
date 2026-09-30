@@ -1,7 +1,8 @@
 import React from 'react';
-import { Folder, LayoutGrid, Settings, MessageSquare, HardDrive, Plus, AudioLines } from 'lucide-react';
+import { Folder, LayoutGrid, Settings, MessageSquare, HardDrive, Plus, AudioLines, Music2 } from 'lucide-react';
 import { ActiveTab } from './BottomNavPill';
 import { useNavigation } from '../../context/NavigationContext';
+import { useMusicianMode } from '../../features/music/hooks/useMusicianMode';
 
 interface ActivityBarProps {
   activeTab: ActiveTab;
@@ -11,6 +12,7 @@ interface ActivityBarProps {
 
 export const ActivityBar: React.FC<ActivityBarProps> = ({ activeTab, onTabChange, onCreateNote }) => {
   const { isDesktopSidebarOpen, toggleDesktopSidebar, openDesktopSidebar, openModal } = useNavigation();
+  const { isMusicianModeEnabled } = useMusicianMode();
 
   const handleVaultClick = () => {
     if (activeTab !== 'vault') {
@@ -83,6 +85,22 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({ activeTab, onTabChange
         >
           <LayoutGrid size={18} strokeWidth={activeTab === 'hub' ? 2.2 : 1.8} />
         </button>
+
+        {/* Music Studio Hub (When Musician Mode is enabled) */}
+        {isMusicianModeEnabled && (
+          <button
+            type="button"
+            title="Music Studio Hub"
+            onClick={() => onTabChange('music')}
+            className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-150 cursor-pointer ${
+              activeTab === 'music'
+                ? 'text-accent-contrast bg-accent-primary shadow-xs font-semibold border border-accent-primary/40'
+                : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
+            }`}
+          >
+            <Music2 size={18} strokeWidth={activeTab === 'music' ? 2.2 : 1.8} />
+          </button>
+        )}
 
         {/* Chat Tab */}
         <button

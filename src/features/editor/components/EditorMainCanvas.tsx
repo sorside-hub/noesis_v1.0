@@ -4,8 +4,6 @@ import { EmptyState } from '../../workspace/components/EmptyState';
 import { EditorCore } from './EditorCore';
 import { Toolbar } from './Toolbar';
 import { EditorHeader } from './EditorHeader';
-import { CollapsibleReadingDock } from './CollapsibleReadingDock';
-import { hasChordsInContent, hasEditorChords, transposeEditorChords } from '../lib/transposeUtils';
 import { FileNode, VaultData } from '../../../types/vault';
 import { EditorMode } from '../../../types/editor';
 import { Wand2, Lock, Unlock } from 'lucide-react';
@@ -71,8 +69,6 @@ export const EditorMainCanvas: React.FC<EditorMainCanvasProps> = ({
   onUpdateMetadata,
 }) => {
   const [tiptapEditor, setTiptapEditor] = useState<Editor | null>(null);
-  const [semitonesOffset, setSemitonesOffset] = useState<number>(0);
-  const [hasChords, setHasChords] = useState<boolean>(false);
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState<boolean>(false);
 
@@ -143,68 +139,6 @@ export const EditorMainCanvas: React.FC<EditorMainCanvasProps> = ({
     });
   };
 
-  // Check chords whenever activeNode, currentContent, or tiptapEditor changes
-  const checkChords = useCallback(() => {
-    if (tiptapEditor && !tiptapEditor.isDestroyed) {
-      const foundInEditor = hasEditorChords(tiptapEditor);
-      if (foundInEditor) {
-        setHasChords(true);
-        return;
-      }
-    }
-    const contentToCheck = currentContent || activeNode?.content || '';
-    const foundInContent = hasChordsInContent(contentToCheck);
-    setHasChords(foundInContent);
-  }, [tiptapEditor, currentContent, activeNode?.content]);
-
-  // Reset transposition offset ONLY when switching to a different note
-  useEffect(() => {
-    setSemitonesOffset(0);
-  }, [activeNode?.id]);
-
-  // Check chords presence
-  useEffect(() => {
-    checkChords();
-  }, [activeNode?.id, checkChords]);
-
-  // Listen to TipTap editor updates directly with debouncing
-  useEffect(() => {
-    if (!tiptapEditor || tiptapEditor.isDestroyed) return;
-
-    checkChords();
-
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const handleUpdate = () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        checkChords();
-      }, 300);
-    };
-
-    tiptapEditor.on('update', handleUpdate);
-    tiptapEditor.on('selectionUpdate', handleUpdate);
-    return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      tiptapEditor.off('update', handleUpdate);
-      tiptapEditor.off('selectionUpdate', handleUpdate);
-    };
-  }, [tiptapEditor, checkChords]);
-
-  const handleTranspose = (delta: number) => {
-    if (tiptapEditor) {
-      transposeEditorChords(tiptapEditor, delta);
-      setSemitonesOffset((prev) => prev + delta);
-    }
-  };
-
-  const handleResetTranspose = () => {
-    if (tiptapEditor && semitonesOffset !== 0) {
-      transposeEditorChords(tiptapEditor, -semitonesOffset);
-      setSemitonesOffset(0);
-    }
-  };
-
   return (
     <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
       {/* Top App Bar / Tab Bar */}
@@ -259,14 +193,6 @@ export const EditorMainCanvas: React.FC<EditorMainCanvasProps> = ({
             </div>
           </div>
 
-          {/* Collapsible Reading Tools Dock (Auto-Scroll & Chord Transpose with Vertical Right-Trapezoid Trigger) */}
-          <CollapsibleReadingDock
-            hasChords={hasChords}
-            semitones={semitonesOffset}
-            onTranspose={handleTranspose}
-            onReset={handleResetTranspose}
-          />
-
           {/* Mobile Floating Reading Lock Button - Fixed position */}
           <button
             type="button"
@@ -316,4 +242,3 @@ export const EditorMainCanvas: React.FC<EditorMainCanvasProps> = ({
     </div>
   );
 };
-

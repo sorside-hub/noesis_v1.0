@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { ActiveTab } from '../../components/navigation/BottomNavPill';
-import { NavigationHistoryEntry, safePushState, safeHistoryBack } from './historyUtils';
+import { NavigationHistoryEntry, MusicSubView, safePushState, safeHistoryBack } from './historyUtils';
 
 interface UseNavigationActionsProps {
   view: ActiveTab;
@@ -15,6 +15,10 @@ interface UseNavigationActionsProps {
   setActiveModal: React.Dispatch<React.SetStateAction<string | null>>;
   mediaCategory: string | null;
   setMediaCategory: React.Dispatch<React.SetStateAction<string | null>>;
+  musicSongId: string | null;
+  setMusicSongId: React.Dispatch<React.SetStateAction<string | null>>;
+  musicSubView: MusicSubView | null;
+  setMusicSubView: React.Dispatch<React.SetStateAction<MusicSubView | null>>;
   setIsDesktopSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isPopStateNavigatingRef: React.MutableRefObject<boolean>;
   currentSeqRef: React.MutableRefObject<number>;
@@ -33,6 +37,10 @@ export const useNavigationActions = ({
   setActiveModal,
   mediaCategory,
   setMediaCategory,
+  musicSongId,
+  setMusicSongId,
+  musicSubView,
+  setMusicSubView,
   setIsDesktopSidebarOpen,
   isPopStateNavigatingRef,
   currentSeqRef,
@@ -40,11 +48,14 @@ export const useNavigationActions = ({
   // Navigate between top-level views ('vault' <-> 'settings')
   const navigateView = useCallback(
     (newView: ActiveTab) => {
-      // 1. If clicking the SAME tab that is currently active (e.g., clicking active MEDIA again):
+      // 1. If clicking the SAME tab that is currently active:
       if (newView === view) {
-        // Reset Media Category to main home if already on MEDIA
         if (newView === 'media') {
           setMediaCategory(null);
+        }
+        if (newView === 'music') {
+          setMusicSongId(null);
+          setMusicSubView(null);
         }
 
         setIsMobileSidebarOpen(false);
@@ -53,7 +64,7 @@ export const useNavigationActions = ({
         return;
       }
 
-      // 2. If switching to a DIFFERENT tab (e.g., Vault -> Sorside or Sorside -> Vault -> Sorside):
+      // 2. If switching to a DIFFERENT tab:
       if (!isPopStateNavigatingRef.current) {
         currentSeqRef.current += 1;
         const nextEntry: NavigationHistoryEntry = {
@@ -63,19 +74,19 @@ export const useNavigationActions = ({
           isMobileRightSidebarOpen: false,
           activeModal: null,
           mediaCategory: newView === 'media' ? mediaCategory : null,
+          musicSongId: newView === 'music' ? musicSongId : null,
+          musicSubView: newView === 'music' ? musicSubView : null,
           seq: currentSeqRef.current,
         };
         safePushState(nextEntry);
       }
 
       setView(newView);
-      // Notice: setMediaCategory is NOT wiped here, and reset-sorside-view is NOT dispatched here.
-      // This preserves exact state/editors when switching back and forth!
       setIsMobileSidebarOpen(false);
       setIsMobileRightSidebarOpen(false);
       setActiveModal(null);
     },
-    [view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, mediaCategory, setView, setMediaCategory, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
+    [view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, mediaCategory, musicSongId, musicSubView, setView, setMediaCategory, setMusicSongId, setMusicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
   );
 
   // Navigate to a specific media category
@@ -95,6 +106,8 @@ export const useNavigationActions = ({
           isMobileRightSidebarOpen: false,
           activeModal: null,
           mediaCategory: category,
+          musicSongId: null,
+          musicSubView: null,
           seq: currentSeqRef.current,
         };
         safePushState(nextEntry);
@@ -107,6 +120,71 @@ export const useNavigationActions = ({
       setActiveModal(null);
     },
     [mediaCategory, view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, setView, setMediaCategory, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
+  );
+
+  // Navigate to a specific music studio song (Default to 'overview')
+  const navigateToMusicSong = useCallback(
+    (songId: string | null) => {
+      const isSameSong = songId === musicSongId && view === 'music' && musicSubView === 'overview';
+      if (isSameSong && !isMobileSidebarOpen && !isMobileRightSidebarOpen && !activeModal) {
+        return;
+      }
+
+      const targetSubView: MusicSubView | null = songId ? 'overview' : null;
+
+      if (!isPopStateNavigatingRef.current) {
+        currentSeqRef.current += 1;
+        const nextEntry: NavigationHistoryEntry = {
+          view: 'music',
+          activeTabId,
+          isMobileSidebarOpen: false,
+          isMobileRightSidebarOpen: false,
+          activeModal: null,
+          mediaCategory: null,
+          musicSongId: songId,
+          musicSubView: targetSubView,
+          seq: currentSeqRef.current,
+        };
+        safePushState(nextEntry);
+      }
+
+      setView('music');
+      setMusicSongId(songId);
+      setMusicSubView(targetSubView);
+      setIsMobileSidebarOpen(false);
+      setIsMobileRightSidebarOpen(false);
+      setActiveModal(null);
+    },
+    [musicSongId, musicSubView, view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, setView, setMusicSongId, setMusicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
+  );
+
+  // Navigate to a specific sub-view within a song (e.g. editor, premise, scratchpad)
+  const navigateToMusicSubView = useCallback(
+    (songId: string, subView: MusicSubView) => {
+      if (!isPopStateNavigatingRef.current) {
+        currentSeqRef.current += 1;
+        const nextEntry: NavigationHistoryEntry = {
+          view: 'music',
+          activeTabId,
+          isMobileSidebarOpen: false,
+          isMobileRightSidebarOpen: false,
+          activeModal: null,
+          mediaCategory: null,
+          musicSongId: songId,
+          musicSubView: subView,
+          seq: currentSeqRef.current,
+        };
+        safePushState(nextEntry);
+      }
+
+      setView('music');
+      setMusicSongId(songId);
+      setMusicSubView(subView);
+      setIsMobileSidebarOpen(false);
+      setIsMobileRightSidebarOpen(false);
+      setActiveModal(null);
+    },
+    [activeTabId, setView, setMusicSongId, setMusicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
   );
 
   // Navigate to a specific note
@@ -126,6 +204,8 @@ export const useNavigationActions = ({
           isMobileRightSidebarOpen: false,
           activeModal: null,
           mediaCategory: null,
+          musicSongId: null,
+          musicSubView: null,
           seq: currentSeqRef.current,
         };
         safePushState(nextEntry);
@@ -154,6 +234,8 @@ export const useNavigationActions = ({
         isMobileRightSidebarOpen: false,
         activeModal: null,
         mediaCategory,
+        musicSongId,
+        musicSubView,
         seq: currentSeqRef.current,
       };
       safePushState(nextEntry);
@@ -161,17 +243,13 @@ export const useNavigationActions = ({
 
     setIsMobileSidebarOpen(true);
     setIsMobileRightSidebarOpen(false);
-  }, [isMobileSidebarOpen, view, activeTabId, mediaCategory, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, isPopStateNavigatingRef, currentSeqRef]);
+    setActiveModal(null);
+  }, [isMobileSidebarOpen, view, activeTabId, mediaCategory, musicSongId, musicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]);
 
   // Close Left Mobile Sidebar
   const closeMobileSidebar = useCallback(() => {
     if (!isMobileSidebarOpen) return;
-
-    if (window.history.state?.isMobileSidebarOpen) {
-      safeHistoryBack();
-    } else {
-      setIsMobileSidebarOpen(false);
-    }
+    setIsMobileSidebarOpen(false);
   }, [isMobileSidebarOpen, setIsMobileSidebarOpen]);
 
   // Open Right Mobile Sidebar
@@ -187,6 +265,8 @@ export const useNavigationActions = ({
         isMobileRightSidebarOpen: true,
         activeModal: null,
         mediaCategory,
+        musicSongId,
+        musicSubView,
         seq: currentSeqRef.current,
       };
       safePushState(nextEntry);
@@ -194,20 +274,29 @@ export const useNavigationActions = ({
 
     setIsMobileRightSidebarOpen(true);
     setIsMobileSidebarOpen(false);
-  }, [isMobileRightSidebarOpen, view, activeTabId, mediaCategory, setIsMobileRightSidebarOpen, setIsMobileSidebarOpen, isPopStateNavigatingRef, currentSeqRef]);
+    setActiveModal(null);
+  }, [isMobileRightSidebarOpen, view, activeTabId, mediaCategory, musicSongId, musicSubView, setIsMobileRightSidebarOpen, setIsMobileSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]);
 
   // Close Right Mobile Sidebar
   const closeMobileRightSidebar = useCallback(() => {
     if (!isMobileRightSidebarOpen) return;
-
-    if (window.history.state?.isMobileRightSidebarOpen) {
-      safeHistoryBack();
-    } else {
-      setIsMobileRightSidebarOpen(false);
-    }
+    setIsMobileRightSidebarOpen(false);
   }, [isMobileRightSidebarOpen, setIsMobileRightSidebarOpen]);
 
-  // Open Modal with Back-Stack support
+  // Toggle Desktop Sidebar
+  const toggleDesktopSidebar = useCallback(() => {
+    setIsDesktopSidebarOpen((prev) => !prev);
+  }, [setIsDesktopSidebarOpen]);
+
+  const openDesktopSidebar = useCallback(() => {
+    setIsDesktopSidebarOpen(true);
+  }, [setIsDesktopSidebarOpen]);
+
+  const closeDesktopSidebar = useCallback(() => {
+    setIsDesktopSidebarOpen(false);
+  }, [setIsDesktopSidebarOpen]);
+
+  // Open Modal
   const openModal = useCallback(
     (modalId: string) => {
       if (activeModal === modalId) return;
@@ -217,52 +306,50 @@ export const useNavigationActions = ({
         const nextEntry: NavigationHistoryEntry = {
           view,
           activeTabId,
-          isMobileSidebarOpen,
-          isMobileRightSidebarOpen,
+          isMobileSidebarOpen: false,
+          isMobileRightSidebarOpen: false,
           activeModal: modalId,
           mediaCategory,
+          musicSongId,
+          musicSubView,
           seq: currentSeqRef.current,
         };
         safePushState(nextEntry);
       }
 
       setActiveModal(modalId);
+      setIsMobileSidebarOpen(false);
+      setIsMobileRightSidebarOpen(false);
     },
-    [activeModal, view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, mediaCategory, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
+    [activeModal, view, activeTabId, mediaCategory, musicSongId, musicSubView, setActiveModal, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, isPopStateNavigatingRef, currentSeqRef]
   );
 
-  // Close Modal with Back-Stack support
+  // Close Modal
   const closeModal = useCallback(() => {
     if (!activeModal) return;
-
-    if (window.history.state?.activeModal) {
-      safeHistoryBack();
-    } else {
-      setActiveModal(null);
-    }
+    setActiveModal(null);
   }, [activeModal, setActiveModal]);
 
-  const openDesktopSidebar = useCallback(() => setIsDesktopSidebarOpen(true), [setIsDesktopSidebarOpen]);
-  const closeDesktopSidebar = useCallback(() => setIsDesktopSidebarOpen(false), [setIsDesktopSidebarOpen]);
-  const toggleDesktopSidebar = useCallback(() => setIsDesktopSidebarOpen((prev) => !prev), [setIsDesktopSidebarOpen]);
-
+  // Manual Trigger for Back button
   const goBack = useCallback(() => {
     safeHistoryBack();
   }, []);
 
   return {
     navigateView,
-    navigateToNote,
     navigateToMediaCategory,
+    navigateToMusicSong,
+    navigateToMusicSubView,
+    navigateToNote,
     openMobileSidebar,
     closeMobileSidebar,
     openMobileRightSidebar,
     closeMobileRightSidebar,
-    openModal,
-    closeModal,
+    toggleDesktopSidebar,
     openDesktopSidebar,
     closeDesktopSidebar,
-    toggleDesktopSidebar,
+    openModal,
+    closeModal,
     goBack,
   };
 };

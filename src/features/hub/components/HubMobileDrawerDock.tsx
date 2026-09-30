@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronRight } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { HubSubView } from '../types';
 
@@ -90,17 +89,6 @@ export const HubMobileDrawerDock: React.FC<HubMobileDrawerDockProps> = ({
         Lebar 48px, tersusun rapi dalam satu kolom vertikal (hanya icon).
       */}
       <div className="w-[48px] bg-bg-quaternary rounded-l-2xl p-1.5 flex flex-col items-center gap-1 shrink-0">
-        {/* Tombol Lipat / Tutup Kecil di Atas */}
-        <button
-          type="button"
-          onClick={() => setIsOpen(false)}
-          className="w-7 h-5 flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-hover rounded transition-colors cursor-pointer"
-          title="Lipat panel ke kanan"
-          aria-label="Fold Dock"
-        >
-          <ChevronRight size={13} />
-        </button>
-
         {/* Group 1: Metadata Views (Inbox, Table, Board, Concepts) */}
         {navItems
           .filter((i) => i.category === 'metadata')

@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { ActiveTab } from '../components/navigation/BottomNavPill';
-import { NavigationHistoryEntry, safeReplaceState } from './navigation/historyUtils';
+import { NavigationHistoryEntry, MusicSubView, safeReplaceState } from './navigation/historyUtils';
 import { useNavigationActions } from './navigation/useNavigationActions';
 
-export type { NavigationHistoryEntry } from './navigation/historyUtils';
+export type { NavigationHistoryEntry, MusicSubView } from './navigation/historyUtils';
 
 interface NavigationContextType {
   // Top-level View ('vault' | 'settings')
@@ -19,6 +19,14 @@ interface NavigationContextType {
   mediaCategory: string | null;
   setMediaCategory: (cat: string | null) => void;
   navigateToMediaCategory: (cat: string | null) => void;
+
+  // Music Studio Song Detail Navigation
+  musicSongId: string | null;
+  setMusicSongId: (songId: string | null) => void;
+  musicSubView: MusicSubView | null;
+  setMusicSubView: (subView: MusicSubView | null) => void;
+  navigateToMusicSong: (songId: string | null) => void;
+  navigateToMusicSubView: (songId: string, subView: MusicSubView) => void;
 
   // Desktop Sidebars
   isDesktopSidebarOpen: boolean;
@@ -62,6 +70,9 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
 }) => {
   const [view, setView] = useState<ActiveTab>('vault');
   const [mediaCategory, setMediaCategory] = useState<string | null>(null);
+  const [musicSongId, setMusicSongId] = useState<string | null>(null);
+  const [musicSubView, setMusicSubView] = useState<MusicSubView | null>(null);
+
   // Default desktop left sidebar is open
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -87,13 +98,15 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
       isMobileRightSidebarOpen: false,
       activeModal: null,
       mediaCategory: null,
+      musicSongId: null,
+      musicSubView: null,
       seq: 1,
     };
 
     safeReplaceState(initialEntry);
   }, []);
 
-  // Keep the current history entry in sync whenever activeTabId, view, or mediaCategory changes outside popstate
+  // Keep the current history entry in sync whenever activeTabId, view, mediaCategory, musicSongId, or musicSubView changes outside popstate
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (isPopStateNavigatingRef.current) return;
@@ -103,17 +116,21 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
       if (
         currentState.activeTabId !== activeTabId ||
         currentState.view !== view ||
-        currentState.mediaCategory !== mediaCategory
+        currentState.mediaCategory !== mediaCategory ||
+        currentState.musicSongId !== musicSongId ||
+        currentState.musicSubView !== musicSubView
       ) {
         safeReplaceState({
           ...currentState,
           view,
           activeTabId,
           mediaCategory,
+          musicSongId,
+          musicSubView,
         });
       }
     }
-  }, [activeTabId, view, mediaCategory]);
+  }, [activeTabId, view, mediaCategory, musicSongId, musicSubView]);
 
   // Listen for browser/phone Back & Forward popstate events
   useEffect(() => {
@@ -143,6 +160,10 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
 
       // 5. Sync Media Category
       setMediaCategory(state.mediaCategory || null);
+
+      // 6. Sync Music Song Detail & SubView
+      setMusicSongId(state.musicSongId || null);
+      setMusicSubView(state.musicSubView || null);
 
       // Reset flag after state batching completes
       setTimeout(() => {
@@ -181,6 +202,10 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
     setActiveModal,
     mediaCategory,
     setMediaCategory,
+    musicSongId,
+    setMusicSongId,
+    musicSubView,
+    setMusicSubView,
     setIsDesktopSidebarOpen,
     isPopStateNavigatingRef,
     currentSeqRef,
@@ -194,6 +219,10 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
         activeTabId,
         mediaCategory,
         setMediaCategory,
+        musicSongId,
+        setMusicSongId,
+        musicSubView,
+        setMusicSubView,
         isDesktopSidebarOpen,
         setIsDesktopSidebarOpen,
         isMobileSidebarOpen,

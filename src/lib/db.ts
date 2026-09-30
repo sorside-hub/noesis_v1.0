@@ -2,6 +2,7 @@ import Dexie, { Table } from 'dexie';
 import { FileNode } from '../types/vault';
 import { AIAnalysisRecord, EmbeddingRecord } from '../features/rag/types/models';
 import { isNodeRecentlyDeleted } from './sync/syncHelpers';
+import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord } from '../features/music/types/studioDatabase';
 
 export interface AppSetting {
   key: string;
@@ -45,6 +46,9 @@ export class NoesisDB extends Dexie {
   chat_messages!: Table<ChatMessageRecord, string>;
   ai_metadata!: Table<any, string>;
   media_attachments!: Table<MediaAttachment, string>;
+  studio_projects!: Table<StudioProjectRecord, string>;
+  studio_songs!: Table<StudioSongRecord, string>;
+  studio_lyric_versions!: Table<StudioLyricVersionRecord, string>;
 
   constructor() {
     super('NoesisDatabase');
@@ -85,6 +89,13 @@ export class NoesisDB extends Dexie {
     // V7: Index type and deletedAt for Media Attachments
     this.version(7).stores({
       media_attachments: 'id, url, type, createdAt, deletedAt'
+    });
+
+    // V8: Dedicated Music Studio Tables (Projects, Songs, Lyric Versions)
+    this.version(8).stores({
+      studio_projects: 'id, type, genre, targetReleaseDate, updatedAt, createdAt, deletedAt',
+      studio_songs: 'id, projectId, status, musicalKey, bpm, genre, updatedAt, createdAt, deletedAt',
+      studio_lyric_versions: 'id, songId, createdAt'
     });
   }
 }

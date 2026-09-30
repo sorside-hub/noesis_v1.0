@@ -29,7 +29,6 @@ export const DEFAULT_TOOLBAR_ORDER: string[] = [
   'link',
   'wikilink',
   'tag',
-  'chord',
   'audio',
   'image',
   'document',
@@ -252,47 +251,6 @@ export const getToolbarItems = (
             if (dispatch) dispatch(tr.insertText('#'));
             return true;
           }).run();
-        }
-      },
-      isActive: false,
-    },
-    { 
-      id: 'chord',
-      icon: <Music size={18} />, 
-      label: 'Sisipkan Chord Lirik ([Chord])', 
-      action: () => {
-        if (!editor) return;
-        const { state } = editor;
-        const { from, to, empty } = state.selection;
-        if (!empty) {
-          const selectedText = state.doc.textBetween(from, to, ' ');
-          if (selectedText.startsWith('[') && selectedText.endsWith(']') && !selectedText.startsWith('[[')) {
-            // Unwrap if already enclosed in single brackets
-            const unwrapped = selectedText.slice(1, -1);
-            editor.chain().focus().command(({ tr, dispatch }) => {
-              if (dispatch) dispatch(tr.insertText(unwrapped, from, to));
-              return true;
-            }).run();
-          } else {
-            // Wrap selected text in single brackets e.g. [C]
-            const wrapped = `[${selectedText.trim()}]`;
-            editor.chain().focus().command(({ tr, dispatch }) => {
-              if (dispatch) dispatch(tr.insertText(wrapped, from, to));
-              return true;
-            }).run();
-          }
-        } else {
-          // Insert [C] and select "C" so user can type chord name directly
-          editor.chain().focus().command(({ tr, dispatch }) => {
-            if (dispatch) {
-              tr.insertText('[C]');
-              dispatch(tr);
-            }
-            return true;
-          }).run();
-          // Select the "C" inside [C]
-          const currentPos = editor.state.selection.from;
-          editor.chain().focus().setTextSelection({ from: currentPos - 2, to: currentPos - 1 }).run();
         }
       },
       isActive: false,
