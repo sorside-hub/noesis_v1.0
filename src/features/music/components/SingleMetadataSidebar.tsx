@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   X, 
   Calendar, 
@@ -13,12 +13,14 @@ import {
 } from 'lucide-react';
 import { StudioSongRecord, StudioProjectRecord } from '../types/studioDatabase';
 import { PRODUCTION_STAGES } from '../types';
+import { saveStudioSong } from '../lib/musicStudioStorage';
 
 interface SingleMetadataSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   song: StudioSongRecord;
   projects?: StudioProjectRecord[];
+  allSongs?: StudioSongRecord[];
   lyricVersionsCount?: number;
   onUpdateSong: (patch: Partial<StudioSongRecord>) => void;
   drawerRef?: React.RefObject<HTMLDivElement | null>;
@@ -30,22 +32,73 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
   onClose,
   song,
   projects = [],
+  allSongs = [],
   onUpdateSong,
   drawerRef,
   backdropRef,
 }) => {
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const statusContainerRef = useRef<HTMLDivElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const [isTrackDropdownOpen, setIsTrackDropdownOpen] = useState(false);
+  const trackDropdownRef = useRef<HTMLDivElement>(null);
 
   const parentProject = projects.find((p) => p.id === song.projectId);
   const isTrack = Boolean(parentProject || song.projectId);
   const isTrackCompleted = song.status === 'ready' || song.status === 'released';
 
+  // Sibling tracks in the same parent project
+  const siblingTracks = useMemo(() => {
+    if (!song.projectId) return [];
+    return allSongs
+      .filter((s) => s.projectId === song.projectId)
+      .sort((a, b) => {
+        if (a.trackNumber && b.trackNumber && a.trackNumber !== b.trackNumber) {
+          return a.trackNumber - b.trackNumber;
+        }
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      });
+  }, [allSongs, song.projectId]);
+
+  // Handle reordering track number with smart auto-shift
+  const handleTrackNumberChange = async (targetTrackNumber: number) => {
+    if (!song.projectId || siblingTracks.length <= 1) {
+      onUpdateSong({ trackNumber: targetTrackNumber });
+      return;
+    }
+
+    const currentIndex = siblingTracks.findIndex((s) => s.id === song.id);
+    const targetIndex = targetTrackNumber - 1;
+
+    if (currentIndex === -1 || currentIndex === targetIndex) return;
+
+    const reordered = [...siblingTracks];
+    const [movedItem] = reordered.splice(currentIndex, 1);
+    reordered.splice(targetIndex, 0, movedItem);
+
+    // Apply new track numbers to all sibling tracks
+    for (let i = 0; i < reordered.length; i++) {
+      const item = reordered[i];
+      const newNum = i + 1;
+      if (item.id === song.id) {
+        onUpdateSong({ trackNumber: newNum });
+      } else if (item.trackNumber !== newNum) {
+        await saveStudioSong({
+          ...item,
+          trackNumber: newNum,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (statusContainerRef.current && !statusContainerRef.current.contains(e.target as Node)) {
         setIsStatusDropdownOpen(false);
+      }
+      if (trackDropdownRef.current && !trackDropdownRef.current.contains(e.target as Node)) {
+        setIsTrackDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -90,7 +143,7 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
         {/* Header */}
         <div className="px-5 py-4 flex items-center justify-between shrink-0 bg-bg-secondary">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-accent-primary/15 text-accent-primary flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-bg-primary text-accent-primary flex items-center justify-center shrink-0 shadow-xs">
               {isTrack ? <Disc3 size={16} /> : <Sparkles size={16} />}
             </div>
             <div className="min-w-0">
@@ -233,12 +286,9 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
               </label>
 
               <div className="p-3.5 rounded-2xl bg-bg-primary space-y-2.5 text-xs">
-                {/* Album Induk */}
+                {/* Album Induk - Tanpa Icon */}
                 <div className="flex items-center justify-between">
-                  <span className="text-text-muted flex items-center gap-1.5">
-                    <Disc3 size={13} className="text-accent-primary" />
-                    <span>Album Induk</span>
-                  </span>
+                  <span className="text-text-muted">Album Induk</span>
                   <span className="font-semibold text-text-primary truncate max-w-[140px] text-right">
                     {parentProject?.title || 'EP / Album'}
                   </span>
@@ -246,12 +296,70 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
 
                 <div className="h-px bg-bg-secondary/80" />
 
-                {/* Nomor Track */}
-                <div className="flex items-center justify-between">
+                {/* Nomor Track - Custom Animated Dropdown (Pas dengan ukuran input, tidak membesar/melebar) */}
+                <div className="flex items-center justify-between" ref={trackDropdownRef}>
                   <span className="text-text-muted">Nomor Track</span>
-                  <span className="font-mono font-bold text-accent-primary bg-bg-secondary px-2 py-0.5 rounded-md text-xs">
-                    #{song.trackNumber || 1}
-                  </span>
+                  {siblingTracks.length > 1 ? (
+                    <div className="w-20 h-8 relative">
+                      {!isTrackDropdownOpen ? (
+                        <button
+                          type="button"
+                          onClick={() => setIsTrackDropdownOpen(true)}
+                          className="w-full h-8 px-2 text-xs font-mono font-semibold text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover/50 rounded-xl flex items-center justify-between gap-1 cursor-pointer transition-colors"
+                          title="Ubah urutan nomor track dalam album"
+                        >
+                          <span className="truncate w-full text-center">
+                            #{song.trackNumber || 1}
+                          </span>
+                          <ChevronDown size={12} className="text-text-muted shrink-0" />
+                        </button>
+                      ) : (
+                        <div className="absolute top-0 left-0 right-0 w-full z-50 bg-bg-secondary rounded-2xl shadow-2xl ring-1 ring-accent-primary/60 overflow-hidden animate-in fade-in duration-100">
+                          <button
+                            type="button"
+                            onClick={() => setIsTrackDropdownOpen(false)}
+                            className="w-full h-8 px-2 text-xs font-mono font-bold text-text-primary hover:bg-bg-hover/50 flex items-center justify-between gap-1 cursor-pointer transition-colors"
+                          >
+                            <span className="truncate w-full text-center">
+                              #{song.trackNumber || 1}
+                            </span>
+                            <ChevronDown size={12} className="text-accent-primary shrink-0 rotate-180 transition-transform" />
+                          </button>
+
+                          <div className="mx-2 h-px bg-border-default/30" />
+
+                          <div className="max-h-44 overflow-y-auto custom-scrollbar p-1 space-y-0.5">
+                            {siblingTracks.map((_, idx) => {
+                              const trackNum = idx + 1;
+                              const isSelected = (song.trackNumber || 1) === trackNum;
+                              return (
+                                <button
+                                  key={trackNum}
+                                  type="button"
+                                  onClick={() => {
+                                    handleTrackNumberChange(trackNum);
+                                    setIsTrackDropdownOpen(false);
+                                  }}
+                                  className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs font-mono cursor-pointer transition-colors text-left ${
+                                    isSelected
+                                      ? 'bg-bg-primary text-accent-primary font-bold'
+                                      : 'text-text-muted hover:text-text-primary hover:bg-bg-hover/60'
+                                  }`}
+                                >
+                                  <span>#{trackNum}</span>
+                                  {isSelected && <Check size={11} className="text-accent-primary shrink-0" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="font-mono font-semibold text-text-muted bg-bg-secondary px-2.5 py-0.5 rounded-md text-xs">
+                      #{song.trackNumber || 1}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -259,9 +367,8 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
 
           {/* DETAIL WAKTU */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar size={12} className="text-accent-primary" />
-              <span>Detail Waktu</span>
+            <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
+              Detail Waktu
             </label>
 
             <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3 text-xs">
@@ -285,33 +392,22 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                       )}
                     </div>
                     
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (dateInputRef.current) {
-                            if (typeof dateInputRef.current.showPicker === 'function') {
-                              dateInputRef.current.showPicker();
-                            } else {
-                              dateInputRef.current.click();
-                            }
-                          }
-                        }}
-                        className="w-full h-9 px-3 flex items-center justify-between text-xs text-text-primary bg-bg-secondary hover:bg-bg-hover/60 rounded-xl cursor-pointer transition-colors text-left"
-                      >
+                    <div className="relative w-full h-9 group">
+                      {/* Visual presentation layer */}
+                      <div className="w-full h-9 px-3 flex items-center justify-between text-xs bg-bg-secondary group-hover:bg-bg-hover/60 rounded-xl transition-colors pointer-events-none">
                         <span className={song.targetReleaseDate ? 'text-text-primary font-medium' : 'text-text-muted'}>
                           {song.targetReleaseDate ? formatDate(song.targetReleaseDate) : 'Pilih tanggal rilis...'}
                         </span>
                         <ChevronDown size={14} className="text-icon-secondary shrink-0" />
-                      </button>
+                      </div>
 
+                      {/* Native transparent date input overlay */}
                       <input
-                        ref={dateInputRef}
                         type="date"
                         value={song.targetReleaseDate || ''}
-                        onChange={(e) => onUpdateSong({ targetReleaseDate: e.target.value })}
-                        className="absolute top-0 left-0 w-0 h-0 opacity-0 pointer-events-none"
-                        tabIndex={-1}
+                        onChange={(e) => onUpdateSong({ targetReleaseDate: e.target.value || undefined })}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        title="Pilih tanggal rilis"
                       />
                     </div>
                   </div>
@@ -320,21 +416,21 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
               )}
 
               {/* Tanggal Dibuat */}
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-text-muted flex items-center gap-1">
-                  <Calendar size={11} />
+              <div className="flex items-center justify-between text-xs text-text-muted">
+                <div className="flex items-center gap-2">
+                  <Calendar size={13} className="text-icon-secondary" />
                   <span>Dibuat</span>
-                </span>
-                <span className="font-medium text-text-secondary">{formatDate(song.createdAt)}</span>
+                </div>
+                <span className="font-mono text-text-secondary">{formatDate(song.createdAt)}</span>
               </div>
 
-              {/* Terakhir Diperbarui */}
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-text-muted flex items-center gap-1">
-                  <Clock size={11} />
-                  <span>Diedit</span>
-                </span>
-                <span className="font-medium text-text-secondary">{formatDate(song.updatedAt)}</span>
+              {/* Terakhir Diubah */}
+              <div className="flex items-center justify-between text-xs text-text-muted">
+                <div className="flex items-center gap-2">
+                  <Clock size={13} className="text-icon-secondary" />
+                  <span>Diubah</span>
+                </div>
+                <span className="font-mono text-text-secondary">{formatDate(song.updatedAt)}</span>
               </div>
             </div>
           </div>

@@ -279,6 +279,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
       <SingleOverviewDashboard
         song={activeEditingSong}
         projects={rawProjects}
+        allSongs={rawSongs}
         currentSubView={musicSubView || 'overview'}
         onBack={() => {
           goBack();

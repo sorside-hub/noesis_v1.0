@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   ArrowLeft, 
   Edit3, 
@@ -14,6 +14,7 @@ import {
   MoreVertical,
   Edit2,
   Disc3,
+  GripVertical,
 } from 'lucide-react';
 import { Editor } from '@tiptap/react';
 import { StudioProjectRecord, StudioSongRecord } from '../types/studioDatabase';
@@ -103,6 +104,111 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
     if (titleText.trim() && titleText !== project.title) {
       onUpdateProject({ title: titleText.trim() });
     }
+  };
+
+  // Drag and Drop state for true Floating Kanban Card reordering (using handle only)
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [hoverTargetIndex, setHoverTargetIndex] = useState<number | null>(null);
+  const [dragOffsetY, setDragOffsetY] = useState<number>(0);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const dragStartDataRef = useRef<{
+    startIndex: number;
+    startY: number;
+    itemHeights: number[];
+    itemTops: number[];
+    currentTargetIndex: number;
+  } | null>(null);
+
+  // Handle pointer down specifically on the handle (⋮⋮)
+  const handleHandlePointerDown = (index: number, e: React.PointerEvent) => {
+    // Only primary mouse button or touch
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+
+    const heights = itemRefs.current.map((el) => (el ? el.getBoundingClientRect().height + 6 : 52));
+    const tops = itemRefs.current.map((el) => (el ? el.getBoundingClientRect().top : 0));
+
+    dragStartDataRef.current = {
+      startIndex: index,
+      startY: e.clientY,
+      itemHeights: heights,
+      itemTops: tops,
+      currentTargetIndex: index,
+    };
+
+    setDraggingIndex(index);
+    setHoverTargetIndex(index);
+    setDragOffsetY(0);
+
+    const onPointerMove = (moveEvt: PointerEvent) => {
+      if (!dragStartDataRef.current) return;
+      const { startIndex, startY, itemHeights, itemTops } = dragStartDataRef.current;
+      const deltaY = moveEvt.clientY - startY;
+      setDragOffsetY(deltaY);
+
+      // Determine which slot the pointer is hovering over
+      let newTarget = startIndex;
+      const currentY = moveEvt.clientY;
+      for (let j = 0; j < itemTops.length; j++) {
+        const top = itemTops[j];
+        const h = itemHeights[j];
+        const mid = top + h / 2;
+        if (currentY > mid) {
+          newTarget = j;
+        }
+      }
+      newTarget = Math.max(0, Math.min(sortedProjectSongs.length - 1, newTarget));
+      dragStartDataRef.current.currentTargetIndex = newTarget;
+      setHoverTargetIndex(newTarget);
+    };
+
+    const onPointerUp = async () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+
+      const startData = dragStartDataRef.current;
+      dragStartDataRef.current = null;
+
+      if (!startData) {
+        setDraggingIndex(null);
+        setHoverTargetIndex(null);
+        setDragOffsetY(0);
+        return;
+      }
+
+      const { startIndex, currentTargetIndex } = startData;
+      setDraggingIndex(null);
+      setHoverTargetIndex(null);
+      setDragOffsetY(0);
+
+      if (startIndex !== currentTargetIndex && currentTargetIndex >= 0) {
+        const updated = [...sortedProjectSongs];
+        const [movedItem] = updated.splice(startIndex, 1);
+        updated.splice(currentTargetIndex, 0, movedItem);
+
+        const savePromises = updated.map((t, idx) => {
+          const newTrackNum = idx + 1;
+          if (t.trackNumber !== newTrackNum) {
+            return saveStudioSong({
+              ...t,
+              trackNumber: newTrackNum,
+              updatedAt: new Date().toISOString(),
+            });
+          }
+          return Promise.resolve();
+        });
+
+        await Promise.all(savePromises);
+        await onReloadData();
+      }
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
   };
 
   // Sort tracks ascending: earliest created is Track #1, then Track #2, etc.
@@ -218,7 +324,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
   if (currentSubView === 'premise') {
     return (
       <div className="w-full h-full bg-bg-primary text-text-primary flex flex-col overflow-hidden relative select-none">
-        <header className="px-3 sm:px-6 py-2.5 sm:py-3 bg-bg-secondary border-b border-border-default flex items-center justify-between gap-3 shrink-0">
+        <header className="px-3 sm:px-6 py-2.5 sm:py-3 bg-bg-secondary flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <button
               type="button"
@@ -229,7 +335,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
               <ArrowLeft size={16} />
             </button>
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-bg-primary text-amber-400 flex items-center justify-center shrink-0 shadow-xs">
                 <Lightbulb size={14} />
               </div>
               <div className="min-w-0">
@@ -421,7 +527,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-bg-primary text-amber-400 flex items-center justify-center shrink-0 shadow-xs">
                     <Lightbulb size={14} />
                   </div>
                   <h3 className="text-xs font-bold text-text-heading group-hover:text-accent-primary transition-colors">
@@ -449,7 +555,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
             {/* Header Tracklist */}
             <div className="flex items-center justify-between gap-2 pb-1">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-accent-primary/15 text-accent-primary flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-bg-primary text-accent-primary flex items-center justify-center shrink-0 shadow-xs">
                   <Disc3 size={14} />
                 </div>
                 <h3 className="text-xs font-bold text-text-heading">
@@ -488,15 +594,54 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                   const isLastItem = index === sortedProjectSongs.length - 1 && sortedProjectSongs.length > 1;
                   const displayTrackNumber = track.trackNumber || (index + 1);
 
+                  const isFloating = draggingIndex === index;
+                  let translateY = 0;
+                  if (draggingIndex !== null && hoverTargetIndex !== null) {
+                    if (isFloating) {
+                      translateY = dragOffsetY;
+                    } else if (draggingIndex < hoverTargetIndex) {
+                      if (index > draggingIndex && index <= hoverTargetIndex) {
+                        translateY = -52;
+                      }
+                    } else if (draggingIndex > hoverTargetIndex) {
+                      if (index < draggingIndex && index >= hoverTargetIndex) {
+                        translateY = 52;
+                      }
+                    }
+                  }
+
                   return (
                     <div
                       key={track.id}
-                      onClick={() => onSelectTrack(track.id)}
-                      className="group p-2.5 sm:p-3 rounded-xl bg-bg-primary hover:bg-bg-hover transition-all cursor-pointer flex items-center justify-between gap-2.5 relative"
+                      ref={(el) => { itemRefs.current[index] = el; }}
+                      onClick={() => {
+                        if (draggingIndex === null) {
+                          onSelectTrack(track.id);
+                        }
+                      }}
+                      style={{
+                        transform: `translate3d(0, ${translateY}px, 0)`,
+                        zIndex: isFloating ? 50 : 1,
+                      }}
+                      className={`group p-2.5 sm:p-3 rounded-xl flex items-center justify-between gap-2.5 relative select-none cursor-pointer ${
+                        isFloating
+                          ? 'bg-bg-secondary shadow-2xl ring-2 ring-accent-primary scale-[1.02] cursor-grabbing backdrop-blur-md opacity-95 pointer-events-none'
+                          : 'bg-bg-primary hover:bg-bg-hover transition-transform duration-200 ease-out'
+                      }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        {/* Track Number Badge */}
-                        <div className="w-7 h-7 rounded-lg bg-bg-secondary flex items-center justify-center shrink-0 font-mono font-bold text-xs text-accent-primary">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {/* Drag Handle (⋮⋮) - Hanya bagian ini yang di-drag, card melayang seperti di Kanban */}
+                        <div
+                          onPointerDown={(e) => handleHandlePointerDown(index, e)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-text-muted/60 hover:text-text-primary p-1 -ml-1 rounded-md cursor-grab active:cursor-grabbing hover:bg-bg-secondary transition-colors shrink-0 touch-none"
+                          title="Tahan dan geser (⋮⋮) untuk mengubah urutan track"
+                        >
+                          <GripVertical size={14} />
+                        </div>
+
+                        {/* Track Number Badge - text muted font-mono */}
+                        <div className="w-7 h-7 rounded-lg bg-bg-secondary flex items-center justify-center shrink-0 font-mono font-semibold text-xs text-text-muted">
                           #{displayTrackNumber}
                         </div>
 

@@ -32,7 +32,6 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
 }) => {
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const statusContainerRef = useRef<HTMLDivElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -82,7 +81,7 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
         {/* Header */}
         <div className="px-5 py-4 flex items-center justify-between shrink-0 bg-bg-secondary">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-accent-primary/15 text-accent-primary flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-bg-primary text-accent-primary flex items-center justify-center shrink-0 shadow-xs">
               <Disc3 size={16} />
             </div>
             <div className="min-w-0">
@@ -172,9 +171,8 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
 
           {/* SECTION 2: METADATA WAKTU & TANGGAL */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar size={12} className="text-accent-primary" />
-              <span>Detail Waktu</span>
+            <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
+              Detail Waktu
             </label>
 
             <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3 text-xs">
@@ -195,53 +193,44 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
                   )}
                 </div>
                 
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (dateInputRef.current) {
-                        if (typeof dateInputRef.current.showPicker === 'function') {
-                          dateInputRef.current.showPicker();
-                        } else {
-                          dateInputRef.current.click();
-                        }
-                      }
-                    }}
-                    className="w-full h-9 px-3 flex items-center justify-between text-xs text-text-primary bg-bg-secondary hover:bg-bg-hover/60 rounded-xl cursor-pointer transition-colors text-left"
-                  >
+                <div className="relative w-full h-9 group">
+                  {/* Visual presentation layer */}
+                  <div className="w-full h-9 px-3 flex items-center justify-between text-xs bg-bg-secondary group-hover:bg-bg-hover/60 rounded-xl transition-colors pointer-events-none">
                     <span className={project.targetReleaseDate ? 'text-text-primary font-medium' : 'text-text-muted'}>
                       {project.targetReleaseDate ? formatDate(project.targetReleaseDate) : 'Pilih tanggal rilis...'}
                     </span>
                     <ChevronDown size={14} className="text-icon-secondary shrink-0" />
-                  </button>
+                  </div>
 
+                  {/* Native transparent date input overlay */}
                   <input
-                    ref={dateInputRef}
                     type="date"
                     value={project.targetReleaseDate || ''}
-                    onChange={(e) => onUpdateProject({ targetReleaseDate: e.target.value })}
-                    className="absolute top-0 left-0 w-0 h-0 opacity-0 pointer-events-none"
-                    tabIndex={-1}
+                    onChange={(e) => onUpdateProject({ targetReleaseDate: e.target.value || undefined })}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    title="Pilih tanggal rilis"
                   />
                 </div>
               </div>
 
               <div className="h-px bg-bg-secondary/80" />
 
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-text-muted flex items-center gap-1">
-                  <Calendar size={11} />
+              {/* Tanggal Dibuat */}
+              <div className="flex items-center justify-between text-xs text-text-muted">
+                <div className="flex items-center gap-2">
+                  <Calendar size={13} className="text-icon-secondary" />
                   <span>Dibuat</span>
-                </span>
-                <span className="font-medium text-text-secondary">{formatDate(project.createdAt)}</span>
+                </div>
+                <span className="font-mono text-text-secondary">{formatDate(project.createdAt)}</span>
               </div>
 
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-text-muted flex items-center gap-1">
-                  <Clock size={11} />
-                  <span>Diedit</span>
-                </span>
-                <span className="font-medium text-text-secondary">{formatDate(project.updatedAt)}</span>
+              {/* Terakhir Diubah */}
+              <div className="flex items-center justify-between text-xs text-text-muted">
+                <div className="flex items-center gap-2">
+                  <Clock size={13} className="text-icon-secondary" />
+                  <span>Diubah</span>
+                </div>
+                <span className="font-mono text-text-secondary">{formatDate(project.updatedAt)}</span>
               </div>
             </div>
           </div>

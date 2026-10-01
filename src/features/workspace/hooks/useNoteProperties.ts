@@ -46,18 +46,32 @@ export function useNoteProperties({
     return { words, characters, readingTimeMinutes };
   }, [activeNode]);
 
-  // Formatted dates
+  // Formatted dates (DD MMM YYYY)
   const formattedCreated = useMemo(() => {
-    if (!activeNode) return '-';
-    const d = new Date(activeNode.createdAt);
-    return d.toISOString().split('T')[0];
-  }, [activeNode]);
+    if (!activeNode?.createdAt) return '-';
+    try {
+      const d = new Date(activeNode.createdAt);
+      if (isNaN(d.getTime())) return '-';
+      const day = String(d.getDate()).padStart(2, '0');
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    } catch {
+      return '-';
+    }
+  }, [activeNode?.createdAt]);
 
   const formattedModified = useMemo(() => {
-    if (!activeNode) return '-';
-    const d = new Date(activeNode.updatedAt);
-    return d.toISOString().split('T')[0];
-  }, [activeNode]);
+    if (!activeNode?.updatedAt) return '-';
+    try {
+      const d = new Date(activeNode.updatedAt);
+      if (isNaN(d.getTime())) return '-';
+      const day = String(d.getDate()).padStart(2, '0');
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    } catch {
+      return '-';
+    }
+  }, [activeNode?.updatedAt]);
 
   // Metadata accessors
   const metadata: NoteMetadata = activeNode?.metadata || {};

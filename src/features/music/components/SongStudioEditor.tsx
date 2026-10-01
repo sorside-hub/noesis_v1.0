@@ -129,7 +129,7 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
             <ArrowLeft size={16} />
           </button>
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-bg-primary text-accent-primary flex items-center justify-center shrink-0 shadow-xs">
               <Music2 size={14} />
             </div>
             <div className="min-w-0">

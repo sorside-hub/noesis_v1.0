@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, 
-  Music2, 
-  Gauge,
   SlidersVertical,
   Clock,
   Calendar,
@@ -131,7 +129,7 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
         {/* Header */}
         <div className="px-5 py-4 flex items-center justify-between shrink-0 bg-bg-secondary">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-accent-primary/15 text-accent-primary flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-bg-primary text-accent-primary flex items-center justify-center shrink-0 shadow-xs">
               <SlidersVertical size={16} />
             </div>
             <div className="min-w-0">
@@ -155,9 +153,8 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
           
           {/* 1. TUNING GITAR */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase flex items-center gap-1.5">
-              <Gauge size={12} className="text-accent-primary" />
-              <span>Tuning Gitar</span>
+            <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase block">
+              Tuning Gitar
             </label>
 
             <div className="w-full h-9 relative">
@@ -217,9 +214,8 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
           {/* 2. NADA DASAR (KEY) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase flex items-center gap-1.5">
-                <Music2 size={12} className="text-accent-primary" />
-                <span>Nada Dasar (Key)</span>
+              <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase block">
+                Nada Dasar (Key)
               </label>
 
               <div className="flex bg-bg-primary rounded-xl p-0.5 text-[10px] font-bold">
@@ -404,9 +400,8 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
 
           {/* 4. BIRAMA (TIME SIGNATURE) */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase flex items-center gap-1.5">
-              <Clock size={12} className="text-accent-primary" />
-              <span>Birama (Time Signature)</span>
+            <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase block">
+              Birama (Time Signature)
             </label>
 
             <div className="p-3 rounded-2xl bg-bg-primary space-y-2.5">
@@ -439,26 +434,25 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
 
           {/* 5. DETAIL WAKTU (CREATED & MODIFIED DATE) */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase flex items-center gap-1.5">
-              <Calendar size={12} className="text-accent-primary" />
-              <span>Detail Waktu</span>
+            <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase block">
+              Detail Waktu
             </label>
 
             <div className="p-3.5 rounded-2xl bg-bg-primary space-y-2 text-xs">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-text-muted flex items-center gap-1">
-                  <Calendar size={11} />
+              <div className="flex items-center justify-between text-xs text-text-muted">
+                <div className="flex items-center gap-2">
+                  <Calendar size={13} className="text-icon-secondary" />
                   <span>Dibuat</span>
-                </span>
-                <span className="font-medium text-text-secondary">{formatDate(song.createdAt)}</span>
+                </div>
+                <span className="font-mono text-text-secondary">{formatDate(song.createdAt)}</span>
               </div>
 
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-text-muted flex items-center gap-1">
-                  <Clock size={11} />
-                  <span>Diedit</span>
-                </span>
-                <span className="font-medium text-text-secondary">{formatDate(song.updatedAt)}</span>
+              <div className="flex items-center justify-between text-xs text-text-muted">
+                <div className="flex items-center gap-2">
+                  <Clock size={13} className="text-icon-secondary" />
+                  <span>Diubah</span>
+                </div>
+                <span className="font-mono text-text-secondary">{formatDate(song.updatedAt)}</span>
               </div>
             </div>
           </div>

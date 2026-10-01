@@ -35,6 +35,7 @@ import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
 interface SingleOverviewDashboardProps {
   song: StudioSongRecord;
   projects?: StudioProjectRecord[];
+  allSongs?: StudioSongRecord[];
   currentSubView?: 'overview' | 'editor' | 'premise' | 'scratchpad';
   onBack: () => void;
   onOpenFullEditor: () => void;
@@ -47,6 +48,7 @@ interface SingleOverviewDashboardProps {
 export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = ({
   song,
   projects = [],
+  allSongs = [],
   currentSubView = 'overview',
   onBack,
   onOpenFullEditor,
@@ -261,7 +263,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   if (currentSubView === 'premise') {
     return (
       <div className="w-full h-full bg-bg-primary text-text-primary flex flex-col overflow-hidden relative">
-        <header className="px-3 sm:px-6 py-2.5 sm:py-3 bg-bg-secondary border-b border-border-default flex items-center justify-between gap-3 shrink-0">
+        <header className="px-3 sm:px-6 py-2.5 sm:py-3 bg-bg-secondary flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <button
               type="button"
@@ -272,7 +274,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               <ArrowLeft size={16} />
             </button>
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-bg-primary text-amber-400 flex items-center justify-center shrink-0 shadow-xs">
                 <Lightbulb size={14} />
               </div>
               <div className="min-w-0">
@@ -323,7 +325,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   if (currentSubView === 'scratchpad') {
     return (
       <div className="w-full h-full bg-bg-primary text-text-primary flex flex-col overflow-hidden relative">
-        <header className="px-3 sm:px-6 py-2.5 sm:py-3 bg-bg-secondary border-b border-border-default flex items-center justify-between gap-3 shrink-0">
+        <header className="px-3 sm:px-6 py-2.5 sm:py-3 bg-bg-secondary flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <button
               type="button"
@@ -334,7 +336,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               <ArrowLeft size={16} />
             </button>
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-bg-primary text-purple-400 flex items-center justify-center shrink-0 shadow-xs">
                 <Flame size={14} />
               </div>
               <div className="min-w-0">
@@ -557,7 +559,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-bg-primary text-amber-400 flex items-center justify-center shrink-0 shadow-xs">
                       <Lightbulb size={14} />
                     </div>
                     <h3 className="text-xs font-bold text-text-heading group-hover:text-accent-primary transition-colors">
@@ -587,7 +589,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-bg-primary text-purple-400 flex items-center justify-center shrink-0 shadow-xs">
                       <Flame size={14} />
                     </div>
                     <h3 className="text-xs font-bold text-text-heading group-hover:text-accent-primary transition-colors">
@@ -617,7 +619,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
             {/* Section Header */}
             <div className="flex items-center justify-between gap-2 pb-1">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-accent-primary/15 text-accent-primary flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-bg-primary text-accent-primary flex items-center justify-center shrink-0 shadow-xs">
                   <FileText size={14} />
                 </div>
                 <h3 className="text-xs font-bold text-text-heading">
@@ -779,6 +781,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
         onClose={() => setIsMetadataSidebarOpen(false)}
         song={song}
         projects={projects}
+        allSongs={allSongs}
         lyricVersionsCount={lyricVersions.length}
         onUpdateSong={onUpdateSong}
         drawerRef={rightDrawerRef}

@@ -18,19 +18,19 @@ export const NoteStatsSection: React.FC<NoteStatsSectionProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      {/* Created & Modified Dates */}
+      {/* Dibuat & Diubah Dates */}
       <div className="space-y-2 text-xs">
         <div className="flex items-center justify-between text-text-muted">
           <div className="flex items-center gap-2">
             <Calendar size={13} className="text-icon-secondary" />
-            <span>Created</span>
+            <span>Dibuat</span>
           </div>
           <span className="font-mono text-text-primary">{formattedCreated}</span>
         </div>
         <div className="flex items-center justify-between text-text-muted">
           <div className="flex items-center gap-2">
             <Clock size={13} className="text-icon-secondary" />
-            <span>Modified</span>
+            <span>Diubah</span>
           </div>
           <span className="font-mono text-text-primary">{formattedModified}</span>
         </div>
@@ -40,15 +40,15 @@ export const NoteStatsSection: React.FC<NoteStatsSectionProps> = ({
 
       {/* Document Statistics */}
       <div className="space-y-2">
-        <label className="text-[11px] font-semibold text-text-muted tracking-wider uppercase">
-          Document Statistics
+        <label className="text-[11px] font-semibold text-text-muted tracking-wider uppercase block">
+          Statistik Dokumen
         </label>
         <div className="grid grid-cols-2 gap-2.5">
           {/* Words Card */}
           <div className="p-3 bg-bg-primary rounded-xl flex flex-col items-center justify-center text-center shadow-2xs">
             <div className="flex items-center justify-center gap-1.5 text-xs text-text-muted">
               <FileText size={13} className="text-icon-secondary" />
-              <span>Words</span>
+              <span>Kata</span>
             </div>
             <div className="text-xl font-bold text-text-primary mt-1">
               {stats.words}
@@ -58,7 +58,7 @@ export const NoteStatsSection: React.FC<NoteStatsSectionProps> = ({
           <div className="p-3 bg-bg-primary rounded-xl flex flex-col items-center justify-center text-center shadow-2xs">
             <div className="flex items-center justify-center gap-1.5 text-xs text-text-muted">
               <FileCode size={13} className="text-icon-secondary" />
-              <span>Characters</span>
+              <span>Karakter</span>
             </div>
             <div className="text-xl font-bold text-text-primary mt-1">
               {stats.characters}
