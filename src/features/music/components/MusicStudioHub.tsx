@@ -6,8 +6,6 @@ import {
   Plus, 
   Loader2,
   FolderPlus,
-  ListMusic,
-  Kanban
 } from 'lucide-react';
 import { useMusicStudio } from '../hooks/useMusicStudio';
 import { MusicProjectCard } from './MusicProjectCard';
@@ -15,11 +13,12 @@ import { MusicSongCard } from './MusicSongCard';
 import { MusicKanbanPipeline } from './MusicKanbanPipeline';
 import { MusicStudioDrawerDock, StudioViewTab } from './MusicStudioDrawerDock';
 import { SingleOverviewDashboard } from './SingleOverviewDashboard';
+import { ProjectOverviewDashboard } from './ProjectOverviewDashboard';
 import { SongStudioEditor } from './SongStudioEditor';
 import { NewSongModal } from './NewSongModal';
 import { NewProjectModal } from './NewProjectModal';
 import { useNavigation } from '../../../context/NavigationContext';
-import { MusicProductionStatus } from '../types';
+import { MusicProductionStatus, MusicProjectType, MusicReleaseItem } from '../types';
 
 interface MusicStudioHubProps {
   vaultState?: any;
@@ -27,23 +26,28 @@ interface MusicStudioHubProps {
 
 export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
   const { 
-    songs, 
     rawSongs,
     projects, 
     rawProjects,
     isLoading,
+    reloadData,
     createNewSong, 
     createNewProject, 
     updateSongStatus,
     updateSongRecord,
+    updateProjectRecord,
+    removeSong,
+    removeProject,
   } = useMusicStudio();
 
   const { 
+    musicProjectId,
     musicSongId, 
     musicSubView,
+    navigateToMusicProject,
     navigateToMusicSong, 
     navigateToMusicSubView,
-    goBack 
+    goBack,
   } = useNavigation();
 
   // Active view tab managed via Drawer Dock
@@ -58,8 +62,16 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
   // Modals state
   const [isNewSongModalOpen, setIsNewSongModalOpen] = useState(false);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
+  const [initialProjectType, setInitialProjectType] = useState<MusicProjectType>('ep');
   const [targetProjectForSong, setTargetProjectForSong] = useState<string | undefined>(undefined);
   const [targetStageForSong, setTargetStageForSong] = useState<MusicProductionStatus | undefined>(undefined);
+
+  // Rename Modal state
+  const [renamingItem, setRenamingItem] = useState<MusicReleaseItem | null>(null);
+  const [renameInputValue, setRenameInputValue] = useState('');
+
+  // Delete Confirmation Modal state
+  const [deletingItem, setDeletingItem] = useState<MusicReleaseItem | null>(null);
 
   // Close creation dropdown on outside click
   useEffect(() => {
@@ -77,31 +89,61 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     };
   }, [isCreationMenuOpen]);
 
-  const handleOpenSongInEditor = (songId: string) => {
-    navigateToMusicSong(songId); // opens overview dashboard with history pushed
-  };
+  // Combine Singles, EPs, and Albums into unified release items for Pipeline & Daftar
+  const releaseItems: MusicReleaseItem[] = useMemo(() => {
+    const list: MusicReleaseItem[] = [];
 
-  // Filtered songs
-  const filteredSongs = useMemo(() => {
-    return songs.filter((song) => {
+    // 1. Standalone songs as Singles (songs without parent project in rawProjects)
+    rawSongs.forEach((song) => {
+      const parent = rawProjects.find((p) => p.id === song.projectId);
+      if (!parent) {
+        list.push({
+          id: song.id,
+          kind: 'song',
+          type: 'single',
+          title: song.title,
+          status: song.status,
+          updatedAt: new Date(song.updatedAt).getTime() || Date.now(),
+          createdAt: new Date(song.createdAt).getTime() || Date.now(),
+        });
+      }
+    });
+
+    // 2. EPs and Albums
+    rawProjects.forEach((proj) => {
+      list.push({
+        id: proj.id,
+        kind: 'project',
+        type: proj.type || 'album',
+        title: proj.title,
+        status: proj.status || 'idea',
+        updatedAt: new Date(proj.updatedAt).getTime() || Date.now(),
+        createdAt: new Date(proj.createdAt).getTime() || Date.now(),
+      });
+    });
+
+    return list.sort((a, b) => b.updatedAt - a.updatedAt);
+  }, [rawSongs, rawProjects]);
+
+  // Filtered releases for Pipeline and Daftar
+  const filteredItems = useMemo(() => {
+    return releaseItems.filter((item) => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const matchesTitle = song.title.toLowerCase().includes(q);
-        const matchesKey = song.key?.toLowerCase().includes(q);
-        const matchesProject = song.project?.toLowerCase().includes(q);
-        const matchesGenre = song.genre?.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesKey && !matchesProject && !matchesGenre) return false;
+        const matchesTitle = item.title.toLowerCase().includes(q);
+        const matchesType = item.type.toLowerCase().includes(q);
+        if (!matchesTitle && !matchesType) return false;
       }
 
       if (selectedStatusFilter) {
-        if (song.status !== selectedStatusFilter) return false;
+        if (item.status !== selectedStatusFilter) return false;
       }
 
       return true;
     });
-  }, [songs, searchQuery, selectedStatusFilter]);
+  }, [releaseItems, searchQuery, selectedStatusFilter]);
 
-  // Filtered projects
+  // Filtered projects for Discography Tab
   const filteredProjects = useMemo(() => {
     if (!searchQuery.trim()) return projects;
     const q = searchQuery.toLowerCase();
@@ -111,6 +153,60 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
       p.songs.some(s => s.title.toLowerCase().includes(q))
     );
   }, [projects, searchQuery]);
+
+  const handleSelectItem = (item: MusicReleaseItem) => {
+    if (item.kind === 'song') {
+      navigateToMusicSong(item.id);
+    } else {
+      navigateToMusicProject(item.id);
+    }
+  };
+
+  const handleUpdateItemStatus = async (item: MusicReleaseItem, newStatus: MusicProductionStatus) => {
+    if (item.kind === 'song') {
+      await updateSongStatus(item.id, newStatus);
+    } else {
+      await updateProjectRecord(item.id, { status: newStatus });
+    }
+  };
+
+  // Trigger rename
+  const handleStartRename = (item: MusicReleaseItem) => {
+    setRenamingItem(item);
+    setRenameInputValue(item.title);
+  };
+
+  const handleConfirmRename = async () => {
+    if (!renamingItem) return;
+    const newTitle = renameInputValue.trim();
+    if (!newTitle) return;
+
+    if (renamingItem.kind === 'song') {
+      await updateSongRecord(renamingItem.id, { title: newTitle });
+    } else {
+      await updateProjectRecord(renamingItem.id, { title: newTitle });
+    }
+
+    setRenamingItem(null);
+    setRenameInputValue('');
+  };
+
+  // Trigger delete
+  const handleStartDelete = (item: MusicReleaseItem) => {
+    setDeletingItem(item);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingItem) return;
+
+    if (deletingItem.kind === 'song') {
+      await removeSong(deletingItem.id);
+    } else {
+      await removeProject(deletingItem.id);
+    }
+
+    setDeletingItem(null);
+  };
 
   const handleCreateSongSubmit = async (params: {
     title: string;
@@ -122,7 +218,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
   }) => {
     const newId = await createNewSong(params);
     if (newId) {
-      handleOpenSongInEditor(newId);
+      navigateToMusicSong(newId);
     }
   };
 
@@ -135,7 +231,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
   }) => {
     const newId = await createNewProject(params);
     if (newId) {
-      setActiveTab('projects');
+      navigateToMusicProject(newId);
     }
   };
 
@@ -151,9 +247,14 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     setIsNewSongModalOpen(true);
   };
 
-  // Active editing song record from dedicated storage
+  // Active editing song record
   const activeEditingSong = musicSongId 
     ? rawSongs.find((s) => s.id === musicSongId)
+    : null;
+
+  // Active selected project record (EP / Album)
+  const activeSelectedProject = musicProjectId
+    ? rawProjects.find((p) => p.id === musicProjectId)
     : null;
 
   // Level 3: Render Fullscreen Lyric/Chord Studio Editor
@@ -163,7 +264,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         song={activeEditingSong}
         projects={rawProjects}
         onBack={() => {
-          navigateToMusicSubView(activeEditingSong.id, 'overview');
+          goBack();
         }}
         onUpdateSong={(patch) => {
           updateSongRecord(activeEditingSong.id, patch);
@@ -172,7 +273,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     );
   }
 
-  // Level 2 & 3: Render Single Overview Dashboard (Overview, Premise Note, or Scratchpad Note)
+  // Level 2 & 3: Render Single/Track Overview Dashboard
   if (activeEditingSong) {
     return (
       <SingleOverviewDashboard
@@ -180,7 +281,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         projects={rawProjects}
         currentSubView={musicSubView || 'overview'}
         onBack={() => {
-          navigateToMusicSong(null);
+          goBack();
         }}
         onOpenFullEditor={() => {
           navigateToMusicSubView(activeEditingSong.id, 'editor');
@@ -201,24 +302,41 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     );
   }
 
+  // Level 2: Render EP / Album Project Overview Dashboard
+  if (activeSelectedProject) {
+    const projectTracks = rawSongs
+      .filter((s) => s.projectId === activeSelectedProject.id)
+      .sort((a, b) => {
+        if (a.trackNumber && b.trackNumber && a.trackNumber !== b.trackNumber) {
+          return a.trackNumber - b.trackNumber;
+        }
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      });
+    return (
+      <ProjectOverviewDashboard
+        project={activeSelectedProject}
+        projectSongs={projectTracks}
+        onBack={() => goBack()}
+        onSelectTrack={(songId) => navigateToMusicSong(songId)}
+        onUpdateProject={(patch) => updateProjectRecord(activeSelectedProject.id, patch)}
+        onReloadData={reloadData}
+      />
+    );
+  }
+
   return (
     <div className="relative w-full h-full bg-bg-primary text-text-primary select-none flex flex-col overflow-hidden">
       <div className="max-w-7xl w-full mx-auto px-3 sm:px-6 pt-3 pb-2 space-y-2.5 flex-1 flex flex-col min-h-0">
         
-        {/* Streamlined Clean Header with Unified (+) Button */}
+        {/* Streamlined Clean Header */}
         <header className="flex items-center justify-between gap-2.5 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-accent-primary text-accent-contrast flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-bg-secondary text-accent-primary flex items-center justify-center shrink-0 shadow-xs">
               <Music2 size={16} />
             </div>
-            <div className="flex items-center gap-2 truncate">
-              <h1 className="text-base sm:text-lg font-bold text-text-heading tracking-tight truncate">
-                Studio Musik
-              </h1>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent-primary/10 text-accent-primary shrink-0">
-                {songs.length}
-              </span>
-            </div>
+            <h1 className="text-base sm:text-lg font-bold text-text-heading tracking-tight truncate">
+              Studio Musik
+            </h1>
           </div>
 
           {/* Center Search Input */}
@@ -226,7 +344,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
-              placeholder="Cari lagu, album, key..."
+              placeholder="Cari lagu, album, single..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-bg-secondary border border-border-default/20 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
@@ -239,60 +357,102 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
               type="button"
               onClick={() => setIsCreationMenuOpen(!isCreationMenuOpen)}
               className="w-8 h-8 rounded-xl bg-accent-primary text-accent-contrast shadow-xs hover:opacity-95 transition-all flex items-center justify-center cursor-pointer active:scale-95"
-              title="Buat Lagu atau Album Baru"
+              title="Buat Single, EP, atau Album Baru"
               aria-label="Tambah Baru"
             >
               <Plus size={18} />
             </button>
 
-            {/* Creation Menu Popup */}
+            {/* Creation Menu Popup - NO BORDER */}
             {isCreationMenuOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-56 bg-bg-secondary/95 backdrop-blur-md rounded-2xl shadow-2xl p-1.5 z-50 border border-border-default/40 select-none animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 top-full mt-1.5 w-60 bg-bg-secondary rounded-2xl shadow-2xl p-1.5 z-50 select-none animate-in fade-in zoom-in-95 duration-150 space-y-0.5">
+                
+                {/* 1. SINGLE */}
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     setIsCreationMenuOpen(false);
-                    setTargetProjectForSong(undefined);
-                    setTargetStageForSong('idea');
-                    setIsNewSongModalOpen(true);
+                    const newId = await createNewSong({
+                      title: 'Single Baru',
+                      status: 'idea',
+                    });
+                    if (newId) {
+                      navigateToMusicSong(newId);
+                    }
                   }}
                   className="w-full flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-bg-hover text-left transition-colors cursor-pointer group"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-accent-primary/10 text-accent-primary flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-accent-primary group-hover:text-accent-contrast transition-colors">
-                    <Music2 size={14} />
+                  <div className="w-8 h-8 rounded-xl bg-accent-primary/15 text-accent-primary flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-accent-primary group-hover:text-accent-contrast transition-colors">
+                    <Music2 size={15} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-xs font-bold text-text-heading group-hover:text-accent-primary transition-colors">
-                      Lagu Baru
+                      Single
                     </div>
                     <p className="text-[10px] text-text-muted leading-tight mt-0.5">
-                      Tulis lirik, chord, dan atur nada dasar
+                      Buat & langsung buka lembar lagu single baru
                     </p>
                   </div>
                 </button>
 
                 <div className="h-px bg-border-default/20 my-1" />
 
+                {/* 2. EP */}
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     setIsCreationMenuOpen(false);
-                    setIsNewProjectModalOpen(true);
+                    const newId = await createNewProject({
+                      title: 'EP Baru',
+                      type: 'ep',
+                    });
+                    if (newId) {
+                      navigateToMusicProject(newId);
+                    }
                   }}
                   className="w-full flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-bg-hover text-left transition-colors cursor-pointer group"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                    <FolderPlus size={14} />
+                  <div className="w-8 h-8 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-sky-500 group-hover:text-white transition-colors">
+                    <Disc3 size={15} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-xs font-bold text-text-heading group-hover:text-sky-400 transition-colors">
-                      Album / EP Baru
+                      EP (Mini Album)
                     </div>
                     <p className="text-[10px] text-text-muted leading-tight mt-0.5">
-                      Kelompokkan lagu dalam satu proyek diskografi
+                      Buat & langsung buka overview mini album baru
                     </p>
                   </div>
                 </button>
+
+                {/* 3. ALBUM */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsCreationMenuOpen(false);
+                    const newId = await createNewProject({
+                      title: 'Album Baru',
+                      type: 'album',
+                    });
+                    if (newId) {
+                      navigateToMusicProject(newId);
+                    }
+                  }}
+                  className="w-full flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-bg-hover text-left transition-colors cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                    <FolderPlus size={15} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-text-heading group-hover:text-purple-400 transition-colors">
+                      Full Album
+                    </div>
+                    <p className="text-[10px] text-text-muted leading-tight mt-0.5">
+                      Buat & langsung buka overview album lagu baru
+                    </p>
+                  </div>
+                </button>
+
               </div>
             )}
           </div>
@@ -309,19 +469,20 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         {/* Main Tab Content */}
         {!isLoading && (
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-            {/* TAB 1: PIPELINE KANBAN TRIAGE (HERO EXPERIENCE) */}
+            {/* TAB 1: PIPELINE KANBAN TRIAGE (SINGLES, EPS, ALBUMS) */}
             {activeTab === 'pipeline' && (
               <div className="w-full h-full flex-1 min-h-0 overflow-hidden">
                 <MusicKanbanPipeline
-                  songs={filteredSongs}
-                  onSelectSong={handleOpenSongInEditor}
-                  onUpdateStatus={updateSongStatus}
-                  onCreateSongInStage={handleOpenNewSongInStage}
+                  items={filteredItems}
+                  onSelectItem={handleSelectItem}
+                  onRenameItem={handleStartRename}
+                  onUpdateStatus={handleUpdateItemStatus}
+                  onDeleteItem={handleStartDelete}
                 />
               </div>
             )}
 
-            {/* TAB 2: ALL SONGS LIST */}
+            {/* TAB 2: DAFTAR RILISAN (SINGLES, EPS, ALBUMS) */}
             {activeTab === 'songs' && (
               <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pb-24 [scrollbar-width:thin]">
                 {/* Status Filter Chips */}
@@ -335,7 +496,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
                         : 'bg-bg-secondary text-text-secondary hover:bg-bg-hover'
                     }`}
                   >
-                    Semua ({songs.length})
+                    Semua ({releaseItems.length})
                   </button>
                   {['idea', 'demo', 'recording', 'mixing', 'ready', 'released'].map((st) => (
                     <button
@@ -348,25 +509,27 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
                           : 'bg-bg-secondary text-text-secondary hover:bg-bg-hover'
                       }`}
                     >
-                      {st} ({songs.filter((s) => s.status === st).length})
+                      {st} ({releaseItems.filter((it) => it.status === st).length})
                     </button>
                   ))}
                 </div>
 
-                {/* Songs Grid */}
-                {filteredSongs.length === 0 ? (
+                {/* Simplified Releases List */}
+                {filteredItems.length === 0 ? (
                   <div className="p-8 text-center rounded-2xl bg-bg-secondary/40 border border-dashed border-border-default/30 space-y-2">
                     <Music2 size={24} className="mx-auto text-text-muted opacity-40" />
-                    <p className="text-xs text-text-muted">Tidak ada lagu yang cocok dengan pencarian.</p>
+                    <p className="text-xs text-text-muted">Tidak ada rilisan yang cocok dengan pencarian.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                    {filteredSongs.map((song) => (
+                  <div className="space-y-1.5">
+                    {filteredItems.map((item) => (
                       <MusicSongCard
-                        key={song.id}
-                        song={song}
-                        onSelectSong={handleOpenSongInEditor}
-                        onUpdateStatus={updateSongStatus}
+                        key={`${item.kind}-${item.id}`}
+                        item={item}
+                        onSelectItem={handleSelectItem}
+                        onRenameItem={handleStartRename}
+                        onUpdateStatus={handleUpdateItemStatus}
+                        onDeleteItem={handleStartDelete}
                       />
                     ))}
                   </div>
@@ -401,8 +564,9 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
                       <MusicProjectCard
                         key={project.id}
                         project={project}
-                        onSelectSong={handleOpenSongInEditor}
+                        onSelectSong={(songId) => navigateToMusicSong(songId)}
                         onCreateSongForProject={handleOpenNewSongWithProject}
+                        onOpenProjectNote={(projId) => navigateToMusicProject(projId)}
                       />
                     ))}
                   </div>
@@ -414,11 +578,77 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
 
       </div>
 
+      {/* Rename Modal - NO BORDER */}
+      {renamingItem && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-bg-secondary w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <h3 className="text-sm font-bold text-text-heading">Ubah Judul {renamingItem.type.toUpperCase()}</h3>
+            <input
+              type="text"
+              value={renameInputValue}
+              onChange={(e) => setRenameInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleConfirmRename();
+                if (e.key === 'Escape') setRenamingItem(null);
+              }}
+              className="w-full px-3.5 py-2 text-xs rounded-xl bg-bg-primary text-text-primary focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
+              autoFocus
+              placeholder="Masukkan judul baru..."
+            />
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setRenamingItem(null)}
+                className="px-3.5 py-1.5 text-xs rounded-xl bg-bg-hover text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmRename}
+                disabled={!renameInputValue.trim()}
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-accent-primary text-accent-contrast shadow-xs hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+              >
+                Simpan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal - NO BORDER */}
+      {deletingItem && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-bg-secondary w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-3 animate-in fade-in zoom-in-95 duration-150">
+            <h3 className="text-sm font-bold text-text-heading">Hapus {deletingItem.type.toUpperCase()}?</h3>
+            <p className="text-xs text-text-muted leading-relaxed">
+              Apakah kamu yakin ingin menghapus "{deletingItem.title}"? Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingItem(null)}
+                className="px-3.5 py-1.5 text-xs rounded-xl bg-bg-hover text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-red-500 text-white shadow-xs hover:bg-red-600 transition-colors cursor-pointer"
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Floating Side Drawer Dock */}
       <MusicStudioDrawerDock
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        songsCount={songs.length}
+        songsCount={releaseItems.length}
         projectsCount={projects.length}
       />
 
@@ -435,6 +665,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
       {/* New Project Modal */}
       <NewProjectModal
         isOpen={isNewProjectModalOpen}
+        initialType={initialProjectType}
         onClose={() => setIsNewProjectModalOpen(false)}
         onSubmit={handleCreateProjectSubmit}
       />

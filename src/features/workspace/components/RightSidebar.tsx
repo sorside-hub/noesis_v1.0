@@ -1,47 +1,45 @@
-import React from 'react';
-import { 
-  SlidersVertical, 
-  ArrowLeftRight, 
-  Link2, 
-  ListTree, 
-  Sparkles,
+import React, { useRef, useState } from 'react';
+import {
+  SlidersVertical,
+  Network,
   CheckSquare,
+  ListTree,
+  Sparkles,
   Bot,
-  Network
+  Link2,
 } from 'lucide-react';
-import { VaultData, FileNode, NoteMetadata } from '../../../types/vault';
-import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
+import { FileNode, VaultData, NoteMetadata } from '../../../types/vault';
 import { useRightSidebarLogic, RightSidebarTab } from '../hooks/useRightSidebarLogic';
 import { PropertiesTab } from './PropertiesTab';
+import { LocalGraphTab } from './localGraph/LocalGraphTab';
+import { TasksTab } from './TasksTab';
+import { OutlineTab } from './OutlineTab';
 import { DistilTab } from './DistilTab';
 import { ChatTab } from './ChatTab';
 import { LinksTab } from './LinksTab';
-import { OutlineTab } from './OutlineTab';
-import { TasksTab } from './TasksTab';
-import { LocalGraphTab } from './localGraph/LocalGraphTab';
 import { RightSidebarTabSwitcher } from './RightSidebarTabSwitcher';
 import { AutoDetectModal } from './AutoDetectModal';
-
-export type { RightSidebarTab };
+import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
 
 interface RightSidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
   vault: VaultData;
   activeNode: FileNode | null;
+  isOpen: boolean;
+  onClose?: () => void;
   onSelectFile: (id: string) => void;
   onUpdateMetadata: (id: string, metadata: Partial<NoteMetadata>) => void;
   updateNoteContent?: (id: string, content: string) => void;
   updateNodeTitle?: (id: string, title: string) => void;
   createFolder?: (parentId: string | null, name: string) => string | null;
-  moveNode?: (id: string, targetParentId: string | null) => void;
+  moveNode?: (nodeId: string, newParentId: string | null) => void;
   onNavigateToHeading?: (lineIndex: number, text: string) => void;
 }
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({
-  isOpen,
   vault,
   activeNode,
+  isOpen,
+  onClose,
   onSelectFile,
   onUpdateMetadata,
   updateNoteContent,
@@ -50,46 +48,44 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   moveNode,
   onNavigateToHeading,
 }) => {
+  const [activeTab, setActiveTab] = useState<RightSidebarTab>('PROPERTIES');
+  const [isTabMenuOpen, setIsTabMenuOpen] = useState(false);
+  const tabMenuRef = useRef<HTMLDivElement>(null);
   const { isKeyboardOpen } = useVirtualKeyboard();
 
   const {
-    activeTab,
-    setActiveTab,
-    isTabMenuOpen,
-    setIsTabMenuOpen,
-    tabMenuRef,
-    isDistiling,
-    distilError,
-    distilHtml,
-    distilLog,
-    isSyncingRag,
-    ragSyncStatus,
-    aiMetadata,
     folderName,
+    noteType,
+    status,
+    tags,
+    aliases,
     stats,
     formattedCreated,
     formattedModified,
-    tags,
-    aliases,
-    noteType,
-    status,
-    backlinks,
-    outgoingLinks,
-    semanticLinks,
-    isSemanticLoading,
-    collapsedHeadingIndices,
-    setCollapsedHeadingIndices,
-    outlineHeadings,
-    handleGenerateDistil,
+    isSyncingRag,
+    ragSyncStatus,
+    aiMetadata,
     handleTypeChange,
     handleStatusChange,
     handleTagsChange,
     handleAliasesChange,
     handleCustomPropertiesChange,
-    handleDistilClick,
-    handleRemoveRag,
     handleProcessRag,
+    handleRemoveRag,
+    outlineHeadings,
+    collapsedHeadingIndices,
+    setCollapsedHeadingIndices,
     toggleHeadingCollapse,
+    backlinks,
+    outgoingLinks,
+    semanticLinks,
+    isSemanticLoading,
+    isDistiling,
+    distilError,
+    distilHtml,
+    distilLog,
+    handleGenerateDistil,
+    handleDistilClick,
     handleUpdateContent,
     isAutoDetecting,
     autoDetectError,
@@ -101,6 +97,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     handleApplyAutoDetect,
     existingTags,
     existingNoteTypes,
+    existingCustomPropertyKeys,
+    existingCustomPropertyValuesByKey,
   } = useRightSidebarLogic({
     vault,
     activeNode,
@@ -170,6 +168,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 autoDetectError={autoDetectError}
                 existingTags={existingTags}
                 existingNoteTypes={existingNoteTypes}
+                existingCustomPropertyKeys={existingCustomPropertyKeys}
+                existingCustomPropertyValuesByKey={existingCustomPropertyValuesByKey}
                 handleTypeChange={handleTypeChange}
                 handleStatusChange={handleStatusChange}
                 handleTagsChange={handleTagsChange}

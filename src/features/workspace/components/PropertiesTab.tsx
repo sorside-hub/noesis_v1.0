@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Folder,
-  ChevronDown,
   ChevronRight,
   Sliders,
 } from 'lucide-react';
@@ -36,6 +35,8 @@ interface PropertiesTabProps {
   autoDetectError?: string | null;
   existingTags?: string[];
   existingNoteTypes?: string[];
+  existingCustomPropertyKeys?: string[];
+  existingCustomPropertyValuesByKey?: Record<string, string[]>;
   handleTypeChange: (val: string) => void;
   handleStatusChange: (val: string) => void;
   handleTagsChange: (newTags: string[]) => void;
@@ -63,6 +64,8 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({
   autoDetectError,
   existingTags = [],
   existingNoteTypes = [],
+  existingCustomPropertyKeys = [],
+  existingCustomPropertyValuesByKey = {},
   handleTypeChange,
   handleStatusChange,
   handleTagsChange,
@@ -152,6 +155,9 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({
       <CustomPropertiesSection
         customProperties={activeNode.metadata?.customProperties || []}
         onChange={handleCustomPropertiesChange}
+        activeNodeId={activeNode.id}
+        existingPropertyKeys={existingCustomPropertyKeys}
+        existingPropertyValuesByKey={existingCustomPropertyValuesByKey}
       />
 
       {/* 8. AI Intelligence Section Header & Cards */}
@@ -164,26 +170,24 @@ export const PropertiesTab: React.FC<PropertiesTabProps> = ({
           <div className="h-px bg-border-subtle flex-1" />
         </div>
 
-        <div className="space-y-2.5">
-          <NoteRagCard
-            isSyncingRag={isSyncingRag}
-            ragSyncStatus={ragSyncStatus}
-            aiMetadata={aiMetadata}
-            handleProcessRag={handleProcessRag}
-            handleRemoveRag={handleRemoveRag}
-          />
-
+        {handleRunAutoDetect && (
           <NoteAutoDetectCard
             isAutoDetecting={isAutoDetecting}
             autoDetectError={autoDetectError}
             handleRunAutoDetect={handleRunAutoDetect}
           />
-        </div>
+        )}
+
+        <NoteRagCard
+          isSyncingRag={isSyncingRag}
+          ragSyncStatus={ragSyncStatus}
+          aiMetadata={aiMetadata}
+          handleProcessRag={handleProcessRag}
+          handleRemoveRag={handleRemoveRag}
+        />
       </div>
 
-      <div className="h-px bg-border-subtle" />
-
-      {/* 10. Dates & Document Statistics */}
+      {/* 9. Document Stats & Metadata Footer */}
       <NoteStatsSection
         formattedCreated={formattedCreated}
         formattedModified={formattedModified}

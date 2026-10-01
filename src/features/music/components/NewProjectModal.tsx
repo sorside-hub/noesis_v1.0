@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { X, Disc3, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Disc3 } from 'lucide-react';
 import { MusicProjectType } from '../types';
 
 interface NewProjectModalProps {
   isOpen: boolean;
+  initialType?: MusicProjectType;
   onClose: () => void;
   onSubmit: (params: {
     title: string;
@@ -16,15 +17,22 @@ interface NewProjectModalProps {
 
 export const NewProjectModal: React.FC<NewProjectModalProps> = ({
   isOpen,
+  initialType = 'ep',
   onClose,
   onSubmit,
 }) => {
   const [title, setTitle] = useState('');
-  const [type, setType] = useState<MusicProjectType>('ep');
+  const [type, setType] = useState<MusicProjectType>(initialType);
   const [genre, setGenre] = useState('');
   const [targetReleaseDate, setTargetReleaseDate] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setType(initialType);
+    }
+  }, [isOpen, initialType]);
 
   if (!isOpen) return null;
 
@@ -66,8 +74,8 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
               <Disc3 size={18} />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-text-heading">Buat Proyek Rilisan</h3>
-              <p className="text-[11px] text-text-muted">Kelola Album, EP, atau Single rilisanmu</p>
+              <h3 className="text-sm sm:text-base font-bold text-text-heading">Buat Proyek {type.toUpperCase()}</h3>
+              <p className="text-[11px] text-text-muted">Kelola koleksi lagu & diskografi rilisanmu</p>
             </div>
           </div>
 
@@ -84,13 +92,13 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
           {/* Project Title */}
           <div>
             <label className="block text-xs font-semibold text-text-secondary mb-1">
-              Nama Album / EP / Proyek <span className="text-accent-primary">*</span>
+              Nama {type === 'ep' ? 'EP / Mini Album' : 'Album'} <span className="text-accent-primary">*</span>
             </label>
             <input
               type="text"
               required
               autoFocus
-              placeholder="Contoh: Titik Temu (EP)"
+              placeholder={type === 'ep' ? 'Contoh: Titik Temu (EP)' : 'Contoh: Mahakarya (Album)'}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-2 text-xs rounded-xl bg-bg-primary text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
@@ -102,8 +110,8 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
             <label className="block text-xs font-semibold text-text-secondary mb-1">
               Tipe Rilisan
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['single', 'ep', 'album'] as MusicProjectType[]).map((t) => (
+            <div className="grid grid-cols-2 gap-2">
+              {(['ep', 'album'] as MusicProjectType[]).map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -114,7 +122,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
                       : 'bg-bg-primary text-text-muted hover:text-text-primary'
                   }`}
                 >
-                  {t}
+                  {t === 'ep' ? 'EP (Mini Album)' : 'Full Album'}
                 </button>
               ))}
             </div>

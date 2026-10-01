@@ -9,6 +9,7 @@ export interface NavigationHistoryEntry {
   isMobileRightSidebarOpen: boolean;
   activeModal: string | null;
   mediaCategory?: string | null;
+  musicProjectId?: string | null;
   musicSongId?: string | null;
   musicSubView?: MusicSubView | null;
   seq: number;

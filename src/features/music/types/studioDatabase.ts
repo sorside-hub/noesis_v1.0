@@ -4,6 +4,7 @@ export interface StudioProjectRecord {
   id: string;
   title: string;
   type: MusicProjectType;
+  status?: MusicProductionStatus;
   genre?: string;
   targetReleaseDate?: string;
   coverUrl?: string;

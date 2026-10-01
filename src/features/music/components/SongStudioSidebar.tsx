@@ -5,6 +5,7 @@ import {
   Gauge,
   SlidersVertical,
   Clock,
+  Calendar,
   Plus,
   Minus,
   ChevronDown,
@@ -90,6 +91,21 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
     }
   };
 
+  const formatDate = (isoString?: string) => {
+    if (!isoString) return '-';
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return isoString;
+      const day = String(d.getDate()).padStart(2, '0');
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      const month = months[d.getMonth()];
+      const year = d.getFullYear();
+      return `${day} ${month} ${year}`;
+    } catch {
+      return isoString;
+    }
+  };
+
   return (
     <>
       {/* Backdrop for click-away and touch dismiss */}
@@ -105,14 +121,14 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
         }`}
       />
 
-      {/* Slide-over Drawer Panel (Vault style, seamless borderless) */}
+      {/* Slide-over Drawer Panel */}
       <aside
         ref={drawerRef}
         className={`fixed inset-y-0 right-0 z-50 w-80 sm:w-88 bg-bg-secondary shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform select-none ${
           isOpen ? 'translate-x-0 pointer-events-auto' : 'translate-x-full pointer-events-none'
         }`}
       >
-        {/* Header (No border) */}
+        {/* Header */}
         <div className="px-5 py-4 flex items-center justify-between shrink-0 bg-bg-secondary">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-accent-primary/15 text-accent-primary flex items-center justify-center shrink-0">
@@ -124,7 +140,6 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
             </div>
           </div>
 
-          {/* Close button (Hidden on mobile) */}
           <button
             type="button"
             onClick={onClose}
@@ -135,12 +150,10 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
           </button>
         </div>
 
-        {/* Scrollable Musical Parameter Controls (Borderless cards) */}
+        {/* Scrollable Musical Parameter Controls */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4 [scrollbar-width:thin]">
           
-          {/* ======================================================== */}
-          {/* 1. TUNING GITAR (SEAMLESS UNIFIED FLOATING CARD)          */}
-          {/* ======================================================== */}
+          {/* 1. TUNING GITAR */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase flex items-center gap-1.5">
               <Gauge size={12} className="text-accent-primary" />
@@ -161,7 +174,6 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                   <ChevronDown size={14} className="text-text-muted shrink-0" />
                 </button>
               ) : (
-                /* Seamless Unified Card starting at top-0 */
                 <div className="absolute top-0 left-0 right-0 z-50 bg-bg-primary rounded-2xl shadow-2xl ring-1 ring-accent-primary/60 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                   <button
                     type="button"
@@ -202,9 +214,7 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
             </div>
           </div>
 
-          {/* ======================================================== */}
-          {/* 2. NADA DASAR (KEY) - 12 NADA PINTAR + ENHARMONIK MINOR   */}
-          {/* ======================================================== */}
+          {/* 2. NADA DASAR (KEY) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase flex items-center gap-1.5">
@@ -212,7 +222,6 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                 <span>Nada Dasar (Key)</span>
               </label>
 
-              {/* Mayor / Minor Segmented Toggle */}
               <div className="flex bg-bg-primary rounded-xl p-0.5 text-[10px] font-bold">
                 <button
                   type="button"
@@ -240,7 +249,6 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
             </div>
 
             <div className="p-3 rounded-2xl bg-bg-primary space-y-2.5">
-              {/* 12 Smart Key Buttons Grid */}
               <div className="grid grid-cols-4 gap-1.5">
                 {CIRCLE_OF_FIFTHS.map((item) => {
                   const displayKey = keyMode === 'major' ? item.major : item.minor;
@@ -262,7 +270,6 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                 })}
               </div>
 
-              {/* Custom Input */}
               <div className="pt-1 border-t border-bg-secondary/80">
                 <input
                   type="text"
@@ -275,9 +282,7 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
             </div>
           </div>
 
-          {/* ======================================================== */}
-          {/* 3. TEMPO (BPM) & CAPO GITAR (SEAMLESS UNIFIED FLOATING CARD) */}
-          {/* ======================================================== */}
+          {/* 3. TEMPO (BPM) & CAPO GITAR */}
           <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3">
             <div className="grid grid-cols-2 gap-2.5 items-start">
               {/* Tempo (BPM) */}
@@ -315,7 +320,7 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                 </div>
               </div>
 
-              {/* Capo Gitar (Seamless Single Unified Floating Card) */}
+              {/* Capo Gitar */}
               <div className="space-y-1.5 flex flex-col items-center w-full">
                 <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider text-center">
                   Capo Gitar
@@ -337,7 +342,6 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                       <ChevronDown size={12} className="text-text-muted shrink-0" />
                     </button>
                   ) : (
-                    /* Seamless Single Unified Floating Card starting at top-0 */
                     <div className="absolute top-0 left-0 right-0 z-50 bg-bg-secondary rounded-2xl shadow-2xl ring-1 ring-accent-primary/60 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                       <button
                         type="button"
@@ -398,9 +402,7 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
             </div>
           </div>
 
-          {/* ======================================================== */}
-          {/* 4. BIRAMA (TIME SIGNATURE) - FLEKSIBEL                   */}
-          {/* ======================================================== */}
+          {/* 4. BIRAMA (TIME SIGNATURE) */}
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase flex items-center gap-1.5">
               <Clock size={12} className="text-accent-primary" />
@@ -408,7 +410,6 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
             </label>
 
             <div className="p-3 rounded-2xl bg-bg-primary space-y-2.5">
-              {/* Free text input */}
               <input
                 type="text"
                 placeholder="Contoh: 4/4, 3/4, 6/8, 7/8, Rubato..."
@@ -417,7 +418,6 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                 className="w-full px-3 py-2 text-xs font-mono font-bold rounded-xl bg-bg-secondary text-text-primary focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
               />
 
-              {/* Quick preset chips */}
               <div className="flex flex-wrap gap-1">
                 {COMMON_TIME_SIGNATURES.map((ts) => (
                   <button
@@ -433,6 +433,32 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                     {ts}
                   </button>
                 ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 5. DETAIL WAKTU (CREATED & MODIFIED DATE) */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase flex items-center gap-1.5">
+              <Calendar size={12} className="text-accent-primary" />
+              <span>Detail Waktu</span>
+            </label>
+
+            <div className="p-3.5 rounded-2xl bg-bg-primary space-y-2 text-xs">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-text-muted flex items-center gap-1">
+                  <Calendar size={11} />
+                  <span>Dibuat</span>
+                </span>
+                <span className="font-medium text-text-secondary">{formatDate(song.createdAt)}</span>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-text-muted flex items-center gap-1">
+                  <Clock size={11} />
+                  <span>Diedit</span>
+                </span>
+                <span className="font-medium text-text-secondary">{formatDate(song.updatedAt)}</span>
               </div>
             </div>
           </div>

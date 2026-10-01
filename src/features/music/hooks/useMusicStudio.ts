@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { SongItem, MusicProject, MusicProductionStatus, MusicProjectType } from '../types';
+import { SongItem, MusicProject, MusicProductionStatus } from '../types';
 import { StudioProjectRecord, StudioSongRecord } from '../types/studioDatabase';
 import {
   getAllStudioProjects,
@@ -62,71 +62,96 @@ export function useMusicStudio() {
       return {
         id: s.id,
         title: s.title,
-        status: s.status,
         key: s.musicalKey,
         bpm: s.bpm,
-        tuning: s.tuning,
-        capo: s.capo,
-        timeSignature: s.timeSignature,
-        project: parentProject ? parentProject.title : undefined,
-        genre: s.genre,
-        tags: ['#song', '#music'],
-        snippet: textSnippet,
+        project: parentProject?.title,
+        genre: s.genre || parentProject?.genre,
+        snippet: textSnippet || 'Belum ada lirik...',
+        status: (s.status as MusicProductionStatus) || 'idea',
         hasAudioMemo,
-        updatedAt: new Date(s.updatedAt).getTime(),
-        createdAt: new Date(s.createdAt).getTime(),
+        createdAt: new Date(s.createdAt).getTime() || Date.now(),
+        updatedAt: new Date(s.updatedAt).getTime() || Date.now(),
       };
     });
   }, [dbSongs, dbProjects]);
 
-  // Group into Music Projects (Albums, EPs, Singles)
+  // Group songs into Projects UI representation
   const projects: MusicProject[] = useMemo(() => {
-    return dbProjects.map((p) => {
-      const projectSongs = songs.filter((s) => {
-        const rawSong = dbSongs.find((ds) => ds.id === s.id);
-        return rawSong?.projectId === p.id;
-      });
+    const projectMap = new Map<string, MusicProject>();
 
-      // Calculate overall project status
-      let projStatus: MusicProductionStatus = 'idea';
-      if (projectSongs.length > 0) {
-        const allReleased = projectSongs.every(s => s.status === 'released');
-        const allReady = projectSongs.every(s => s.status === 'ready' || s.status === 'released');
-        if (allReleased) projStatus = 'released';
-        else if (allReady) projStatus = 'ready';
-        else projStatus = 'recording';
-      }
-
-      return {
+    // 1. Add explicitly created dbProjects
+    dbProjects.forEach((p) => {
+      projectMap.set(p.id, {
         id: p.id,
         title: p.title,
         type: p.type,
-        status: projStatus,
+        status: (p.status as MusicProductionStatus) || 'idea',
         genre: p.genre,
         releaseDate: p.targetReleaseDate,
         description: p.description,
-        songs: projectSongs,
-        updatedAt: new Date(p.updatedAt).getTime(),
-        createdAt: new Date(p.createdAt).getTime(),
-      };
+        songs: [],
+        createdAt: new Date(p.createdAt).getTime() || Date.now(),
+        updatedAt: new Date(p.updatedAt).getTime() || Date.now(),
+      });
     });
+
+    // 2. Map dbSongs into their matching parent projects
+    songs.forEach((song) => {
+      const dbSong = dbSongs.find((s) => s.id === song.id);
+      if (dbSong?.projectId && projectMap.has(dbSong.projectId)) {
+        projectMap.get(dbSong.projectId)!.songs.push(song);
+      } else if (dbSong?.projectId) {
+        // Fallback for implicit project title
+        const parentProj = dbProjects.find((p) => p.id === dbSong.projectId);
+        const projTitle = parentProj?.title || 'Proyek Tanpa Nama';
+        const key = `implicit_${dbSong.projectId}`;
+        if (!projectMap.has(key)) {
+          projectMap.set(key, {
+            id: dbSong.projectId,
+            title: projTitle,
+            type: parentProj?.type || 'album',
+            status: 'idea',
+            genre: parentProj?.genre,
+            songs: [],
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+        }
+        projectMap.get(key)!.songs.push(song);
+      }
+    });
+
+    // Sort songs inside each project by createdAt ascending (earliest created is Track #1, then Track #2, etc.)
+    projectMap.forEach((proj) => {
+      proj.songs.sort((a, b) => {
+        const dbA = dbSongs.find((s) => s.id === a.id);
+        const dbB = dbSongs.find((s) => s.id === b.id);
+        if (dbA?.trackNumber && dbB?.trackNumber && dbA.trackNumber !== dbB.trackNumber) {
+          return dbA.trackNumber - dbB.trackNumber;
+        }
+        return a.createdAt - b.createdAt;
+      });
+    });
+
+    return Array.from(projectMap.values());
   }, [dbProjects, dbSongs, songs]);
 
-  // Studio statistics
+  // Overall Stats
   const stats = useMemo(() => {
     const totalSongs = songs.length;
-    const releasedCount = songs.filter((s) => s.status === 'released').length;
-    const readyCount = songs.filter((s) => s.status === 'ready').length;
-    const inProgressCount = songs.filter((s) => ['demo', 'recording', 'mixing'].includes(s.status)).length;
-    const ideaCount = songs.filter((s) => s.status === 'idea').length;
     const totalProjects = projects.length;
+
+    const inProgressCount = songs.filter(
+      (s) => s.status !== 'ready' && s.status !== 'released'
+    ).length;
+
+    const releasedCount = songs.filter((s) => s.status === 'released').length + 
+      projects.filter((p) => p.status === 'released').length;
 
     return {
       totalSongs,
       totalProjects,
-      ideaCount,
       inProgressCount,
-      readyCount,
       releasedCount,
     };
   }, [songs, projects]);
@@ -145,11 +170,17 @@ export function useMusicStudio() {
     const now = new Date().toISOString();
 
     let matchedProjectId: string | undefined = undefined;
+    let trackNumber: number | undefined = undefined;
     if (params.project) {
       const proj = dbProjects.find(
         (p) => p.id === params.project || p.title.toLowerCase() === params.project!.toLowerCase()
       );
-      if (proj) matchedProjectId = proj.id;
+      if (proj) {
+        matchedProjectId = proj.id;
+        const existingProjSongs = dbSongsRef.current.filter((s) => s.projectId === proj.id);
+        const maxTrack = existingProjSongs.reduce((max, s) => Math.max(max, s.trackNumber || 0), 0);
+        trackNumber = Math.max(maxTrack, existingProjSongs.length) + 1;
+      }
     }
 
     const defaultLyrics = params.initialContent || `<h3>[Intro]</h3>\n<p>[${params.key || 'C'}]</p>\n\n<h3>[Verse 1]</h3>\n<p>Tulis lirik dan chord di sini...</p>\n\n<h3>[Chorus]</h3>\n<p>Bagian reff lagu...</p>\n`;
@@ -157,6 +188,7 @@ export function useMusicStudio() {
     const newSong: StudioSongRecord = {
       id: songId,
       projectId: matchedProjectId,
+      trackNumber,
       title: params.title.trim(),
       contentLyrics: defaultLyrics,
       status: params.status || 'idea',
@@ -178,7 +210,8 @@ export function useMusicStudio() {
 
   const createNewProject = async (params: {
     title: string;
-    type: MusicProjectType;
+    type: 'single' | 'ep' | 'album';
+    status?: MusicProductionStatus;
     genre?: string;
     targetReleaseDate?: string;
     description?: string;
@@ -190,8 +223,9 @@ export function useMusicStudio() {
       id: projId,
       title: params.title.trim(),
       type: params.type,
+      status: params.status || 'idea',
       genre: params.genre?.trim() || undefined,
-      targetReleaseDate: params.targetReleaseDate || undefined,
+      targetReleaseDate: params.targetReleaseDate?.trim() || undefined,
       description: params.description?.trim() || undefined,
       createdAt: now,
       updatedAt: now,
@@ -213,16 +247,31 @@ export function useMusicStudio() {
       updatedAt: now,
     };
 
-    // Instant optimistic update
     setDbSongs((prev) => prev.map((s) => (s.id === songId ? updated : s)));
 
-    // Background persist without blocking UI or reloading
     saveStudioSong(updated).catch((err) => {
       console.error('[MusicStudio] Failed to save status:', err);
     });
   }, []);
 
-  // OPTIMIZED INSTANT UPDATE FOR PARAMETERS & METADATA (0ms UI LAG)
+  const updateProjectStatus = useCallback(async (projectId: string, newStatus: MusicProductionStatus) => {
+    const existing = dbProjects.find((p) => p.id === projectId);
+    if (!existing) return;
+
+    const now = new Date().toISOString();
+    const updated: StudioProjectRecord = {
+      ...existing,
+      status: newStatus,
+      updatedAt: now,
+    };
+
+    setDbProjects((prev) => prev.map((p) => (p.id === projectId ? updated : p)));
+
+    saveStudioProject(updated).catch((err) => {
+      console.error('[MusicStudio] Failed to save project status:', err);
+    });
+  }, [dbProjects]);
+
   const updateSongRecord = useCallback(async (songId: string, patch: Partial<StudioSongRecord>) => {
     const existing = dbSongsRef.current.find((s) => s.id === songId);
     if (!existing) return;
@@ -234,14 +283,30 @@ export function useMusicStudio() {
       updatedAt: now,
     };
 
-    // 1. Instant optimistic update in React state (0ms latency, super satset!)
     setDbSongs((prev) => prev.map((s) => (s.id === songId ? updated : s)));
 
-    // 2. Background persistence to IndexedDB without blocking render
     saveStudioSong(updated).catch((err) => {
       console.error('[MusicStudio] Failed to save song patch:', err);
     });
   }, []);
+
+  const updateProjectRecord = useCallback(async (projectId: string, patch: Partial<StudioProjectRecord>) => {
+    const existing = dbProjects.find((p) => p.id === projectId);
+    if (!existing) return;
+
+    const now = new Date().toISOString();
+    const updated: StudioProjectRecord = {
+      ...existing,
+      ...patch,
+      updatedAt: now,
+    };
+
+    setDbProjects((prev) => prev.map((p) => (p.id === projectId ? updated : p)));
+
+    saveStudioProject(updated).catch((err) => {
+      console.error('[MusicStudio] Failed to save project patch:', err);
+    });
+  }, [dbProjects]);
 
   const removeSong = async (songId: string) => {
     await deleteStudioSong(songId);
@@ -264,7 +329,9 @@ export function useMusicStudio() {
     createNewSong,
     createNewProject,
     updateSongStatus,
+    updateProjectStatus,
     updateSongRecord,
+    updateProjectRecord,
     removeSong,
     removeProject,
   };

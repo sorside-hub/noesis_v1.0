@@ -20,6 +20,11 @@ interface NavigationContextType {
   setMediaCategory: (cat: string | null) => void;
   navigateToMediaCategory: (cat: string | null) => void;
 
+  // Music Studio Project (EP / Album) Detail Navigation
+  musicProjectId: string | null;
+  setMusicProjectId: (projectId: string | null) => void;
+  navigateToMusicProject: (projectId: string | null) => void;
+
   // Music Studio Song Detail Navigation
   musicSongId: string | null;
   setMusicSongId: (songId: string | null) => void;
@@ -70,6 +75,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
 }) => {
   const [view, setView] = useState<ActiveTab>('vault');
   const [mediaCategory, setMediaCategory] = useState<string | null>(null);
+  const [musicProjectId, setMusicProjectId] = useState<string | null>(null);
   const [musicSongId, setMusicSongId] = useState<string | null>(null);
   const [musicSubView, setMusicSubView] = useState<MusicSubView | null>(null);
 
@@ -98,6 +104,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
       isMobileRightSidebarOpen: false,
       activeModal: null,
       mediaCategory: null,
+      musicProjectId: null,
       musicSongId: null,
       musicSubView: null,
       seq: 1,
@@ -106,7 +113,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
     safeReplaceState(initialEntry);
   }, []);
 
-  // Keep the current history entry in sync whenever activeTabId, view, mediaCategory, musicSongId, or musicSubView changes outside popstate
+  // Keep current history entry in sync
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (isPopStateNavigatingRef.current) return;
@@ -117,6 +124,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
         currentState.activeTabId !== activeTabId ||
         currentState.view !== view ||
         currentState.mediaCategory !== mediaCategory ||
+        currentState.musicProjectId !== musicProjectId ||
         currentState.musicSongId !== musicSongId ||
         currentState.musicSubView !== musicSubView
       ) {
@@ -125,12 +133,13 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
           view,
           activeTabId,
           mediaCategory,
+          musicProjectId,
           musicSongId,
           musicSubView,
         });
       }
     }
-  }, [activeTabId, view, mediaCategory, musicSongId, musicSubView]);
+  }, [activeTabId, view, mediaCategory, musicProjectId, musicSongId, musicSubView]);
 
   // Listen for browser/phone Back & Forward popstate events
   useEffect(() => {
@@ -161,7 +170,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
       // 5. Sync Media Category
       setMediaCategory(state.mediaCategory || null);
 
-      // 6. Sync Music Song Detail & SubView
+      // 6. Sync Music Project & Song Detail & SubView
+      setMusicProjectId(state.musicProjectId || null);
       setMusicSongId(state.musicSongId || null);
       setMusicSubView(state.musicSubView || null);
 
@@ -175,7 +185,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
     return () => window.removeEventListener('popstate', handlePopState);
   }, [onSelectTabId]);
 
-  // Listen for open-tag-in-sidebar to open desktop/mobile left sidebar to tags
+  // Listen for open-tag-in-sidebar
   useEffect(() => {
     const handleOpenTag = (e: any) => {
       if (e.detail?.tag) {
@@ -202,6 +212,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
     setActiveModal,
     mediaCategory,
     setMediaCategory,
+    musicProjectId,
+    setMusicProjectId,
     musicSongId,
     setMusicSongId,
     musicSubView,
@@ -219,6 +231,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
         activeTabId,
         mediaCategory,
         setMediaCategory,
+        musicProjectId,
+        setMusicProjectId,
         musicSongId,
         setMusicSongId,
         musicSubView,

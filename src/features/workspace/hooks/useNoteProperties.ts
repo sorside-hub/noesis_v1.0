@@ -12,7 +12,7 @@ export function useNoteProperties({
   activeNode,
   onUpdateMetadata,
 }: UseNotePropertiesOptions) {
-  // Folder Hierarchy & Breadcrumbs calculation (e.g. 01-Pengetahuan / Musik)
+  // Folder Hierarchy & Breadcrumbs calculation
   const folderHierarchy = useMemo(() => {
     if (!activeNode || !activeNode.parentId) return ['Root Vault'];
     const segments: string[] = [];
@@ -99,10 +99,13 @@ export function useNoteProperties({
     onUpdateMetadata(activeNode.id, { customProperties });
   };
 
-  // Extract unique tags and note types from the vault for autocomplete
-  const existingTagsAndTypes = useMemo(() => {
+  // Extract unique tags, note types, custom property keys, and property values from vault
+  const existingVaultSuggestions = useMemo(() => {
     const allTags = new Set<string>();
     const allNoteTypes = new Set<string>();
+    const allCustomKeys = new Set<string>();
+    const valuesByKeyMap: Record<string, Set<string>> = {};
+
     Object.values(vault.nodes).forEach((n) => {
       if (n.type === 'file' && n.metadata) {
         if (Array.isArray(n.metadata.tags)) {
@@ -115,11 +118,37 @@ export function useNoteProperties({
         if (typeof n.metadata.noteType === 'string' && n.metadata.noteType.trim()) {
           allNoteTypes.add(n.metadata.noteType.trim());
         }
+        if (Array.isArray(n.metadata.customProperties)) {
+          n.metadata.customProperties.forEach((cp: any) => {
+            if (cp && typeof cp.key === 'string' && cp.key.trim()) {
+              const cleanKey = cp.key.trim();
+              allCustomKeys.add(cleanKey);
+
+              if (cp.value !== undefined && cp.value !== null && cp.value !== '') {
+                const cleanVal = String(cp.value).trim();
+                if (cleanVal) {
+                  if (!valuesByKeyMap[cleanKey]) {
+                    valuesByKeyMap[cleanKey] = new Set<string>();
+                  }
+                  valuesByKeyMap[cleanKey].add(cleanVal);
+                }
+              }
+            }
+          });
+        }
       }
     });
+
+    const valuesByKey: Record<string, string[]> = {};
+    Object.keys(valuesByKeyMap).forEach((k) => {
+      valuesByKey[k] = Array.from(valuesByKeyMap[k]).sort();
+    });
+
     return {
       existingTags: Array.from(allTags).sort(),
       existingNoteTypes: Array.from(allNoteTypes).sort(),
+      existingCustomPropertyKeys: Array.from(allCustomKeys).sort(),
+      existingCustomPropertyValuesByKey: valuesByKey,
     };
   }, [vault.nodes]);
 
@@ -138,7 +167,9 @@ export function useNoteProperties({
     handleTagsChange,
     handleAliasesChange,
     handleCustomPropertiesChange,
-    existingTags: existingTagsAndTypes.existingTags,
-    existingNoteTypes: existingTagsAndTypes.existingNoteTypes,
+    existingTags: existingVaultSuggestions.existingTags,
+    existingNoteTypes: existingVaultSuggestions.existingNoteTypes,
+    existingCustomPropertyKeys: existingVaultSuggestions.existingCustomPropertyKeys,
+    existingCustomPropertyValuesByKey: existingVaultSuggestions.existingCustomPropertyValuesByKey,
   };
 }

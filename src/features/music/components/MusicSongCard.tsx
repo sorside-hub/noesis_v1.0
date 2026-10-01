@@ -1,71 +1,95 @@
-import React, { useState } from 'react';
-import { Music2, Mic, Clock, ChevronRight, Hash, MoreVertical } from 'lucide-react';
-import { SongItem, MusicProductionStatus, PRODUCTION_STAGES } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { Music2, Disc3, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { MusicReleaseItem, MusicProductionStatus, PRODUCTION_STAGES } from '../types';
 
 interface MusicSongCardProps {
-  song: SongItem;
-  onSelectSong: (songId: string) => void;
-  onUpdateStatus?: (songId: string, status: MusicProductionStatus) => void;
+  item: MusicReleaseItem;
+  onSelectItem: (item: MusicReleaseItem) => void;
+  onRenameItem?: (item: MusicReleaseItem) => void;
+  onUpdateStatus?: (item: MusicReleaseItem, status: MusicProductionStatus) => void;
+  onDeleteItem?: (item: MusicReleaseItem) => void;
 }
 
 export const MusicSongCard: React.FC<MusicSongCardProps> = ({
-  song,
-  onSelectSong,
+  item,
+  onSelectItem,
+  onRenameItem,
   onUpdateStatus,
+  onDeleteItem,
 }) => {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
-  const currentStage = PRODUCTION_STAGES.find(s => s.id === song.status) || PRODUCTION_STAGES[0];
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const statusMenuRef = useRef<HTMLDivElement>(null);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  const currentStage = PRODUCTION_STAGES.find((s) => s.id === item.status) || PRODUCTION_STAGES[0];
+  const isSingle = item.type === 'single';
+
+  // Close menus on outside click
+  useEffect(() => {
+    if (!showStatusMenu && !showActionMenu) return;
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (statusMenuRef.current && !statusMenuRef.current.contains(e.target as Node)) {
+        setShowStatusMenu(false);
+      }
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+        setShowActionMenu(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handleClickOutside);
+    return () => document.removeEventListener('pointerdown', handleClickOutside);
+  }, [showStatusMenu, showActionMenu]);
 
   return (
-    <div 
-      onClick={() => onSelectSong(song.id)}
-      className="group relative p-3 rounded-xl bg-bg-secondary hover:bg-bg-hover transition-all cursor-pointer select-none flex flex-col justify-between gap-2.5"
+    <div
+      onClick={() => onSelectItem(item)}
+      className="group relative px-3.5 py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-hover transition-colors cursor-pointer select-none flex items-center justify-between gap-3"
     >
-      {/* Top row: Title + Status Dropdown */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <h4 className="text-sm font-semibold text-text-heading group-hover:text-accent-primary transition-colors truncate">
-              {song.title}
-            </h4>
-            {song.hasAudioMemo && (
-              <span title="Terdapat rekaman audio / memo" className="flex items-center text-[10px] px-1.5 py-0.5 rounded-md bg-accent-primary/10 text-accent-primary font-medium shrink-0">
-                <Mic size={10} className="mr-0.5" /> Demo
-              </span>
-            )}
-          </div>
-
-          {song.project && (
-            <p className="text-[11px] text-text-muted mt-0.5 truncate flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-primary/60 shrink-0" />
-              {song.project}
-            </p>
-          )}
+      {/* Icon + Judul + Badge Rilisan */}
+      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div className="text-text-muted group-hover:text-accent-primary transition-colors shrink-0">
+          {isSingle ? <Music2 size={16} /> : <Disc3 size={16} />}
         </div>
 
-        {/* Status Badge & Clickable Selector */}
-        <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
+        <h4 className="text-xs sm:text-sm font-semibold text-text-heading group-hover:text-accent-primary transition-colors truncate">
+          {item.title || 'Tanpa Judul'}
+        </h4>
+
+        <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-bg-primary text-text-muted uppercase tracking-wider shrink-0">
+          {item.type}
+        </span>
+      </div>
+
+      {/* Right Controls: Status Selector & Titik 3 Menu */}
+      <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+        {/* Status Badge & Dropdown - NO BORDER */}
+        <div className="relative" ref={statusMenuRef}>
           <button
             type="button"
-            onClick={() => setShowStatusMenu(!showStatusMenu)}
-            className={`text-[10px] font-medium px-2 py-0.5 rounded-full transition-all cursor-pointer flex items-center gap-1 ${currentStage.bgLight} ${currentStage.color}`}
+            onClick={() => {
+              setShowStatusMenu(!showStatusMenu);
+              setShowActionMenu(false);
+            }}
+            className={`text-[10px] font-medium px-2.5 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${currentStage.bgLight} ${currentStage.color}`}
           >
             <span>{currentStage.icon}</span>
             <span>{currentStage.label}</span>
           </button>
 
           {showStatusMenu && (
-            <div className="absolute right-0 top-full mt-1 w-36 bg-bg-secondary rounded-xl shadow-xl p-1 z-30 ring-1 ring-border-default/40 backdrop-blur-md">
+            <div className="absolute right-0 top-full mt-1 w-36 bg-bg-secondary rounded-xl shadow-xl p-1 z-40 select-none animate-in fade-in zoom-in-95 duration-100">
               {PRODUCTION_STAGES.map((stage) => (
                 <button
                   key={stage.id}
                   type="button"
                   onClick={() => {
-                    if (onUpdateStatus) onUpdateStatus(song.id, stage.id);
+                    if (onUpdateStatus) onUpdateStatus(item, stage.id);
                     setShowStatusMenu(false);
                   }}
                   className={`w-full text-left px-2 py-1.5 text-xs rounded-lg flex items-center justify-between transition-colors cursor-pointer ${
-                    song.status === stage.id
+                    item.status === stage.id
                       ? 'bg-accent-primary text-accent-contrast font-medium'
                       : 'text-text-primary hover:bg-bg-hover'
                   }`}
@@ -79,36 +103,54 @@ export const MusicSongCard: React.FC<MusicSongCardProps> = ({
             </div>
           )}
         </div>
-      </div>
 
-      {/* Snippet Preview */}
-      {song.snippet && (
-        <p className="text-xs text-text-muted/80 line-clamp-2 leading-relaxed">
-          {song.snippet}
-        </p>
-      )}
+        {/* Titik 3 Action Button & Dropdown - NO BORDER */}
+        <div className="relative" ref={actionMenuRef}>
+          <button
+            type="button"
+            onClick={() => {
+              setShowActionMenu(!showActionMenu);
+              setShowStatusMenu(false);
+            }}
+            className="w-7 h-7 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-primary flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+            title="Aksi"
+            aria-label="Aksi"
+          >
+            <MoreVertical size={14} />
+          </button>
 
-      {/* Musical Chips: Key, BPM, Tuning, Capo */}
-      <div className="flex items-center justify-between pt-1 border-t border-border-default/20 text-[11px] text-text-muted">
-        <div className="flex items-center gap-2 flex-wrap">
-          {song.key && (
-            <span className="px-1.5 py-0.5 rounded-md bg-bg-primary/80 font-mono font-medium text-text-primary text-[10px]">
-              Key: {song.key}
-            </span>
-          )}
-          {song.bpm && (
-            <span className="px-1.5 py-0.5 rounded-md bg-bg-primary/80 font-mono text-text-secondary text-[10px]">
-              {song.bpm} BPM
-            </span>
-          )}
-          {song.capo !== undefined && song.capo > 0 && (
-            <span className="px-1.5 py-0.5 rounded-md bg-bg-primary/80 text-text-secondary text-[10px]">
-              Capo {song.capo}
-            </span>
+          {showActionMenu && (
+            <div className="absolute right-0 top-full mt-1 w-36 bg-bg-secondary rounded-xl shadow-xl p-1 z-40 select-none animate-in fade-in zoom-in-95 duration-100">
+              {/* 1. Ubah Judul */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowActionMenu(false);
+                  onRenameItem?.(item);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer text-left"
+              >
+                <Pencil size={13} className="text-text-muted" />
+                <span>Ubah Judul</span>
+              </button>
+
+              <div className="h-px bg-border-default/20 my-1" />
+
+              {/* 2. Hapus */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowActionMenu(false);
+                  onDeleteItem?.(item);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer text-left"
+              >
+                <Trash2 size={13} />
+                <span>Hapus</span>
+              </button>
+            </div>
           )}
         </div>
-
-        <ChevronRight size={13} className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
       </div>
     </div>
   );

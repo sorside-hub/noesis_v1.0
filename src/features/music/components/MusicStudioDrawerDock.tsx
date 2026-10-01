@@ -7,22 +7,19 @@ export type StudioViewTab = 'pipeline' | 'songs' | 'projects';
 interface MusicStudioDrawerDockProps {
   activeTab: StudioViewTab;
   setActiveTab: (tab: StudioViewTab) => void;
-  songsCount: number;
-  projectsCount: number;
+  songsCount?: number;
+  projectsCount?: number;
 }
 
 interface StudioNavItem {
   id: StudioViewTab;
   label: string;
   icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
-  badgeCount?: number;
 }
 
 export const MusicStudioDrawerDock: React.FC<MusicStudioDrawerDockProps> = ({
   activeTab,
   setActiveTab,
-  songsCount,
-  projectsCount,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dockRef = useRef<HTMLDivElement>(null);
@@ -37,13 +34,11 @@ export const MusicStudioDrawerDock: React.FC<MusicStudioDrawerDockProps> = ({
       id: 'songs',
       label: 'Daftar Lagu',
       icon: ListMusic,
-      badgeCount: songsCount,
     },
     {
       id: 'projects',
-      label: 'Album & EP',
+      label: 'Diskografi',
       icon: Disc3,
-      badgeCount: projectsCount,
     },
   ];
 
@@ -99,20 +94,20 @@ export const MusicStudioDrawerDock: React.FC<MusicStudioDrawerDockProps> = ({
           />
         </svg>
 
-        {/* Icon di dalam trigger tab */}
+        {/* Current Active Icon inside Handle - No numbers, no dots */}
         <div className="relative z-10 flex flex-col items-center justify-center h-full mt-2.5 pr-0.5 text-text-primary group-hover:text-accent-primary transition-colors">
           <CurrentIcon size={14} strokeWidth={2} />
         </div>
       </button>
 
       {/* 
-        PANEL SLIDER VIEW (DOCK BODY)
-        Lebar 48px, tersusun rapi dalam satu kolom vertikal tanpa border luar.
+        DOCK PANEL BODY (Matching Hub Dock layout: 48px width, no numbers, no dots)
       */}
       <div className="w-[48px] bg-bg-quaternary rounded-l-2xl p-1.5 flex flex-col items-center gap-1 shrink-0">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+
           return (
             <button
               key={item.id}
@@ -121,21 +116,16 @@ export const MusicStudioDrawerDock: React.FC<MusicStudioDrawerDockProps> = ({
                 setActiveTab(item.id);
                 setIsOpen(false);
               }}
+              title={item.label}
+              aria-label={item.label}
               className={twMerge(
-                'relative w-8 h-8 flex items-center justify-center rounded-xl transition-all cursor-pointer group',
+                'w-8 h-8 flex items-center justify-center rounded-xl transition-all cursor-pointer group',
                 isActive
                   ? 'bg-bg-hover text-text-primary font-bold shadow-xs'
                   : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
               )}
-              title={item.label}
-              aria-label={item.label}
             >
               <Icon size={15} strokeWidth={isActive ? 2.2 : 1.8} />
-
-              {/* Badge dot jika count > 0 */}
-              {item.badgeCount !== undefined && item.badgeCount > 0 && !isActive && (
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-accent-primary" />
-              )}
             </button>
           );
         })}

@@ -1,18 +1,18 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Plus } from 'lucide-react';
-import { SongItem, MusicProductionStatus } from '../types';
+import { MusicReleaseItem, MusicProductionStatus } from '../types';
 import { MusicKanbanCard } from './MusicKanbanCard';
 
 interface MusicKanbanColumnProps {
   stageId: MusicProductionStatus;
   label: string;
   icon: string;
-  songs: SongItem[];
-  onSelectSong: (songId: string) => void;
-  onUpdateStatus: (songId: string, status: MusicProductionStatus) => void;
-  onCreateSongInStage?: (stage: MusicProductionStatus) => void;
+  items: MusicReleaseItem[];
+  onSelectItem: (item: MusicReleaseItem) => void;
+  onRenameItem?: (item: MusicReleaseItem) => void;
+  onUpdateStatus?: (item: MusicReleaseItem, status: MusicProductionStatus) => void;
+  onDeleteItem?: (item: MusicReleaseItem) => void;
 }
 
 const getColumnTheme = (stageId: MusicProductionStatus) => {
@@ -66,10 +66,11 @@ export const MusicKanbanColumn: React.FC<MusicKanbanColumnProps> = ({
   stageId,
   label,
   icon,
-  songs,
-  onSelectSong,
+  items,
+  onSelectItem,
+  onRenameItem,
   onUpdateStatus,
-  onCreateSongInStage,
+  onDeleteItem,
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: stageId,
@@ -80,7 +81,7 @@ export const MusicKanbanColumn: React.FC<MusicKanbanColumnProps> = ({
   });
 
   const theme = getColumnTheme(stageId);
-  const songIds = songs.map((s) => s.id);
+  const itemIds = items.map((it) => it.id);
 
   return (
     <div
@@ -94,54 +95,43 @@ export const MusicKanbanColumn: React.FC<MusicKanbanColumnProps> = ({
       {/* Top Ambient Glow Line */}
       <div className={`h-1 w-full shrink-0 ${theme.topLine}`} />
 
-      {/* Column Header with only border-b divider */}
+      {/* Column Header (Matching InboxTriageColumn) */}
       <div className="p-3 border-b border-border-default/40 bg-bg-secondary flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full shrink-0 ${theme.dot}`} />
           <div className="flex items-center gap-1.5">
-            <span className="text-sm">{icon}</span>
+            <span className="text-sm font-medium">{icon}</span>
             <h3 className="text-xs font-bold text-text-heading tracking-tight">
               {label}
             </h3>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${theme.badge} shrink-0`}>
-            {songs.length}
-          </span>
-
-          {onCreateSongInStage && (
-            <button
-              type="button"
-              onClick={() => onCreateSongInStage(stageId)}
-              title={`Tambah Lagu ke tahap ${label}`}
-              className="w-6 h-6 flex items-center justify-center rounded-lg text-text-muted hover:text-accent-primary hover:bg-bg-hover transition-colors cursor-pointer"
-            >
-              <Plus size={14} />
-            </button>
-          )}
-        </div>
+        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${theme.badge} shrink-0`}>
+          {items.length}
+        </span>
       </div>
 
-      {/* Column Body / Cards in bg-bg-primary list - fills entire height to bottom */}
-      <div className="flex-1 min-h-0 p-2.5 space-y-2.5 overflow-y-auto [scrollbar-width:thin]">
-        <SortableContext items={songIds} strategy={verticalListSortingStrategy}>
-          {songs.length === 0 ? (
-            <div className="h-28 flex flex-col items-center justify-center rounded-xl bg-bg-primary/40 text-center p-3 text-[11px] text-text-muted">
-              <span>Tarik atau tambah lagu ke sini</span>
-            </div>
-          ) : (
-            songs.map((song) => (
-              <MusicKanbanCard
-                key={song.id}
-                song={song}
-                onSelectSong={onSelectSong}
-                onUpdateStatus={onUpdateStatus}
-              />
-            ))
-          )}
+      {/* Cards List Body with Dnd-Kit SortableContext */}
+      <div className="flex-1 p-2 space-y-2 overflow-y-auto min-h-0 [scrollbar-width:thin]">
+        <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+          {items.map((item) => (
+            <MusicKanbanCard
+              key={item.id}
+              item={item}
+              onSelectItem={onSelectItem}
+              onRenameItem={onRenameItem}
+              onUpdateStatus={onUpdateStatus}
+              onDeleteItem={onDeleteItem}
+            />
+          ))}
         </SortableContext>
+
+        {items.length === 0 && (
+          <div className="h-24 flex items-center justify-center border border-dashed border-border-default/30 rounded-xl text-text-muted text-[11px]">
+            Kosong
+          </div>
+        )}
       </div>
     </div>
   );

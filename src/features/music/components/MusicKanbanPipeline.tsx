@@ -12,33 +12,32 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { PRODUCTION_STAGES, SongItem, MusicProductionStatus } from '../types';
+import { PRODUCTION_STAGES, MusicReleaseItem, MusicProductionStatus } from '../types';
 import { MusicKanbanColumn } from './MusicKanbanColumn';
 import { MusicKanbanCard } from './MusicKanbanCard';
 
 interface MusicKanbanPipelineProps {
-  songs: SongItem[];
-  onSelectSong: (songId: string) => void;
-  onUpdateStatus: (songId: string, status: MusicProductionStatus) => void;
-  onCreateSongInStage?: (stage: MusicProductionStatus) => void;
+  items: MusicReleaseItem[];
+  onSelectItem: (item: MusicReleaseItem) => void;
+  onRenameItem?: (item: MusicReleaseItem) => void;
+  onUpdateStatus: (item: MusicReleaseItem, status: MusicProductionStatus) => void;
+  onDeleteItem?: (item: MusicReleaseItem) => void;
 }
 
 export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
-  songs,
-  onSelectSong,
+  items,
+  onSelectItem,
+  onRenameItem,
   onUpdateStatus,
-  onCreateSongInStage,
+  onDeleteItem,
 }) => {
-  const [activeDragSong, setActiveDragSong] = useState<SongItem | null>(null);
+  const [activeDragItem, setActiveDragItem] = useState<MusicReleaseItem | null>(null);
   
-  // Smooth Auto-scroll state & refs (matching BoardView / InboxTriageView)
+  // Smooth Auto-scroll state & refs
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const autoScrollRafRef = useRef<number | null>(null);
   const currentPointerPosRef = useRef<{ clientX: number; clientY: number } | null>(null);
 
-  // Sensors for smooth drag & drop:
-  // MouseSensor: 5px distance to differentiate click vs drag
-  // TouchSensor: 200ms hold delay and 6px tolerance to allow normal scrolling on mobile until intentionally held
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
@@ -56,7 +55,6 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
     })
   );
 
-  // --- SMOOTH AUTO-SCROLL LOOP DURING DRAGGING ---
   const stopAutoScroll = useCallback(() => {
     if (autoScrollRafRef.current) {
       cancelAnimationFrame(autoScrollRafRef.current);
@@ -72,17 +70,14 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
 
       if (container && pointer) {
         const rect = container.getBoundingClientRect();
-        const edgeThreshold = 70; // 70px threshold from left / right container edges
-        const maxSpeed = 14; // Smooth maximum px per frame
+        const edgeThreshold = 70;
+        const maxSpeed = 14;
 
-        // Check horizontal distance from container edges
         if (pointer.clientX > rect.right - edgeThreshold) {
-          // Near right edge -> scroll right smoothly
           const proximity = Math.min(1, Math.max(0, (pointer.clientX - (rect.right - edgeThreshold)) / edgeThreshold));
           const speed = Math.ceil(proximity * maxSpeed);
           container.scrollLeft += Math.max(2, speed);
         } else if (pointer.clientX < rect.left + edgeThreshold) {
-          // Near left edge -> scroll left smoothly
           const proximity = Math.min(1, Math.max(0, ((rect.left + edgeThreshold) - pointer.clientX) / edgeThreshold));
           const speed = Math.ceil(proximity * maxSpeed);
           container.scrollLeft -= Math.max(2, speed);
@@ -97,9 +92,8 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
     }
   }, []);
 
-  // Track global pointer movement while dragging to feed smooth auto-scroll loop
   useEffect(() => {
-    if (!activeDragSong) {
+    if (!activeDragItem) {
       stopAutoScroll();
       return;
     }
@@ -126,49 +120,49 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('touchmove', handlePointerMove);
     };
-  }, [activeDragSong, startAutoScroll, stopAutoScroll]);
+  }, [activeDragItem, startAutoScroll, stopAutoScroll]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const songId = active.id as string;
-    const foundSong = songs.find((s) => s.id === songId);
-    if (foundSong) {
-      setActiveDragSong(foundSong);
+    const itemId = active.id as string;
+    const foundItem = items.find((it) => it.id === itemId);
+    if (foundItem) {
+      setActiveDragItem(foundItem);
     }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveDragSong(null);
+    setActiveDragItem(null);
     stopAutoScroll();
 
     if (!over) return;
 
-    const activeSongId = active.id as string;
+    const activeItemId = active.id as string;
     const overId = over.id as string;
 
     // Check if dropped directly onto a column stage
     const targetStage = PRODUCTION_STAGES.find((s) => s.id === overId);
     if (targetStage) {
-      const draggedSong = songs.find((s) => s.id === activeSongId);
-      if (draggedSong && draggedSong.status !== targetStage.id) {
-        onUpdateStatus(activeSongId, targetStage.id);
+      const draggedItem = items.find((it) => it.id === activeItemId);
+      if (draggedItem && draggedItem.status !== targetStage.id) {
+        onUpdateStatus(draggedItem, targetStage.id);
       }
       return;
     }
 
     // Check if dropped onto another card in a column
-    const overSong = songs.find((s) => s.id === overId);
-    if (overSong) {
-      const draggedSong = songs.find((s) => s.id === activeSongId);
-      if (draggedSong && draggedSong.status !== overSong.status) {
-        onUpdateStatus(activeSongId, overSong.status);
+    const overItem = items.find((it) => it.id === overId);
+    if (overItem) {
+      const draggedItem = items.find((it) => it.id === activeItemId);
+      if (draggedItem && draggedItem.status !== overItem.status) {
+        onUpdateStatus(draggedItem, overItem.status);
       }
     }
   };
 
   const handleDragCancel = () => {
-    setActiveDragSong(null);
+    setActiveDragItem(null);
     stopAutoScroll();
   };
 
@@ -185,7 +179,7 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
         className="flex gap-3 overflow-x-auto overflow-y-hidden pb-1 pt-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full h-full min-h-0 items-stretch select-none"
       >
         {PRODUCTION_STAGES.map((stage) => {
-          const stageSongs = songs.filter((s) => s.status === stage.id);
+          const stageItems = items.filter((it) => it.status === stage.id);
 
           return (
             <MusicKanbanColumn
@@ -193,10 +187,11 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
               stageId={stage.id}
               label={stage.label}
               icon={stage.icon}
-              songs={stageSongs}
-              onSelectSong={onSelectSong}
+              items={stageItems}
+              onSelectItem={onSelectItem}
+              onRenameItem={onRenameItem}
               onUpdateStatus={onUpdateStatus}
-              onCreateSongInStage={onCreateSongInStage}
+              onDeleteItem={onDeleteItem}
             />
           );
         })}
@@ -207,11 +202,11 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
         duration: 180,
         easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
       }}>
-        {activeDragSong ? (
+        {activeDragItem ? (
           <div className="w-72 sm:w-80">
             <MusicKanbanCard
-              song={activeDragSong}
-              onSelectSong={() => {}}
+              item={activeDragItem}
+              onSelectItem={() => {}}
               isDraggingOverlay={true}
             />
           </div>

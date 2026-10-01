@@ -51,6 +51,16 @@ export interface MusicProject {
   createdAt: number;
 }
 
+export interface MusicReleaseItem {
+  id: string;
+  kind: 'song' | 'project';
+  type: MusicProjectType;
+  title: string;
+  status: MusicProductionStatus;
+  updatedAt: number;
+  createdAt: number;
+}
+
 export const PRODUCTION_STAGES: {
   id: MusicProductionStatus;
   label: string;
