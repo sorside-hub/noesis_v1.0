@@ -177,10 +177,22 @@ CREATE TABLE IF NOT EXISTS media_attachments (
 -- RLS for media_attachments
 ALTER TABLE media_attachments ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can insert their own media attachments" ON media_attachments FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can read their own media attachments" ON media_attachments FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can update their own media attachments" ON media_attachments FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own media attachments" ON media_attachments FOR DELETE USING (auth.uid() = user_id);
+DO $$ BEGIN
+  -- Drop legacy individual policies if exist to prevent ERROR 42710
+  DROP POLICY IF EXISTS "Users can insert their own media attachments" ON media_attachments;
+  DROP POLICY IF EXISTS "Users can read their own media attachments" ON media_attachments;
+  DROP POLICY IF EXISTS "Users can update their own media attachments" ON media_attachments;
+  DROP POLICY IF EXISTS "Users can delete their own media attachments" ON media_attachments;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'media_attachments' AND policyname = 'Users can manage their own media attachments'
+  ) THEN
+    CREATE POLICY "Users can manage their own media attachments" 
+    ON media_attachments FOR ALL 
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS chat_messages (
   id TEXT PRIMARY KEY,
@@ -324,12 +336,11 @@ ALTER TABLE studio_projects
 ALTER TABLE studio_projects ENABLE ROW LEVEL SECURITY;
 
 DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'studio_projects' AND policyname = 'Users can manage their own studio projects'
-  ) THEN
-    CREATE POLICY "Users can manage their own studio projects" 
-    ON studio_projects FOR ALL USING (auth.uid() = user_id);
-  END IF;
+  DROP POLICY IF EXISTS "Users can manage their own studio projects" ON studio_projects;
+  CREATE POLICY "Users can manage their own studio projects" 
+  ON studio_projects FOR ALL 
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 END $$;
 
 -- 2. TABEL LAGU STUDIO (Songs: Single & Track Album)
@@ -368,12 +379,11 @@ ALTER TABLE studio_songs
 ALTER TABLE studio_songs ENABLE ROW LEVEL SECURITY;
 
 DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'studio_songs' AND policyname = 'Users can manage their own studio songs'
-  ) THEN
-    CREATE POLICY "Users can manage their own studio songs" 
-    ON studio_songs FOR ALL USING (auth.uid() = user_id);
-  END IF;
+  DROP POLICY IF EXISTS "Users can manage their own studio songs" ON studio_songs;
+  CREATE POLICY "Users can manage their own studio songs" 
+  ON studio_songs FOR ALL 
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 END $$;
 
 -- 3. TABEL VERSI LIRIK & DRAFT (Lyric Versions)
@@ -396,12 +406,11 @@ ALTER TABLE studio_lyric_versions
 ALTER TABLE studio_lyric_versions ENABLE ROW LEVEL SECURITY;
 
 DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'studio_lyric_versions' AND policyname = 'Users can manage their own lyric versions'
-  ) THEN
-    CREATE POLICY "Users can manage their own lyric versions" 
-    ON studio_lyric_versions FOR ALL USING (auth.uid() = user_id);
-  END IF;
+  DROP POLICY IF EXISTS "Users can manage their own lyric versions" ON studio_lyric_versions;
+  CREATE POLICY "Users can manage their own lyric versions" 
+  ON studio_lyric_versions FOR ALL 
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 END $$;
 
 -- 4. INDEKS PERFORMA QUERY
