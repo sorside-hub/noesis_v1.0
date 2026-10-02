@@ -11,6 +11,8 @@ import { useVault } from './hooks/useVault';
 import { useTheme } from './hooks/useTheme';
 import { Loader2 } from 'lucide-react';
 import { NavigationProvider, useNavigation } from './context/NavigationContext';
+import { MusicPlayerProvider } from './features/music/context/MusicPlayerContext';
+import { FloatingVinylPlayer } from './features/music/components/FloatingVinylPlayer';
 import { VoiceNoteModal } from './features/voice/components/VoiceNoteModal';
 import { VoiceMemoModal } from './features/voice/components/VoiceMemoModal';
 import { mediaGC } from './lib/mediaGarbageCollector';
@@ -120,6 +122,9 @@ function AppContent({ vaultState }: { vaultState: ReturnType<typeof useVault> })
       {/* Global Voice Note & Voice Memo Modals */}
       <VoiceNoteModal vaultState={vaultState} />
       <VoiceMemoModal vaultState={vaultState} />
+
+      {/* Global Floating Spinning Vinyl Music Player */}
+      <FloatingVinylPlayer />
     </div>
   );
 }
@@ -140,12 +145,14 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <NavigationProvider
-        activeTabId={vaultState.vault.activeTabId}
-        onSelectTabId={vaultState.setActiveTabId}
-      >
-        <AppContent vaultState={vaultState} />
-      </NavigationProvider>
+      <MusicPlayerProvider>
+        <NavigationProvider
+          activeTabId={vaultState.vault.activeTabId}
+          onSelectTabId={vaultState.setActiveTabId}
+        >
+          <AppContent vaultState={vaultState} />
+        </NavigationProvider>
+      </MusicPlayerProvider>
     </AuthProvider>
   );
 }

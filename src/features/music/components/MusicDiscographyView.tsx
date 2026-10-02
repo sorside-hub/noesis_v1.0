@@ -5,10 +5,12 @@ import {
   Pause, 
   Music2, 
   ChevronDown, 
-  ChevronUp 
+  ChevronUp,
+  Volume2
 } from 'lucide-react';
 import { StudioProjectRecord, StudioSongRecord } from '../types/studioDatabase';
 import { MusicProjectType } from '../types';
+import { useMusicPlayer } from '../context/MusicPlayerContext';
 
 interface MusicDiscographyViewProps {
   projects: StudioProjectRecord[];
@@ -57,6 +59,15 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
   const [filterType, setFilterType] = useState<'all' | 'albums' | 'singles'>('all');
   const [expandedProjectIds, setExpandedProjectIds] = useState<Record<string, boolean>>({});
 
+  // Global Floating Vinyl Music Player
+  const {
+    currentTrack,
+    isPlaying,
+    playTrack,
+    playAlbum,
+    togglePlay,
+  } = useMusicPlayer();
+
   // Scroll persistence
   const listContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -78,30 +89,6 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
       sessionStorage.setItem('music_discography_scroll_y', String(listContainerRef.current.scrollTop));
     }
   }, []);
-
-  // Audio preview state
-  const [playingSongId, setPlayingSongId] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const handleTogglePlay = (song: StudioSongRecord, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!song.audioUrl) return;
-
-    if (playingSongId === song.id) {
-      audioRef.current?.pause();
-      setPlayingSongId(null);
-    } else {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      const newAudio = new Audio(song.audioUrl);
-      newAudio.onended = () => setPlayingSongId(null);
-      newAudio.onerror = () => setPlayingSongId(null);
-      newAudio.play().catch(() => setPlayingSongId(null));
-      audioRef.current = newAudio;
-      setPlayingSongId(song.id);
-    }
-  };
 
   const toggleExpand = (projectId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -346,41 +333,87 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
 
                     {/* RIGHT ACTIONS */}
                     <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                      {/* Audio Play preview for single */}
+                      {/* Audio Play for single */}
                       {isSingle && item.audioUrl && (
                         <button
                           type="button"
-                          onClick={(e) => handleTogglePlay(item.rawSong, e)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (currentTrack?.id === item.id) {
+                              togglePlay();
+                            } else {
+                              playTrack({
+                                id: item.id,
+                                title: item.title,
+                                subtitle: 'Single Rilis Resmi',
+                                audioUrl: item.audioUrl,
+                                coverUrl: item.coverUrl,
+                              });
+                            }
+                          }}
                           className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all cursor-pointer ${
-                            playingSongId === item.id 
+                            currentTrack?.id === item.id && isPlaying
                               ? 'bg-accent-primary text-accent-contrast shadow-xs' 
-                              : 'bg-bg-primary text-text-muted hover:text-text-primary'
+                              : 'bg-bg-primary text-text-muted hover:text-text-primary hover:bg-bg-hover'
                           }`}
-                          title={playingSongId === item.id ? 'Jeda preview' : 'Putar preview'}
+                          title={currentTrack?.id === item.id && isPlaying ? 'Jeda Single' : 'Putar Single'}
                         >
-                          {playingSongId === item.id ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
+                          {currentTrack?.id === item.id && isPlaying ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
                         </button>
                       )}
 
-                      {/* Accordion toggle icon for EP / Album */}
+                      {/* EP / Album Actions: Play Album & Accordion Toggle */}
                       {!isSingle && (
-                        <button
-                          type="button"
-                          onClick={(e) => toggleExpand(item.id, e)}
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                            isExpanded
-                              ? 'bg-bg-primary text-accent-primary shadow-xs'
-                              : 'text-text-muted hover:text-text-primary hover:bg-bg-primary'
-                          }`}
-                          title={isExpanded ? 'Tutup daftar track' : 'Buka daftar track'}
-                        >
-                          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        </button>
+                        <>
+                          {item.tracks.some((t) => Boolean(t.audioUrl)) && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const isAlbumCurrentlyPlaying = isPlaying && item.tracks.some((t) => t.id === currentTrack?.id);
+                                if (isAlbumCurrentlyPlaying) {
+                                  togglePlay();
+                                } else {
+                                  playAlbum(item.title, item.coverUrl, item.tracks);
+                                }
+                              }}
+                              className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+                                isPlaying && item.tracks.some((t) => t.id === currentTrack?.id)
+                                  ? 'bg-accent-primary text-accent-contrast shadow-xs'
+                                  : 'bg-bg-primary text-text-muted hover:text-text-primary hover:bg-bg-hover'
+                              }`}
+                              title={
+                                isPlaying && item.tracks.some((t) => t.id === currentTrack?.id)
+                                  ? 'Jeda Album'
+                                  : `Putar Seluruh Track ${item.type === 'album' ? 'Album' : 'EP'}`
+                              }
+                            >
+                              {isPlaying && item.tracks.some((t) => t.id === currentTrack?.id) ? (
+                                <Pause size={13} />
+                              ) : (
+                                <Play size={13} className="ml-0.5" />
+                              )}
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={(e) => toggleExpand(item.id, e)}
+                            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                              isExpanded
+                                ? 'bg-bg-primary text-accent-primary shadow-xs'
+                                : 'text-text-muted hover:text-text-primary hover:bg-bg-primary'
+                            }`}
+                            title={isExpanded ? 'Tutup daftar track' : 'Buka daftar track'}
+                          >
+                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
 
-                  {/* EXPANDED TRACKLIST FOR EP / ALBUM (CLEAN: NUMBER & TITLE ONLY) */}
+                  {/* EXPANDED TRACKLIST FOR EP / ALBUM (CLEAN: NUMBER & TITLE + PLAY BUTTON) */}
                   {item.kind === 'project' && isExpanded && (
                     <div className="border-t border-border-default/15 bg-bg-primary/40 divide-y divide-border-default/10 animate-in fade-in duration-150">
                       {item.tracks.length === 0 ? (
@@ -390,20 +423,67 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
                       ) : (
                         item.tracks.map((track, idx) => {
                           const trackNum = track.trackNumber || idx + 1;
+                          const isTrackPlaying = currentTrack?.id === track.id && isPlaying;
+                          const isTrackActive = currentTrack?.id === track.id;
 
                           return (
                             <div
                               key={track.id}
                               onClick={() => onSelectSong(track.id)}
-                              className="px-4 sm:px-5 py-2.5 flex items-center gap-3.5 hover:bg-bg-hover transition-colors cursor-pointer group/track"
+                              className="px-4 sm:px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-bg-hover transition-colors cursor-pointer group/track"
                             >
-                              <span className="text-[11px] font-mono text-text-muted w-5 text-center shrink-0">
-                                {trackNum < 10 ? `0${trackNum}` : trackNum}
-                              </span>
+                              <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                                <span className="text-[11px] font-mono text-text-muted w-5 text-center shrink-0">
+                                  {isTrackPlaying ? (
+                                    <Volume2 size={13} className="text-accent-primary mx-auto animate-pulse" />
+                                  ) : (
+                                    trackNum < 10 ? `0${trackNum}` : trackNum
+                                  )}
+                                </span>
 
-                              <span className="text-xs font-semibold text-text-primary group-hover/track:text-accent-primary transition-colors truncate">
-                                {track.title}
-                              </span>
+                                <span className={`text-xs font-semibold truncate transition-colors ${
+                                  isTrackActive ? 'text-accent-primary font-bold' : 'text-text-primary group-hover/track:text-accent-primary'
+                                }`}>
+                                  {track.title}
+                                </span>
+                              </div>
+
+                              {/* Track Play Button */}
+                              {track.audioUrl && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isTrackPlaying) {
+                                      togglePlay();
+                                    } else {
+                                      const allAlbumTracks = item.tracks
+                                        .filter((t) => Boolean(t.audioUrl))
+                                        .map((t) => ({
+                                          id: t.id,
+                                          title: t.title,
+                                          subtitle: item.title,
+                                          albumTitle: item.title,
+                                          audioUrl: t.audioUrl!,
+                                          coverUrl: t.coverUrl || item.coverUrl,
+                                          projectId: item.id,
+                                        }));
+                                      const target = allAlbumTracks.find((t) => t.id === track.id);
+                                      if (target) {
+                                        playTrack(target, allAlbumTracks);
+                                      }
+                                    }
+                                  }}
+                                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+                                    isTrackPlaying 
+                                      ? 'bg-accent-primary text-accent-contrast shadow-xs' 
+                                      : 'bg-bg-primary text-text-muted hover:text-text-primary hover:bg-bg-hover'
+                                  }`}
+                                  title={isTrackPlaying ? 'Jeda' : 'Putar Track'}
+                                >
+                                  {isTrackPlaying ? <Pause size={11} /> : <Play size={11} className="ml-0.5" />}
+                                </button>
+                              )}
                             </div>
                           );
                         })
