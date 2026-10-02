@@ -71,17 +71,17 @@ export const MusicStudioDrawerDock: React.FC<MusicStudioDrawerDockProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative w-[30px] h-[54px] flex flex-col items-center justify-center cursor-pointer group focus:outline-hidden transition-all active:scale-95 shrink-0"
+        className="relative w-[32px] h-[58px] flex items-center justify-center cursor-pointer group focus:outline-hidden transition-all active:scale-95 shrink-0"
         title={isOpen ? 'Tutup pilihan tampilan' : `Tampilan aktif: ${currentItem.label}`}
         aria-label="Toggle Studio Views Dock"
       >
-        {/* SVG Curved Handle matching Hub style */}
+        {/* SVG Symmetrical Flat-Face Trapezoid Handle */}
         <svg
-          viewBox="0 0 30 54"
-          className="absolute inset-0 w-full h-full overflow-visible transition-all"
+          viewBox="0 0 32 58"
+          className="absolute inset-0 w-full h-full overflow-visible transition-all drop-shadow-md"
         >
           <path
-            d="M 30 0 L 14 12 Q 2 18 2 24 L 2 48 Q 2 54 7 54 L 30 54 Z"
+            d="M 32,0 C 32,5 24,8 12,11 C 4,12 0,15 0,19 L 0,39 C 0,43 4,46 12,47 C 24,50 32,53 32,58 Z"
             style={{
               fill: 'var(--bg-quaternary)',
             }}
@@ -89,9 +89,9 @@ export const MusicStudioDrawerDock: React.FC<MusicStudioDrawerDockProps> = ({
           />
         </svg>
 
-        {/* Current Active Icon inside Handle - No numbers, no dots */}
-        <div className="relative z-10 flex flex-col items-center justify-center h-full mt-2.5 pr-0.5 text-text-primary group-hover:text-accent-primary transition-colors">
-          <CurrentIcon size={14} strokeWidth={2} />
+        {/* Current Active Icon safely inside flat face */}
+        <div className="relative z-10 flex items-center justify-center w-full h-full pl-1 text-text-primary group-hover:text-accent-primary transition-colors">
+          <CurrentIcon size={15} strokeWidth={2} />
         </div>
       </button>
 

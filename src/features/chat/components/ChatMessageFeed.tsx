@@ -260,7 +260,7 @@ export const ChatMessageFeed: React.FC<ChatMessageFeedProps> = ({
       ref={scrollContainerRef} 
       onScroll={handleScroll} 
       onClick={handleFeedClick}
-      className="flex-1 overflow-y-auto px-4 pt-14 pb-0 flex flex-col"
+      className="flex-1 overflow-y-auto px-4 pt-14 pb-20 lg:pb-12 flex flex-col"
       style={{ overflowAnchor: 'none' }}
     >
       {uniqueMessages.length === 0 ? (
@@ -281,7 +281,7 @@ export const ChatMessageFeed: React.FC<ChatMessageFeedProps> = ({
           </div>
         </div>
       ) : (
-        <div className="max-w-3xl w-full mx-auto space-y-8 pb-0">
+        <div className="max-w-3xl w-full mx-auto space-y-8 pb-4">
           {uniqueMessages.map((msg, index) => {
             const isLastAssistantMessage =
               isProcessing && index === uniqueMessages.length - 1 && msg.role === 'assistant';
@@ -371,7 +371,7 @@ export const ChatMessageFeed: React.FC<ChatMessageFeedProps> = ({
 
     {/* Floating Scroll to Bottom Button */}
     {showScrollBtn && (
-      <div className="absolute bottom-20 lg:bottom-24 left-0 right-0 z-40 pointer-events-none flex justify-center px-4 md:px-8">
+      <div className="absolute bottom-26 lg:bottom-24 left-0 right-0 z-40 pointer-events-none flex justify-center px-4 md:px-8">
         <div className="max-w-3xl w-full flex justify-end">
           <button
             onClick={scrollToBottom}

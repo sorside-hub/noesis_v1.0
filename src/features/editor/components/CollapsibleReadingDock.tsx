@@ -155,7 +155,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
       }
 
       const normalHeight = vv ? Math.max(vv.height, window.innerHeight) : window.innerHeight;
-      setLockedTop(Math.round(normalHeight * 0.44));
+      setLockedTop(Math.round(normalHeight * 0.5));
     };
 
     updatePosition();
@@ -240,7 +240,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
       ref={dockRef}
       id="collapsible-reading-dock"
       style={{
-        top: lockedTop !== null ? `${lockedTop}px` : '44lvh',
+        top: lockedTop !== null ? `${lockedTop}px` : '50%',
       }}
       className={`fixed right-0 -translate-y-1/2 z-40 flex items-center transition-transform duration-300 ease-out select-none ${
         isOpen ? 'translate-x-0' : 'translate-x-[56px]'
@@ -254,17 +254,17 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
       <button
         type="button"
         onClick={() => toggleDock()}
-        className="relative w-[30px] h-[86px] flex flex-col items-center justify-center cursor-pointer group focus:outline-hidden transition-all duration-300 active:scale-95"
+        className="relative w-[32px] h-[92px] flex items-center justify-center cursor-pointer group focus:outline-hidden transition-all duration-300 active:scale-95"
         title={isOpen ? 'Lipat panel dock' : 'Buka Live Performance Dock (Scroll, Key, Transpose, BPM, Capo)'}
         aria-label="Toggle Reading Tools Dock"
       >
-        {/* SVG Trapesium Siku-siku Vertikal */}
+        {/* SVG Symmetrical Flat-Face Trapezoid Handle */}
         <svg
-          viewBox="0 0 30 86"
-          className="absolute inset-0 w-full h-full overflow-visible transition-all"
+          viewBox="0 0 32 92"
+          className="absolute inset-0 w-full h-full overflow-visible transition-all drop-shadow-md"
         >
           <path
-            d="M 30 0 L 14 14 Q 2 22 2 30 L 2 80 Q 2 86 7 86 L 30 86 Z"
+            d="M 32,0 C 32,6 24,9 12,12 C 4,13 0,15 0,18 L 0,74 C 0,77 4,79 12,80 C 24,83 32,86 32,92 Z"
             style={{
               fill: 'var(--bg-quaternary)',
             }}
@@ -272,8 +272,8 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
           />
         </svg>
 
-        {/* Icon di dalam trigger */}
-        <div className="relative z-10 flex flex-col items-center justify-between h-[56px] mt-4 pr-0.5 text-text-primary group-hover:text-accent-primary transition-colors">
+        {/* Icons inside flat outer face */}
+        <div className="relative z-10 flex flex-col items-center justify-between h-[56px] py-1 pl-1 text-text-primary group-hover:text-accent-primary transition-colors">
           {/* Icon 1: Auto-Scroll */}
           <div
             className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${

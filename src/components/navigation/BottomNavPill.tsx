@@ -53,8 +53,6 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           <path
             d="M 0,38 C 10,38 18,24 24,10 C 27,3 33,0 40,0 L 260,0 C 267,0 273,3 276,10 C 282,24 290,38 300,38 Z"
             style={{ fill: 'var(--bg-quaternary)' }}
-            className="stroke-border-default/25"
-            strokeWidth="1"
           />
         </svg>
 

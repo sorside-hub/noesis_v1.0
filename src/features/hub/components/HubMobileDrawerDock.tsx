@@ -54,23 +54,22 @@ export const HubMobileDrawerDock: React.FC<HubMobileDrawerDockProps> = ({
       )}
     >
       {/* 
-        TRIGGER TAB (Trapesium Siku-siku Vertikal menempel di tepi kiri dock)
-        Saat dock tertutup (translate-x-[48px]), bagian tab ini tetap menempel di tepi kanan layar.
+        TRIGGER TAB (Symmetrical Flat-Face Handle without border)
       */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative w-[30px] h-[54px] flex flex-col items-center justify-center cursor-pointer group focus:outline-hidden transition-all active:scale-95 shrink-0"
+        className="relative w-[32px] h-[58px] flex items-center justify-center cursor-pointer group focus:outline-hidden transition-all active:scale-95 shrink-0"
         title={isOpen ? 'Tutup pilihan tampilan' : `Tampilan aktif: ${currentItem.label}`}
         aria-label="Toggle HUB Views Dock"
       >
-        {/* SVG Curved Handle */}
+        {/* SVG Symmetrical Handle without border */}
         <svg
-          viewBox="0 0 30 54"
-          className="absolute inset-0 w-full h-full overflow-visible transition-all"
+          viewBox="0 0 32 58"
+          className="absolute inset-0 w-full h-full overflow-visible transition-all drop-shadow-md"
         >
           <path
-            d="M 30 0 L 14 12 Q 2 18 2 24 L 2 48 Q 2 54 7 54 L 30 54 Z"
+            d="M 32,0 C 32,5 24,8 12,11 C 4,12 0,15 0,19 L 0,39 C 0,43 4,46 12,47 C 24,50 32,53 32,58 Z"
             style={{
               fill: 'var(--bg-quaternary)',
             }}
@@ -78,15 +77,14 @@ export const HubMobileDrawerDock: React.FC<HubMobileDrawerDockProps> = ({
           />
         </svg>
 
-        {/* Icon di dalam trigger tab */}
-        <div className="relative z-10 flex flex-col items-center justify-center h-full mt-2.5 pr-0.5 text-text-primary group-hover:text-accent-primary transition-colors">
-          <CurrentIcon size={14} strokeWidth={2} />
+        {/* Active Icon centered safely inside flat face */}
+        <div className="relative z-10 flex items-center justify-center w-full h-full pl-1 text-text-primary group-hover:text-accent-primary transition-colors">
+          <CurrentIcon size={15} strokeWidth={2} />
         </div>
       </button>
 
       {/* 
         PANEL SLIDER VIEW (DOCK BODY)
-        Lebar 48px, tersusun rapi dalam satu kolom vertikal (hanya icon).
       */}
       <div className="w-[48px] bg-bg-quaternary rounded-l-2xl p-1.5 flex flex-col items-center gap-1 shrink-0">
         {/* Group 1: Metadata Views (Inbox, Table, Board, Concepts) */}
