@@ -203,8 +203,14 @@ export function useMusicStudio() {
       updatedAt: now,
     };
 
-    await saveStudioSong(newSong);
-    await reloadData();
+    // 1. Instant 0ms Optimistic UI update for snappy satset reactivity
+    setDbSongs((prev) => [newSong, ...prev]);
+
+    // 2. Background non-blocking persistence
+    saveStudioSong(newSong).catch((err) => {
+      console.error('[MusicStudio] Failed to save song:', err);
+    });
+
     return songId;
   };
 
@@ -231,8 +237,14 @@ export function useMusicStudio() {
       updatedAt: now,
     };
 
-    await saveStudioProject(newProject);
-    await reloadData();
+    // 1. Instant 0ms Optimistic UI update for snappy satset reactivity
+    setDbProjects((prev) => [newProject, ...prev]);
+
+    // 2. Background non-blocking persistence
+    saveStudioProject(newProject).catch((err) => {
+      console.error('[MusicStudio] Failed to save project:', err);
+    });
+
     return projId;
   };
 

@@ -21,30 +21,32 @@ export async function getAllStudioProjects(): Promise<StudioProjectRecord[]> {
 export async function saveStudioProject(project: StudioProjectRecord): Promise<void> {
   await db.studio_projects.put(project);
 
-  // Sync to Supabase if configured & logged in
+  // Background non-blocking sync to Supabase if configured & logged in
   const config = getSupabaseConfig();
   if (config.isConfigured && supabase) {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('studio_projects').upsert({
-          id: project.id,
-          title: project.title,
-          type: project.type,
-          status: project.status || 'idea',
-          genre: project.genre || null,
-          target_release_date: project.targetReleaseDate || null,
-          cover_url: project.coverUrl || null,
-          description: project.description || null,
-          progress_note: project.progressNote || null,
-          user_id: user.id,
-          created_at: project.createdAt,
-          updated_at: project.updatedAt,
-        });
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('studio_projects').upsert({
+            id: project.id,
+            title: project.title,
+            type: project.type,
+            status: project.status || 'idea',
+            genre: project.genre || null,
+            target_release_date: project.targetReleaseDate || null,
+            cover_url: project.coverUrl || null,
+            description: project.description || null,
+            progress_note: project.progressNote || null,
+            user_id: user.id,
+            created_at: project.createdAt,
+            updated_at: project.updatedAt,
+          });
+        }
+      } catch (err) {
+        console.warn('[MusicStudio] Remote project sync failed, saved locally:', err);
       }
-    } catch (err) {
-      console.warn('[MusicStudio] Remote project sync failed, saved locally:', err);
-    }
+    })();
   }
 }
 
@@ -131,42 +133,44 @@ export async function getStudioSongById(id: string): Promise<StudioSongRecord | 
 export async function saveStudioSong(song: StudioSongRecord): Promise<void> {
   await db.studio_songs.put(song);
 
-  // Sync to Supabase if configured & logged in
+  // Background non-blocking sync to Supabase if configured & logged in
   const config = getSupabaseConfig();
   if (config.isConfigured && supabase) {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('studio_songs').upsert({
-          id: song.id,
-          project_id: song.projectId || null,
-          release_type: song.releaseType || 'single',
-          track_number: song.trackNumber || null,
-          title: song.title,
-          premise: song.premise || '',
-          scratchpad: song.scratchpad || '',
-          content_lyrics: song.contentLyrics,
-          status: song.status,
-          progress: typeof song.progress === 'number' ? song.progress : 0,
-          progress_note: song.progressNote || null,
-          musical_key: song.musicalKey,
-          bpm: song.bpm,
-          capo: song.capo,
-          time_signature: song.timeSignature,
-          tuning: song.tuning,
-          genre: song.genre || null,
-          target_release_date: song.targetReleaseDate || null,
-          reference_link: song.referenceLink || null,
-          audio_url: song.audioUrl || null,
-          cover_url: song.coverUrl || null,
-          user_id: user.id,
-          created_at: song.createdAt,
-          updated_at: song.updatedAt,
-        });
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('studio_songs').upsert({
+            id: song.id,
+            project_id: song.projectId || null,
+            release_type: song.releaseType || 'single',
+            track_number: song.trackNumber || null,
+            title: song.title,
+            premise: song.premise || '',
+            scratchpad: song.scratchpad || '',
+            content_lyrics: song.contentLyrics,
+            status: song.status,
+            progress: typeof song.progress === 'number' ? song.progress : 0,
+            progress_note: song.progressNote || null,
+            musical_key: song.musicalKey,
+            bpm: song.bpm,
+            capo: song.capo,
+            time_signature: song.timeSignature,
+            tuning: song.tuning,
+            genre: song.genre || null,
+            target_release_date: song.targetReleaseDate || null,
+            reference_link: song.referenceLink || null,
+            audio_url: song.audioUrl || null,
+            cover_url: song.coverUrl || null,
+            user_id: user.id,
+            created_at: song.createdAt,
+            updated_at: song.updatedAt,
+          });
+        }
+      } catch (err) {
+        console.warn('[MusicStudio] Remote song sync failed, saved locally:', err);
       }
-    } catch (err) {
-      console.warn('[MusicStudio] Remote song sync failed, saved locally:', err);
-    }
+    })();
   }
 }
 
@@ -175,11 +179,13 @@ export async function deleteStudioSong(id: string): Promise<void> {
 
   const config = getSupabaseConfig();
   if (config.isConfigured && supabase) {
-    try {
-      await supabase.from('studio_songs').delete().eq('id', id);
-    } catch (err) {
-      console.warn('[MusicStudio] Remote song delete failed:', err);
-    }
+    (async () => {
+      try {
+        await supabase.from('studio_songs').delete().eq('id', id);
+      } catch (err) {
+        console.warn('[MusicStudio] Remote song delete failed:', err);
+      }
+    })();
   }
 }
 
@@ -205,23 +211,25 @@ export async function saveLyricVersion(version: StudioLyricVersionRecord): Promi
 
   const config = getSupabaseConfig();
   if (config.isConfigured && supabase) {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('studio_lyric_versions').upsert({
-          id: version.id,
-          song_id: version.songId,
-          version_name: version.versionName,
-          content: version.content,
-          is_focused: !!version.isFocused,
-          is_final: !!version.isFinal,
-          user_id: user.id,
-          created_at: version.createdAt,
-        });
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('studio_lyric_versions').upsert({
+            id: version.id,
+            song_id: version.songId,
+            version_name: version.versionName,
+            content: version.content,
+            is_focused: !!version.isFocused,
+            is_final: !!version.isFinal,
+            user_id: user.id,
+            created_at: version.createdAt,
+          });
+        }
+      } catch (err) {
+        console.warn('[MusicStudio] Remote lyric version sync failed:', err);
       }
-    } catch (err) {
-      console.warn('[MusicStudio] Remote lyric version sync failed:', err);
-    }
+    })();
   }
 }
 

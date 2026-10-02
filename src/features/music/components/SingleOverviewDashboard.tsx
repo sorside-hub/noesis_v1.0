@@ -177,8 +177,8 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   // Next version prefix calculation (e.g. v1, v2, v3)
   const nextVersionPrefix = `v${lyricVersions.length + 1}`;
 
-  // Create new version with smart "v1", "v2" prefix + optional title
-  const handleCreateNewVersion = async () => {
+  // Create new version with smart "v1", "v2" prefix + optional title (INSTANT OPTIMISTIC UI)
+  const handleCreateNewVersion = () => {
     const customTitle = newVersionTitleInput.trim();
     const versionName = customTitle ? `${nextVersionPrefix} - ${customTitle}` : nextVersionPrefix;
 
@@ -193,16 +193,20 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
       createdAt: new Date().toISOString(),
     };
 
-    if (isFirst) {
-      for (const v of lyricVersions) {
-        await saveLyricVersion({ ...v, isFocused: false });
-      }
-    }
+    // 1. Instant 0ms Optimistic UI update
+    const updatedList = isFirst
+      ? [newVersion, ...lyricVersions.map((v) => ({ ...v, isFocused: false }))]
+      : [...lyricVersions, newVersion];
 
-    await saveLyricVersion(newVersion);
-    await loadVersions();
+    setLyricVersions(updatedList);
     setIsNewVersionModalOpen(false);
     setNewVersionTitleInput('');
+
+    // 2. Non-blocking background persistence
+    if (isFirst) {
+      lyricVersions.forEach((v) => saveLyricVersion({ ...v, isFocused: false }).catch(console.warn));
+    }
+    saveLyricVersion(newVersion).catch(console.warn);
   };
 
   // Toggle or Set focused version (INSTANT OPTIMISTIC UI)
