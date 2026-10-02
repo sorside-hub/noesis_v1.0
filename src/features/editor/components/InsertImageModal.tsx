@@ -17,12 +17,20 @@ interface InsertImageModalProps {
   isOpen: boolean;
   onClose: () => void;
   onInsertImage: (imageData: { src: string; alt: string; title?: string }) => void;
+  customTitle?: string;
+  uploadTabLabel?: string;
+  libraryTabLabel?: string;
+  submitButtonLabel?: string;
 }
 
 export const InsertImageModal: React.FC<InsertImageModalProps> = ({
   isOpen,
   onClose,
   onInsertImage,
+  customTitle = 'Sisipkan Gambar',
+  uploadTabLabel = 'Unggah Gambar',
+  libraryTabLabel = 'Pustaka Gambar',
+  submitButtonLabel = 'Sisipkan Gambar',
 }) => {
   const [activeTab, setActiveTab] = useState<'upload' | 'library'>('upload');
   const [imageTitle, setImageTitle] = useState('');
@@ -222,7 +230,7 @@ export const InsertImageModal: React.FC<InsertImageModalProps> = ({
             <div className="w-8 h-8 rounded-xl bg-bg-secondary text-accent-primary flex items-center justify-center">
               <ImageIcon className="w-4 h-4" />
             </div>
-            <span>Sisipkan Gambar</span>
+            <span>{customTitle}</span>
           </div>
           <button
             type="button"
@@ -246,7 +254,7 @@ export const InsertImageModal: React.FC<InsertImageModalProps> = ({
             }`}
           >
             <Upload className="w-3.5 h-3.5" />
-            <span>Unggah Gambar</span>
+            <span>{uploadTabLabel}</span>
           </button>
           
           <button
@@ -259,7 +267,7 @@ export const InsertImageModal: React.FC<InsertImageModalProps> = ({
             }`}
           >
             <HardDrive className="w-3.5 h-3.5" />
-            <span>Pustaka Gambar</span>
+            <span>{libraryTabLabel}</span>
           </button>
         </div>
 
@@ -484,7 +492,7 @@ export const InsertImageModal: React.FC<InsertImageModalProps> = ({
             ) : activeTab === 'library' ? (
               <span>Pilih Gambar di Atas</span>
             ) : (
-              <span>Sisipkan Gambar</span>
+              <span>{submitButtonLabel}</span>
             )}
           </button>
         </div>

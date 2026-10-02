@@ -1,6 +1,6 @@
 import { ActiveTab } from '../../components/navigation/BottomNavPill';
 
-export type MusicSubView = 'overview' | 'editor' | 'premise' | 'scratchpad';
+export type MusicSubView = 'overview' | 'editor' | 'premise' | 'scratchpad' | 'reader';
 
 export interface NavigationHistoryEntry {
   view: ActiveTab;

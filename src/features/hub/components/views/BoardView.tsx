@@ -87,6 +87,26 @@ export const BoardView: React.FC<BoardViewProps> = ({
   const autoScrollRafRef = useRef<number | null>(null);
   const currentPointerPosRef = useRef<{ clientX: number; clientY: number } | null>(null);
 
+  // Restore horizontal scroll position on mount
+  useEffect(() => {
+    const savedX = sessionStorage.getItem('hub_board_scroll_x');
+    if (savedX && scrollContainerRef.current) {
+      const targetX = parseFloat(savedX);
+      const raf = requestAnimationFrame(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollLeft = targetX;
+        }
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, []);
+
+  const handleContainerScroll = useCallback(() => {
+    if (scrollContainerRef.current) {
+      sessionStorage.setItem('hub_board_scroll_x', String(scrollContainerRef.current.scrollLeft));
+    }
+  }, []);
+
   // Local optimistic state for smooth dragging experience
   const [localNotes, setLocalNotes] = useState<EnrichedNoteItem[]>(notes);
 
@@ -374,6 +394,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
       {/* Board Scroll Area */}
       <div 
         ref={scrollContainerRef}
+        onScroll={handleContainerScroll}
         className="flex-1 flex overflow-x-auto gap-4 pb-4 custom-scrollbar select-none"
       >
         {activeColumns.length === 0 ? (

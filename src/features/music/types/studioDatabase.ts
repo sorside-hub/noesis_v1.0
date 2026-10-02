@@ -36,6 +36,7 @@ export interface StudioSongRecord {
   progressNote?: string; // Catatan/komen progres (misal: "chorus kurang mantab")
   referenceLink?: string;
   audioUrl?: string;
+  coverUrl?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: number;

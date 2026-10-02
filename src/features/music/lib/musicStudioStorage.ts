@@ -49,11 +49,30 @@ export async function saveStudioProject(project: StudioProjectRecord): Promise<v
 }
 
 export async function deleteStudioProject(id: string): Promise<void> {
-  await db.studio_projects.update(id, { deletedAt: Date.now() });
+  const now = Date.now();
+  // 1. Soft delete the project in Dexie
+  await db.studio_projects.update(id, { deletedAt: now });
 
+  // 2. Cascade delete all child tracks and their lyric versions
+  try {
+    const childSongs = await db.studio_songs.where('projectId').equals(id).toArray();
+    for (const song of childSongs) {
+      await db.studio_songs.update(song.id, { deletedAt: now });
+      try {
+        await db.studio_lyric_versions.where('songId').equals(song.id).delete();
+      } catch (verErr) {
+        console.warn('[MusicStudio] Failed deleting versions for child song:', verErr);
+      }
+    }
+  } catch (childErr) {
+    console.warn('[MusicStudio] Failed cascading song deletions:', childErr);
+  }
+
+  // 3. Delete in Supabase if configured
   const config = getSupabaseConfig();
   if (config.isConfigured && supabase) {
     try {
+      await supabase.from('studio_songs').delete().eq('project_id', id);
       await supabase.from('studio_projects').delete().eq('id', id);
     } catch (err) {
       console.warn('[MusicStudio] Remote project delete failed:', err);
@@ -67,10 +86,38 @@ export async function deleteStudioProject(id: string): Promise<void> {
 
 export async function getAllStudioSongs(): Promise<StudioSongRecord[]> {
   try {
-    const songs = await db.studio_songs
-      .filter((s) => !s.deletedAt)
-      .toArray();
-    return songs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const [allSongs, allProjects] = await Promise.all([
+      db.studio_songs.filter((s) => !s.deletedAt).toArray(),
+      db.studio_projects.filter((p) => !p.deletedAt).toArray(),
+    ]);
+
+    const activeProjectIds = new Set(allProjects.map((p) => p.id));
+    const validSongs: StudioSongRecord[] = [];
+    const orphanedSongIds: string[] = [];
+
+    for (const song of allSongs) {
+      if (song.projectId) {
+        if (activeProjectIds.has(song.projectId)) {
+          validSongs.push(song);
+        } else {
+          // Detected orphaned track whose parent project was deleted!
+          orphanedSongIds.push(song.id);
+        }
+      } else {
+        // Legitimate standalone Single song
+        validSongs.push(song);
+      }
+    }
+
+    // Auto-cleanup orphaned songs in the background so they never leak
+    if (orphanedSongIds.length > 0) {
+      const now = Date.now();
+      Promise.all(orphanedSongIds.map((id) => db.studio_songs.update(id, { deletedAt: now }))).catch((err) => {
+        console.warn('[MusicStudio] Auto-cleanup of orphaned songs failed:', err);
+      });
+    }
+
+    return validSongs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   } catch (err) {
     console.error('[MusicStudio] Failed to load songs from DB:', err);
     return [];
@@ -111,6 +158,7 @@ export async function saveStudioSong(song: StudioSongRecord): Promise<void> {
           target_release_date: song.targetReleaseDate || null,
           reference_link: song.referenceLink || null,
           audio_url: song.audioUrl || null,
+          cover_url: song.coverUrl || null,
           user_id: user.id,
           created_at: song.createdAt,
           updated_at: song.updatedAt,
@@ -253,6 +301,7 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
         scratchpad: s.scratchpad || '',
         referenceLink: s.reference_link || undefined,
         audioUrl: s.audio_url || undefined,
+        coverUrl: s.cover_url || undefined,
         createdAt: s.created_at,
         updatedAt: s.updated_at,
       }));

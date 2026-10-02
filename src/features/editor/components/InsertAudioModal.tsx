@@ -25,18 +25,39 @@ interface InsertAudioModalProps {
   isOpen: boolean;
   onClose: () => void;
   onInsertAudio: (audioData: { src: string; title: string }) => void;
+  modalTitle?: string;
+  submitButtonText?: string;
+  allowRecord?: boolean;
+  defaultTab?: 'record' | 'upload' | 'library';
+  defaultTitle?: string;
 }
 
 export const InsertAudioModal: React.FC<InsertAudioModalProps> = ({
   isOpen,
   onClose,
   onInsertAudio,
+  modalTitle = 'Sisipkan Lampiran Audio',
+  submitButtonText = 'Sisipkan ke Catatan',
+  allowRecord = true,
+  defaultTab,
+  defaultTitle,
 }) => {
-  const [activeTab, setActiveTab] = useState<'record' | 'upload' | 'library'>('record');
-  const [audioTitle, setAudioTitle] = useState('Voice Note');
+  const initialTab = defaultTab || (allowRecord ? 'record' : 'upload');
+  const [activeTab, setActiveTab] = useState<'record' | 'upload' | 'library'>(initialTab);
+  const [audioTitle, setAudioTitle] = useState(defaultTitle || (allowRecord ? 'Voice Note' : 'Audio'));
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgressMsg, setUploadProgressMsg] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(defaultTab || (allowRecord ? 'record' : 'upload'));
+      setAudioTitle(defaultTitle || (allowRecord ? 'Voice Note' : 'Audio'));
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setErrorMessage(null);
+    }
+  }, [isOpen, defaultTab, allowRecord, defaultTitle]);
 
   // Supabase check
   const supabaseConfig = getSupabaseConfig();
@@ -312,7 +333,7 @@ export const InsertAudioModal: React.FC<InsertAudioModalProps> = ({
             <div className="w-8 h-8 rounded-xl bg-bg-secondary text-accent-primary flex items-center justify-center">
               <Music className="w-4 h-4" />
             </div>
-            <span>Sisipkan Lampiran Audio</span>
+            <span>{modalTitle}</span>
           </div>
           <button
             type="button"
@@ -325,22 +346,24 @@ export const InsertAudioModal: React.FC<InsertAudioModalProps> = ({
         </div>
 
         {/* Tab Selection */}
-        <div className="grid grid-cols-3 gap-1.5 bg-bg-secondary p-1 rounded-xl mx-5 mt-2 border-0">
-          <button
-            type="button"
-            onClick={() => {
-              if (isRecording) stopRecording();
-              setActiveTab('record');
-            }}
-            className={`py-2 px-2 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'record'
-                ? 'bg-bg-primary text-text-primary font-semibold shadow-xs'
-                : 'text-text-muted hover:text-text-primary'
-            }`}
-          >
-            <Mic className="w-3.5 h-3.5" />
-            <span>Rekam</span>
-          </button>
+        <div className={`grid ${allowRecord ? 'grid-cols-3' : 'grid-cols-2'} gap-1.5 bg-bg-secondary p-1 rounded-xl mx-5 mt-2 border-0`}>
+          {allowRecord && (
+            <button
+              type="button"
+              onClick={() => {
+                if (isRecording) stopRecording();
+                setActiveTab('record');
+              }}
+              className={`py-2 px-2 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === 'record'
+                  ? 'bg-bg-primary text-text-primary font-semibold shadow-xs'
+                  : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              <Mic className="w-3.5 h-3.5" />
+              <span>Rekam</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -697,7 +720,7 @@ export const InsertAudioModal: React.FC<InsertAudioModalProps> = ({
             ) : activeTab === 'library' ? (
               <span>Pilih dari List di Atas</span>
             ) : (
-              <span>Sisipkan ke Catatan</span>
+              <span>{submitButtonText}</span>
             )}
           </button>
         </div>

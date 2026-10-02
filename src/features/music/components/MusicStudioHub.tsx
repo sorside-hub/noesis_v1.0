@@ -17,13 +17,13 @@ import {
   ArrowUpNarrowWide,
 } from 'lucide-react';
 import { useMusicStudio } from '../hooks/useMusicStudio';
-import { MusicProjectCard } from './MusicProjectCard';
-import { MusicSongCard } from './MusicSongCard';
 import { MusicKanbanPipeline } from './MusicKanbanPipeline';
+import { MusicDiscographyView } from './MusicDiscographyView';
 import { MusicStudioDrawerDock, StudioViewTab } from './MusicStudioDrawerDock';
 import { SingleOverviewDashboard } from './SingleOverviewDashboard';
 import { ProjectOverviewDashboard } from './ProjectOverviewDashboard';
 import { SongStudioEditor } from './SongStudioEditor';
+import { SongDiscographyReader } from './SongDiscographyReader';
 import { NewSongModal } from './NewSongModal';
 import { NewProjectModal } from './NewProjectModal';
 import { useNavigation } from '../../../context/NavigationContext';
@@ -141,6 +141,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
           type: 'single',
           title: song.title,
           status: song.status,
+          coverUrl: song.coverUrl,
           progress: song.progress || 0,
           progressNote: song.progressNote,
           updatedAt: new Date(song.updatedAt).getTime() || Date.now(),
@@ -164,6 +165,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         type: proj.type || 'album',
         title: proj.title,
         status: proj.status || 'idea',
+        coverUrl: proj.coverUrl,
         progress: projProgress,
         progressNote: proj.progressNote,
         updatedAt: new Date(proj.updatedAt).getTime() || Date.now(),
@@ -333,6 +335,25 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         projects={rawProjects}
         onBack={() => {
           goBack();
+        }}
+        onUpdateSong={(patch) => {
+          updateSongRecord(activeEditingSong.id, patch);
+        }}
+      />
+    );
+  }
+
+  // Level 1.5: Render Discography Clean Performance Reader Mode
+  if (activeEditingSong && musicSubView === 'reader') {
+    return (
+      <SongDiscographyReader
+        song={activeEditingSong}
+        projects={rawProjects}
+        onBack={() => {
+          goBack();
+        }}
+        onOpenOverview={() => {
+          navigateToMusicSubView(activeEditingSong.id, 'overview');
         }}
         onUpdateSong={(patch) => {
           updateSongRecord(activeEditingSong.id, patch);
@@ -640,96 +661,15 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
               </div>
             )}
 
-            {/* TAB 2: DAFTAR RILISAN (SINGLES, EPS, ALBUMS) */}
-            {activeTab === 'songs' && (
-              <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pb-24 [scrollbar-width:thin]">
-                {/* Status Filter Chips */}
-                <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] pb-1 text-[11px]">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedStatusFilter(null)}
-                    className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer shrink-0 ${
-                      selectedStatusFilter === null
-                        ? 'bg-accent-primary text-accent-contrast'
-                        : 'bg-bg-secondary text-text-secondary hover:bg-bg-hover'
-                    }`}
-                  >
-                    Semua ({releaseItems.length})
-                  </button>
-                  {['idea', 'demo', 'recording', 'mixing', 'ready', 'released'].map((st) => (
-                    <button
-                      key={st}
-                      type="button"
-                      onClick={() => setSelectedStatusFilter(selectedStatusFilter === st ? null : st)}
-                      className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer shrink-0 capitalize ${
-                        selectedStatusFilter === st
-                          ? 'bg-accent-primary text-accent-contrast'
-                          : 'bg-bg-secondary text-text-secondary hover:bg-bg-hover'
-                      }`}
-                    >
-                      {st} ({releaseItems.filter((it) => it.status === st).length})
-                    </button>
-                  ))}
-                </div>
-
-                {/* Simplified Releases List */}
-                {filteredItems.length === 0 ? (
-                  <div className="p-8 text-center rounded-2xl bg-bg-secondary/40 border border-dashed border-border-default/30 space-y-2">
-                    <Music2 size={24} className="mx-auto text-text-muted opacity-40" />
-                    <p className="text-xs text-text-muted">Tidak ada rilisan yang cocok dengan pencarian.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    {filteredItems.map((item) => (
-                      <MusicSongCard
-                        key={`${item.kind}-${item.id}`}
-                        item={item}
-                        onSelectItem={handleSelectItem}
-                        onRenameItem={handleStartRename}
-                        onUpdateStatus={handleUpdateItemStatus}
-                        onDeleteItem={handleStartDelete}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* TAB 3: DISCOGRAPHY / ALBUMS */}
-            {activeTab === 'projects' && (
-              <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pb-24 [scrollbar-width:thin]">
-                {filteredProjects.length === 0 ? (
-                  <div className="p-8 text-center rounded-2xl bg-bg-secondary/40 border border-dashed border-border-default/30 space-y-3">
-                    <Disc3 size={32} className="mx-auto text-text-muted opacity-50" />
-                    <div>
-                      <h3 className="font-semibold text-sm text-text-heading">Belum ada Album atau EP</h3>
-                      <p className="text-xs text-text-muted mt-1 max-w-sm mx-auto">
-                        Kelompokkan lagu-lagu kamu ke dalam satu proyek album, EP, atau single rilis.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsNewProjectModalOpen(true)}
-                      className="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-accent-primary text-accent-contrast shadow-xs hover:opacity-90 transition-opacity cursor-pointer inline-flex items-center gap-1.5"
-                    >
-                      <Plus size={14} />
-                      <span>Buat Album / EP Baru</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {filteredProjects.map((project) => (
-                      <MusicProjectCard
-                        key={project.id}
-                        project={project}
-                        onSelectSong={(songId) => navigateToMusicSong(songId)}
-                        onCreateSongForProject={handleOpenNewSongWithProject}
-                        onOpenProjectNote={(projId) => navigateToMusicProject(projId)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+            {/* TAB 2: DISCOGRAPHY / PLAYLIST VIEW (RELEASED WORKS & CATALOG) */}
+            {activeTab === 'discography' && (
+              <MusicDiscographyView
+                projects={rawProjects}
+                songs={rawSongs}
+                onSelectSong={(songId) => navigateToMusicSubView(songId, 'reader')}
+                onSelectProject={(projId) => navigateToMusicProject(projId)}
+                searchQuery={searchQuery}
+              />
             )}
           </div>
         )}

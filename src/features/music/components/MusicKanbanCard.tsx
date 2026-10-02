@@ -96,6 +96,13 @@ export const MusicKanbanCard: React.FC<MusicKanbanCardProps> = ({
           : 'shadow-2xs hover:shadow-md hover:bg-bg-hover'
       }`}
     >
+      {/* COVER THUMBNAIL IF PRESENT */}
+      {item.coverUrl ? (
+        <div className="w-9 h-9 rounded-lg overflow-hidden bg-bg-secondary shrink-0 border border-border-default/20 shadow-2xs">
+          <img src={item.coverUrl} alt="" className="w-full h-full object-cover" />
+        </div>
+      ) : null}
+
       {/* LEFT CONTENT: BARIS 1 (JUDUL) + BARIS 2 (INFO TYPE • % • CATATAN) */}
       <div className="flex-1 flex flex-col justify-center gap-1 min-w-0">
         {/* BARIS 1: JUDUL */}
@@ -104,21 +111,33 @@ export const MusicKanbanCard: React.FC<MusicKanbanCardProps> = ({
         </h4>
 
         {/* BARIS 2: INFO TYPE (teks kecil tanpa box) • % (3 tingkat warna) • CATATAN */}
-        <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
-          <span className="shrink-0">{typeText}</span>
-          <span className="shrink-0 opacity-40">•</span>
-          <span className={`font-mono font-bold shrink-0 ${progressColorClass}`}>
-            {prog}%
-          </span>
-          {item.progressNote && item.progressNote.trim() && (
-            <>
-              <span className="shrink-0 opacity-40">•</span>
-              <span className="truncate italic text-text-muted/80">
-                {item.progressNote}
-              </span>
-            </>
-          )}
-        </div>
+        {(item.status === 'ready' || item.status === 'released') ? (
+          <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
+            <span className="shrink-0">{typeText}</span>
+            {item.trackCount ? (
+              <>
+                <span className="shrink-0 opacity-40">•</span>
+                <span className="shrink-0">{item.trackCount} Lagu</span>
+              </>
+            ) : null}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
+            <span className="shrink-0">{typeText}</span>
+            <span className="shrink-0 opacity-40">•</span>
+            <span className={`font-mono font-bold shrink-0 ${progressColorClass}`}>
+              {prog}%
+            </span>
+            {item.progressNote && item.progressNote.trim() && (
+              <>
+                <span className="shrink-0 opacity-40">•</span>
+                <span className="truncate italic text-text-muted/80">
+                  {item.progressNote}
+                </span>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* RIGHT CONTENT: TITIK 3 MENU (VERTICALLY CENTERED) */}

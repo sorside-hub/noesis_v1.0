@@ -46,6 +46,7 @@ export interface MusicProject {
   status: MusicProductionStatus;
   releaseDate?: string;
   genre?: string;
+  coverUrl?: string;
   description?: string;
   songs: SongItem[];
   updatedAt: number;
@@ -58,8 +59,10 @@ export interface MusicReleaseItem {
   type: MusicProjectType;
   title: string;
   status: MusicProductionStatus;
+  coverUrl?: string;
   progress?: number;
   progressNote?: string;
+  trackCount?: number;
   updatedAt: number;
   createdAt: number;
 }

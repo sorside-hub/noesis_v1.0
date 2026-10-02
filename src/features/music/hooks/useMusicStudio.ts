@@ -57,9 +57,15 @@ export function useMusicStudio() {
     };
   }, [reloadData]);
 
-  // Convert dbSongs to UI SongItems
+  // Convert dbSongs to UI SongItems (safeguarded against orphaned tracks)
   const songs: SongItem[] = useMemo(() => {
-    return dbSongs.map((s) => {
+    // Only map valid standalone singles OR tracks belonging to active existing dbProjects
+    const validDbSongs = dbSongs.filter((s) => {
+      if (!s.projectId) return true; // Standalone single
+      return dbProjects.some((p) => p.id === s.projectId); // Active parent project exists
+    });
+
+    return validDbSongs.map((s) => {
       const parentProject = dbProjects.find((p) => p.id === s.projectId);
       const content = s.contentLyrics || '';
       const textSnippet = content
@@ -112,24 +118,6 @@ export function useMusicStudio() {
       const dbSong = dbSongs.find((s) => s.id === song.id);
       if (dbSong?.projectId && projectMap.has(dbSong.projectId)) {
         projectMap.get(dbSong.projectId)!.songs.push(song);
-      } else if (dbSong?.projectId) {
-        // Fallback for implicit project title
-        const parentProj = dbProjects.find((p) => p.id === dbSong.projectId);
-        const projTitle = parentProj?.title || 'Proyek Tanpa Nama';
-        const key = `implicit_${dbSong.projectId}`;
-        if (!projectMap.has(key)) {
-          projectMap.set(key, {
-            id: dbSong.projectId,
-            title: projTitle,
-            type: parentProj?.type || 'album',
-            status: 'idea',
-            genre: parentProj?.genre,
-            songs: [],
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-          });
-        }
-        projectMap.get(key)!.songs.push(song);
       }
     });
 

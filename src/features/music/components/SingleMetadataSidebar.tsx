@@ -7,10 +7,17 @@ import {
   Disc3,
   ChevronDown,
   Check,
+  Upload,
+  Play,
+  Pause,
+  Music2,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { StudioSongRecord, StudioProjectRecord } from '../types/studioDatabase';
 import { PRODUCTION_STAGES } from '../types';
 import { saveStudioSong } from '../lib/musicStudioStorage';
+import { InsertAudioModal } from '../../editor/components/InsertAudioModal';
+import { InsertImageModal } from '../../editor/components/InsertImageModal';
 
 interface SingleMetadataSidebarProps {
   isOpen: boolean;
@@ -43,6 +50,41 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
   const parentProject = projects.find((p) => p.id === song.projectId);
   const isTrack = Boolean(parentProject || song.projectId);
   const isTrackCompleted = song.status === 'ready' || song.status === 'released';
+  const isReadyOrReleased = song.status === 'ready' || song.status === 'released' || parentProject?.status === 'ready' || parentProject?.status === 'released';
+
+  const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
+  const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.pause();
+        audioPlayerRef.current = null;
+      }
+    };
+  }, [song.audioUrl]);
+
+  const handleToggleSidebarAudio = () => {
+    if (!song.audioUrl) return;
+
+    if (isPlayingAudio) {
+      audioPlayerRef.current?.pause();
+      setIsPlayingAudio(false);
+    } else {
+      if (!audioPlayerRef.current || audioPlayerRef.current.src !== song.audioUrl) {
+        audioPlayerRef.current = new Audio(song.audioUrl);
+        audioPlayerRef.current.onended = () => setIsPlayingAudio(false);
+        audioPlayerRef.current.onerror = () => setIsPlayingAudio(false);
+      }
+      audioPlayerRef.current.play().then(() => {
+        setIsPlayingAudio(true);
+      }).catch(() => {
+        setIsPlayingAudio(false);
+      });
+    }
+  };
 
   // Sibling tracks in the same parent project
   const siblingTracks = useMemo(() => {
@@ -319,68 +361,220 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
             </div>
           )}
 
-          {/* PROGRES STAGE AKTIF / TRACK */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block truncate">
-                {isTrack ? 'Progres Lirik Track' : `Progres ${currentStage.label}`}
-              </label>
-              {(() => {
-                const prog = song.progress || 0;
-                const colorClass = prog === 100 ? 'text-emerald-400' : prog >= 50 ? 'text-amber-400' : 'text-text-muted';
-                return (
-                  <span className={`text-[11px] font-mono font-bold bg-bg-primary px-2 py-0.5 rounded-lg shrink-0 ${colorClass}`}>
-                    {prog}%
-                  </span>
-                );
-              })()}
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3">
-              {/* Slider */}
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={5}
-                value={song.progress || 0}
-                onChange={(e) => onUpdateSong({ progress: Number(e.target.value) })}
-                className="w-full accent-accent-primary h-2 bg-bg-secondary rounded-lg appearance-none cursor-pointer"
-              />
-
-              {/* Quick Preset Buttons */}
-              <div className="flex items-center justify-between gap-1 text-[10px] font-mono font-semibold">
-                {[0, 25, 50, 75, 100].map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => onUpdateSong({ progress: preset })}
-                    className={`px-1.5 py-0.5 rounded-md transition-all cursor-pointer ${
-                      (song.progress || 0) === preset
-                        ? 'bg-accent-primary text-accent-contrast shadow-xs'
-                        : 'bg-bg-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover'
-                    }`}
-                  >
-                    {preset}%
-                  </button>
-                ))}
+          {/* PROGRES STAGE AKTIF / TRACK (Hanya jika belum ready/released) */}
+          {!isReadyOrReleased && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block truncate">
+                  {isTrack ? 'Progres Lirik Track' : `Progres ${currentStage.label}`}
+                </label>
+                {(() => {
+                  const prog = song.progress || 0;
+                  const colorClass = prog === 100 ? 'text-emerald-400' : prog >= 50 ? 'text-amber-400' : 'text-text-muted';
+                  return (
+                    <span className={`text-[11px] font-mono font-bold bg-bg-primary px-2 py-0.5 rounded-lg shrink-0 ${colorClass}`}>
+                      {prog}%
+                    </span>
+                  );
+                })()}
               </div>
 
-              {/* Progress Comment / Note Field */}
-              <input
-                type="text"
-                placeholder="Catatan progres (misal: 'Chorus kurang mantab')..."
-                value={song.progressNote || ''}
-                onChange={(e) => onUpdateSong({ progressNote: e.target.value })}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.currentTarget.blur();
-                  }
-                }}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-bg-secondary border border-border-default/20 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
-              />
+              <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3">
+                {/* Slider */}
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={song.progress || 0}
+                  onChange={(e) => onUpdateSong({ progress: Number(e.target.value) })}
+                  className="w-full accent-accent-primary h-2 bg-bg-secondary rounded-lg appearance-none cursor-pointer"
+                />
+
+                {/* Quick Preset Buttons */}
+                <div className="flex items-center justify-between gap-1 text-[10px] font-mono font-semibold">
+                  {[0, 25, 50, 75, 100].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => onUpdateSong({ progress: preset })}
+                      className={`px-1.5 py-0.5 rounded-md transition-all cursor-pointer ${
+                        (song.progress || 0) === preset
+                          ? 'bg-accent-primary text-accent-contrast shadow-xs'
+                          : 'bg-bg-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover'
+                      }`}
+                    >
+                      {preset}%
+                    </button>
+                  ))}
+                </div>
+
+                {/* Progress Comment / Note Field */}
+                <input
+                  type="text"
+                  placeholder="Catatan progres (misal: 'Chorus kurang mantab')..."
+                  value={song.progressNote || ''}
+                  onChange={(e) => onUpdateSong({ progressNote: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-bg-secondary border border-border-default/20 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
+                />
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* COVER ART & AUDIO RILIS / MASTER (MUNCUL DI TAHAP READY & RELEASED) */}
+          {isReadyOrReleased && (
+            <div className="space-y-4">
+              
+              {/* COVER ART RILIS (HANYA UNTUK SINGLE MANDIRI, BUKAN TRACK ALBUM) */}
+              {!isTrack && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
+                      Cover Art Rilis
+                    </label>
+                    {song.coverUrl && (
+                      <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                        Terpasang
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3">
+                    {!song.coverUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsCoverModalOpen(true)}
+                        className="w-full py-2.5 px-3 rounded-xl bg-bg-secondary hover:bg-bg-hover text-accent-primary text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                      >
+                        <ImageIcon size={14} />
+                        <span>Lampirkan Cover Art</span>
+                      </button>
+                    ) : (
+                      <div className="space-y-2.5">
+                        {/* Cover Image Preview */}
+                        <div className="flex items-center gap-3 p-2 rounded-xl bg-bg-secondary">
+                          <div className="w-14 h-14 rounded-lg overflow-hidden bg-bg-primary shrink-0 shadow-xs border border-border-default/20">
+                            <img 
+                              src={song.coverUrl} 
+                              alt="Cover Art" 
+                              className="w-full h-full object-cover" 
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-text-primary truncate">
+                              {song.title || 'Cover Artwork'}
+                            </p>
+                            <p className="text-[10px] text-text-muted truncate">
+                              Artwork 1:1 Resmi
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Actions: Ganti / Hapus */}
+                        <div className="flex items-center justify-end gap-2 pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => setIsCoverModalOpen(true)}
+                            className="px-2.5 py-1 text-[11px] font-medium text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+                          >
+                            Ganti Cover
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onUpdateSong({ coverUrl: undefined })}
+                            className="px-2.5 py-1 text-[11px] font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* AUDIO RILIS / MASTER (UNTUK SINGLE & TRACK) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
+                    Audio Rilis / Master
+                  </label>
+                  {song.audioUrl && (
+                    <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                      Terpasang
+                    </span>
+                  )}
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3">
+                  {!song.audioUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsAudioModalOpen(true)}
+                      className="w-full py-2.5 px-3 rounded-xl bg-bg-secondary hover:bg-bg-hover text-accent-primary text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                    >
+                      <Upload size={14} />
+                      <span>Lampirkan Audio Rilis</span>
+                    </button>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {/* Audio Preview Item */}
+                      <div className="flex items-center justify-between gap-2.5 p-2 rounded-xl bg-bg-secondary">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <button
+                            type="button"
+                            onClick={handleToggleSidebarAudio}
+                            className="w-8 h-8 rounded-lg bg-bg-primary text-accent-primary hover:scale-105 flex items-center justify-center shrink-0 cursor-pointer transition-transform"
+                            title={isPlayingAudio ? 'Jeda' : 'Putar'}
+                          >
+                            {isPlayingAudio ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
+                          </button>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-text-primary truncate">
+                              {song.title || 'Audio Master'}
+                            </p>
+                            <p className="text-[10px] text-text-muted truncate">
+                              Audio Rilis Resmi
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions: Ganti / Hapus */}
+                      <div className="flex items-center justify-end gap-2 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setIsAudioModalOpen(true)}
+                          className="px-2.5 py-1 text-[11px] font-medium text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+                        >
+                          Ganti Audio
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (audioPlayerRef.current) {
+                              audioPlayerRef.current.pause();
+                              setIsPlayingAudio(false);
+                            }
+                            onUpdateSong({ audioUrl: undefined });
+                          }}
+                          className="px-2.5 py-1 text-[11px] font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          )}
 
           {/* DETAIL WAKTU */}
           <div className="space-y-2">
@@ -394,7 +588,7 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                 <>
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[11px] text-text-muted font-medium">
-                      <span>{song.status === 'released' ? 'Tanggal Rilis' : 'Target Rilis'}</span>
+                      <span>{(song.status === 'ready' || song.status === 'released') ? 'Tanggal Rilis' : 'Target Rilis'}</span>
                       {song.targetReleaseDate && (
                         <button
                           type="button"
@@ -451,6 +645,34 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
 
         </div>
       </aside>
+
+      {/* MODAL LAMPIRKAN AUDIO RILIS (2 TAB: UNGGAH & PUSTAKA) */}
+      <InsertAudioModal
+        isOpen={isAudioModalOpen}
+        onClose={() => setIsAudioModalOpen(false)}
+        allowRecord={false}
+        modalTitle="Lampirkan Audio Rilis"
+        defaultTitle={song.title || 'Audio Rilis'}
+        submitButtonText="Simpan Audio Rilis"
+        onInsertAudio={({ src }) => {
+          onUpdateSong({ audioUrl: src });
+          setIsAudioModalOpen(false);
+        }}
+      />
+
+      {/* MODAL LAMPIRKAN COVER ART RILIS */}
+      <InsertImageModal
+        isOpen={isCoverModalOpen}
+        onClose={() => setIsCoverModalOpen(false)}
+        customTitle="Lampirkan Cover Art"
+        uploadTabLabel="Unggah Cover"
+        libraryTabLabel="Pustaka Cover"
+        submitButtonLabel="Gunakan Sebagai Cover Art"
+        onInsertImage={({ src }) => {
+          onUpdateSong({ coverUrl: src });
+          setIsCoverModalOpen(false);
+        }}
+      />
     </>
   );
 };

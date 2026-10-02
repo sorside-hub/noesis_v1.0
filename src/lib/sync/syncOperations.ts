@@ -422,6 +422,7 @@ export const syncPushAllToCloud = async (): Promise<SyncSummary> => {
           target_release_date: s.targetReleaseDate || null,
           reference_link: s.referenceLink || null,
           audio_url: s.audioUrl || null,
+          cover_url: s.coverUrl || null,
           user_id: userId,
           created_at: s.createdAt,
           updated_at: s.updatedAt,

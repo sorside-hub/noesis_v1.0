@@ -10,7 +10,7 @@ import {
   Copy, 
   ChevronRight, 
   ChevronDown,
-  Flame, 
+  Compass, 
   Lightbulb,
   SlidersVertical,
   MoreVertical,
@@ -30,13 +30,13 @@ import { EditorCore } from '../../editor/components/EditorCore';
 import { Toolbar } from '../../editor/components/Toolbar';
 import { SingleMetadataSidebar } from './SingleMetadataSidebar';
 import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
-import { useNavigation } from '../../../context/NavigationContext';
+import { useNavigation, MusicSubView } from '../../../context/NavigationContext';
 
 interface SingleOverviewDashboardProps {
   song: StudioSongRecord;
   projects?: StudioProjectRecord[];
   allSongs?: StudioSongRecord[];
-  currentSubView?: 'overview' | 'editor' | 'premise' | 'scratchpad';
+  currentSubView?: MusicSubView;
   onBack: () => void;
   onOpenFullEditor: () => void;
   onOpenPremise: () => void;
@@ -325,7 +325,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   };
 
   // =========================================================================
-  // VIEW MODE 1: PREMISE & KONSEP CERITA EDITOR
+  // VIEW MODE 1: KONSEP LAGU EDITOR
   // =========================================================================
   if (currentSubView === 'premise') {
     return (
@@ -349,7 +349,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                   {song.title}
                 </h2>
                 <p className="text-[10px] text-text-muted truncate">
-                  Premis & Konsep Cerita
+                  Konsep
                 </p>
               </div>
             </div>
@@ -377,7 +377,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   }
 
   // =========================================================================
-  // VIEW MODE 2: RAW BARS & IDE MENTAH EDITOR
+  // VIEW MODE 2: REFERENSI & IDE MUSIK EDITOR
   // =========================================================================
   if (currentSubView === 'scratchpad') {
     return (
@@ -393,15 +393,15 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               <ArrowLeft size={16} />
             </button>
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-bg-primary text-purple-400 flex items-center justify-center shrink-0 shadow-xs">
-                <Flame size={14} />
+              <div className="w-7 h-7 rounded-lg bg-bg-primary text-cyan-400 flex items-center justify-center shrink-0 shadow-xs">
+                <Compass size={14} />
               </div>
               <div className="min-w-0">
                 <h2 className="text-xs sm:text-sm font-bold text-text-heading truncate">
                   {song.title}
                 </h2>
                 <p className="text-[10px] text-text-muted truncate">
-                  Raw Bars & Ide Mentah
+                  Referensi
                 </p>
               </div>
             </div>
@@ -501,6 +501,32 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
         {/* Right Header Actions */}
         <div className="flex items-center gap-2 shrink-0">
           {(() => {
+            const isReleased = song.status === 'released' || currentProject?.status === 'released';
+            if (isReleased) {
+              return (
+                <div 
+                  title="Status Rilis Resmi"
+                  className="h-8 flex items-center gap-1.5 px-2.5 rounded-xl text-xs font-semibold select-none bg-bg-primary text-emerald-400"
+                >
+                  <span className="text-xs sm:text-sm">🎉</span>
+                  <span className="text-xs font-bold">Released</span>
+                </div>
+              );
+            }
+
+            const isReady = song.status === 'ready' || currentProject?.status === 'ready';
+            if (isReady) {
+              return (
+                <div 
+                  title="Status Siap Rilis"
+                  className="h-8 flex items-center gap-1.5 px-2.5 rounded-xl text-xs font-semibold select-none bg-bg-primary text-emerald-400"
+                >
+                  <span className="text-xs sm:text-sm">✨</span>
+                  <span className="text-xs font-bold">Ready</span>
+                </div>
+              );
+            }
+
             const prog = song.progress || 0;
             const colorClass = prog === 100 ? 'text-emerald-400' : prog >= 50 ? 'text-amber-400' : 'text-text-muted';
             return currentProject ? (
@@ -560,7 +586,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
           {/* TOP ROW: 2 PORTAL CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             
-            {/* PORTAL CARD 1: PREMIS & KONSEP CERITA */}
+            {/* PORTAL CARD 1: KONSEP */}
             <div
               onClick={onOpenPremise}
               className="group p-4 rounded-2xl bg-bg-secondary hover:bg-bg-hover transition-all cursor-pointer shadow-xs flex flex-col justify-between gap-2.5 text-left"
@@ -572,7 +598,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                       <Lightbulb size={14} />
                     </div>
                     <h3 className="text-xs font-bold text-text-heading group-hover:text-accent-primary transition-colors">
-                      Premis & Konsep Cerita
+                      Konsep
                     </h3>
                   </div>
                   <ChevronRight size={14} className="text-text-muted group-hover:text-accent-primary group-hover:translate-x-0.5 transition-all" />
@@ -583,14 +609,14 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                     <span className="text-text-secondary">{premiseSnippet}</span>
                   ) : (
                     <span className="italic text-text-muted/70">
-                      Belum ada premis. Klik untuk membuka Note Editor cerita & tema lagu...
+                      Belum ada konsep. Klik untuk membuka editor...
                     </span>
                   )}
                 </p>
               </div>
             </div>
 
-            {/* PORTAL CARD 2: RAW BARS & IDE MENTAH */}
+            {/* PORTAL CARD 2: REFERENSI */}
             <div
               onClick={onOpenScratchpad}
               className="group p-4 rounded-2xl bg-bg-secondary hover:bg-bg-hover transition-all cursor-pointer shadow-xs flex flex-col justify-between gap-2.5 text-left"
@@ -598,11 +624,11 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-bg-primary text-purple-400 flex items-center justify-center shrink-0 shadow-xs">
-                      <Flame size={14} />
+                    <div className="w-7 h-7 rounded-lg bg-bg-primary text-cyan-400 flex items-center justify-center shrink-0 shadow-xs">
+                      <Compass size={14} />
                     </div>
                     <h3 className="text-xs font-bold text-text-heading group-hover:text-accent-primary transition-colors">
-                      Raw Bars & Ide Mentah
+                      Referensi
                     </h3>
                   </div>
                   <ChevronRight size={14} className="text-text-muted group-hover:text-accent-primary group-hover:translate-x-0.5 transition-all" />
@@ -613,7 +639,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                     <span className="text-text-secondary font-mono">{scratchpadSnippet}</span>
                   ) : (
                     <span className="italic text-text-muted/70">
-                      Klik untuk membuka Note Editor rima kasar & bar mentah...
+                      Belum ada referensi. Klik untuk membuka editor...
                     </span>
                   )}
                 </p>

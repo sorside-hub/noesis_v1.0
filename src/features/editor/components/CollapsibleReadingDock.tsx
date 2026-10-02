@@ -318,7 +318,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         2. Key & Transpose (Root Key, +/-, Offset, Reset)
         3. Tempo & Capo (BPM Tap Tempo, Capo Fret)
       */}
-      <div className="w-[56px] bg-bg-quaternary rounded-l-2xl p-1.5 flex flex-col items-center gap-1 transition-all border-y border-l border-border-default/30">
+      <div className="w-[56px] bg-bg-quaternary rounded-l-2xl p-1.5 flex flex-col items-center gap-1 transition-all">
         
         {/* =================================================== */}
         {/* SEKSI 1: AUTO-SCROLL CONTROLS                       */}
@@ -389,7 +389,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         {/* =================================================== */}
         {/* SEKSI 2: KEY & TRANSPOSE CONTROLS                   */}
         {/* =================================================== */}
-        <div className="w-8 border-t border-border-subtle my-0.5" />
+        <div className="w-8 h-px bg-border-default/20 my-0.5" />
 
         {/* Key Root Button + Popup Dropdown */}
         <div className="relative">
@@ -412,7 +412,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
 
           {/* Key Picker Popup */}
           {showKeyPicker && onUpdateKey && (
-            <div className="absolute right-full top-0 mr-2 w-48 bg-bg-secondary rounded-2xl p-2 z-50 shadow-2xl border border-border-default/40 animate-in fade-in zoom-in-95 duration-150 space-y-2">
+            <div className="absolute right-full top-0 mr-2 w-48 bg-bg-secondary rounded-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider">
                   Pilih Nada Dasar
@@ -548,7 +548,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         {/* =================================================== */}
         {/* SEKSI 3: TEMPO & CAPO CONTROLS                      */}
         {/* =================================================== */}
-        <div className="w-8 border-t border-border-subtle my-0.5" />
+        <div className="w-8 h-px bg-border-default/20 my-0.5" />
 
         {/* BPM Tap Tempo Button */}
         <button
@@ -584,7 +584,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
 
           {/* Capo Fret Picker Popup */}
           {showCapoPicker && onUpdateCapo && (
-            <div className="absolute right-full bottom-0 mr-2 w-32 bg-bg-secondary rounded-xl p-1.5 z-50 border border-border-default/40 animate-in fade-in zoom-in-95 duration-150 max-h-52 overflow-y-auto">
+            <div className="absolute right-full bottom-0 mr-2 w-32 bg-bg-secondary rounded-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 max-h-52 overflow-y-auto">
               <div className="text-[9px] font-bold text-text-muted uppercase px-1 py-0.5 mb-1">
                 Posisi Capo
               </div>

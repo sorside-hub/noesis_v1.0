@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { MusicReleaseItem, MusicProductionStatus } from '../types';
@@ -83,6 +83,28 @@ export const MusicKanbanColumn: React.FC<MusicKanbanColumnProps> = ({
   const theme = getColumnTheme(stageId);
   const itemIds = items.map((it) => it.id);
 
+  const columnBodyRef = useRef<HTMLDivElement | null>(null);
+
+  // Restore vertical scroll position on mount
+  useEffect(() => {
+    const savedY = sessionStorage.getItem(`music_kanban_col_${stageId}_y`);
+    if (savedY && columnBodyRef.current) {
+      const targetY = parseFloat(savedY);
+      const raf = requestAnimationFrame(() => {
+        if (columnBodyRef.current) {
+          columnBodyRef.current.scrollTop = targetY;
+        }
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [stageId]);
+
+  const handleBodyScroll = useCallback(() => {
+    if (columnBodyRef.current) {
+      sessionStorage.setItem(`music_kanban_col_${stageId}_y`, String(columnBodyRef.current.scrollTop));
+    }
+  }, [stageId]);
+
   return (
     <div
       ref={setNodeRef}
@@ -113,7 +135,11 @@ export const MusicKanbanColumn: React.FC<MusicKanbanColumnProps> = ({
       </div>
 
       {/* Cards List Body with Dnd-Kit SortableContext */}
-      <div className="flex-1 p-2 space-y-2 overflow-y-auto min-h-0 [scrollbar-width:thin]">
+      <div 
+        ref={columnBodyRef}
+        onScroll={handleBodyScroll}
+        className="flex-1 p-2 space-y-2 overflow-y-auto min-h-0 [scrollbar-width:thin]"
+      >
         <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
           {items.map((item) => (
             <MusicKanbanCard

@@ -324,7 +324,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
   }, 0);
 
   // =========================================================================
-  // VIEW MODE 1: ALBUM PREMISE / CONCEPT NOTE EDITOR
+  // VIEW MODE 1: ALBUM CONCEPT NOTE EDITOR
   // =========================================================================
   if (currentSubView === 'premise') {
     return (
@@ -348,7 +348,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                   {project.title}
                 </h2>
                 <p className="text-[10px] text-text-muted truncate">
-                  Premis & Konsep Cerita {project.type?.toUpperCase()}
+                  Konsep
                 </p>
               </div>
             </div>
@@ -453,6 +453,30 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
           
           {/* Read-Only Status & Progress Info Badge */}
           {(() => {
+            if (project.status === 'released') {
+              return (
+                <div 
+                  title="Status Rilis Resmi"
+                  className="h-8 flex items-center gap-1.5 px-2.5 rounded-xl text-xs font-semibold select-none bg-bg-primary text-emerald-400"
+                >
+                  <span className="text-xs sm:text-sm">🎉</span>
+                  <span className="text-xs font-bold">Released</span>
+                </div>
+              );
+            }
+
+            if (project.status === 'ready') {
+              return (
+                <div 
+                  title="Status Siap Rilis"
+                  className="h-8 flex items-center gap-1.5 px-2.5 rounded-xl text-xs font-semibold select-none bg-bg-primary text-emerald-400"
+                >
+                  <span className="text-xs sm:text-sm">✨</span>
+                  <span className="text-xs font-bold">Ready</span>
+                </div>
+              );
+            }
+
             const totalCount = projectSongs.length;
             const totalProgressSum = projectSongs.reduce(
               (sum, s) => sum + (s.progress !== undefined ? s.progress : (s.status === 'ready' || s.status === 'released' ? 100 : 0)),
@@ -501,7 +525,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
       <div className="flex-1 overflow-y-auto p-3 sm:p-6 [scrollbar-width:thin]">
         <div className="max-w-5xl mx-auto space-y-4">
           
-          {/* SECTION 1: PREMIS & KONSEP CERITA ALBUM */}
+          {/* SECTION 1: KONSEP ALBUM */}
           <div
             onClick={() => setCurrentSubView('premise')}
             className="group p-4 rounded-2xl bg-bg-secondary hover:bg-bg-hover transition-all cursor-pointer shadow-xs flex flex-col justify-between gap-2.5 text-left"
@@ -513,7 +537,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                     <Lightbulb size={14} />
                   </div>
                   <h3 className="text-xs font-bold text-text-heading group-hover:text-accent-primary transition-colors">
-                    Premis & Konsep Cerita {project.type?.toUpperCase()}
+                    Konsep
                   </h3>
                 </div>
                 <ChevronRight size={14} className="text-text-muted group-hover:text-accent-primary group-hover:translate-x-0.5 transition-all" />
@@ -524,7 +548,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                   <span className="text-text-secondary">{premiseSnippet}</span>
                 ) : (
                   <span className="italic text-text-muted/70">
-                    Belum ada premis album. Klik untuk membuka Note Editor cerita & tema besar album...
+                    Belum ada konsep. Klik untuk membuka editor...
                   </span>
                 )}
               </p>
@@ -630,27 +654,28 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                           #{displayTrackNumber}
                         </div>
 
-                        {/* Judul + Sub-info 2 Baris */}
-                        <div className="flex-1 flex flex-col justify-center gap-0.5 min-w-0">
-                          {/* BARIS 1: Judul Track */}
-                          <span className="text-xs font-bold text-text-primary group-hover:text-accent-primary transition-colors truncate">
-                            {track.title}
+                        {/* Judul Track & Info Status/Progress */}
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs sm:text-sm font-bold text-text-primary group-hover:text-accent-primary transition-colors truncate block">
+                            {track.title || 'Tanpa Judul'}
                           </span>
 
-                          {/* BARIS 2: % Progres Lirik • Catatan */}
-                          <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
-                            <span className={`font-mono font-bold shrink-0 ${trackProgColorClass}`}>
-                              {trackProg}%
-                            </span>
-                            {track.progressNote && track.progressNote.trim() && (
-                              <>
-                                <span className="shrink-0 opacity-40">•</span>
-                                <span className="truncate italic text-text-muted/80">
-                                  {track.progressNote}
-                                </span>
-                              </>
-                            )}
-                          </div>
+                          {/* BARIS 2: PROGRES % + CATATAN (HANYA MUNCUL DI TAHAP IDE S/D MIX & MASTER) */}
+                          {!(track.status === 'ready' || track.status === 'released' || project.status === 'ready' || project.status === 'released') && (
+                            <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium mt-0.5">
+                              <span className={`font-mono font-bold shrink-0 ${trackProgColorClass}`}>
+                                {trackProg}%
+                              </span>
+                              {track.progressNote && track.progressNote.trim() && (
+                                <>
+                                  <span className="shrink-0 opacity-40">•</span>
+                                  <span className="truncate italic text-text-muted/80">
+                                    {track.progressNote}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
 

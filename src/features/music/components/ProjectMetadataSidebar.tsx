@@ -6,9 +6,11 @@ import {
   ChevronDown,
   Check,
   Disc3,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { StudioProjectRecord } from '../types/studioDatabase';
 import { PRODUCTION_STAGES } from '../types';
+import { InsertImageModal } from '../../editor/components/InsertImageModal';
 
 interface ProjectMetadataSidebarProps {
   isOpen: boolean;
@@ -36,6 +38,7 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
   backdropRef,
 }) => {
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
   const statusContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -64,6 +67,7 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
   };
 
   const currentStage = PRODUCTION_STAGES.find((s) => s.id === project.status) || PRODUCTION_STAGES[0];
+  const isReadyOrReleased = project.status === 'ready' || project.status === 'released';
 
   return (
     <>
@@ -174,51 +178,121 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
             </div>
           </div>
 
-          {/* SECTION: PROGRES PROYEK (AUTOMATIC) */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block truncate">
-                Progres {currentStage.label}
-              </label>
-              {(() => {
-                const colorClass = progressPercent === 100 ? 'text-emerald-400' : progressPercent >= 50 ? 'text-amber-400' : 'text-text-muted';
-                return (
-                  <span className={`text-[11px] font-mono font-bold bg-bg-primary px-2 py-0.5 rounded-lg shrink-0 ${colorClass}`}>
-                    {progressPercent}%
-                  </span>
-                );
-              })()}
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3">
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-[11px] text-text-muted font-medium">
-                  <span>Rampung Track</span>
-                  <span className="font-mono text-text-secondary">{completedTracks} / {totalTracks} lagu</span>
-                </div>
-                <div className="w-full h-2 bg-bg-secondary rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-accent-primary rounded-full transition-all duration-300"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
+          {/* SECTION: PROGRES PROYEK (Hanya jika belum ready/released) */}
+          {!isReadyOrReleased && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block truncate">
+                  Progres {currentStage.label}
+                </label>
+                {(() => {
+                  const colorClass = progressPercent === 100 ? 'text-emerald-400' : progressPercent >= 50 ? 'text-amber-400' : 'text-text-muted';
+                  return (
+                    <span className={`text-[11px] font-mono font-bold bg-bg-primary px-2 py-0.5 rounded-lg shrink-0 ${colorClass}`}>
+                      {progressPercent}%
+                    </span>
+                  );
+                })()}
               </div>
 
-              {/* Progress Comment / Note Field */}
-              <input
-                type="text"
-                placeholder="Catatan progres proyek (misal: '3/6 track beres')..."
-                value={project.progressNote || ''}
-                onChange={(e) => onUpdateProject({ progressNote: e.target.value })}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.currentTarget.blur();
-                  }
-                }}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-bg-secondary border border-border-default/20 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
-              />
+              <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[11px] text-text-muted font-medium">
+                    <span>Rampung Track</span>
+                    <span className="font-mono text-text-secondary">{completedTracks} / {totalTracks} lagu</span>
+                  </div>
+                  <div className="w-full h-2 bg-bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-accent-primary rounded-full transition-all duration-300"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Progress Comment / Note Field */}
+                <input
+                  type="text"
+                  placeholder="Catatan progres proyek (misal: '3/6 track beres')..."
+                  value={project.progressNote || ''}
+                  onChange={(e) => onUpdateProject({ progressNote: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-bg-secondary border border-border-default/20 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
+                />
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* SECTION: COVER ART UTAMA ALBUM / EP (MUNCUL DI TAHAP READY & RELEASED) */}
+          {isReadyOrReleased && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
+                  Cover Art {project.type === 'ep' ? 'EP' : 'Album'}
+                </label>
+                {project.coverUrl && (
+                  <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                    Terpasang
+                  </span>
+                )}
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3">
+                {!project.coverUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsCoverModalOpen(true)}
+                    className="w-full py-2.5 px-3 rounded-xl bg-bg-secondary hover:bg-bg-hover text-accent-primary text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <ImageIcon size={14} />
+                    <span>Lampirkan Cover Art {project.type === 'ep' ? 'EP' : 'Album'}</span>
+                  </button>
+                ) : (
+                  <div className="space-y-2.5">
+                    {/* Cover Image Preview */}
+                    <div className="flex items-center gap-3 p-2 rounded-xl bg-bg-secondary">
+                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-bg-primary shrink-0 shadow-xs border border-border-default/20">
+                        <img 
+                          src={project.coverUrl} 
+                          alt="Cover Art" 
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-text-primary truncate">
+                          {project.title || 'Cover Artwork'}
+                        </p>
+                        <p className="text-[10px] text-text-muted truncate">
+                          Artwork 1:1 Resmi {project.type === 'ep' ? 'EP' : 'Album'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Actions: Ganti / Hapus */}
+                    <div className="flex items-center justify-end gap-2 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setIsCoverModalOpen(true)}
+                        className="px-2.5 py-1 text-[11px] font-medium text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer"
+                      >
+                        Ganti Cover
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onUpdateProject({ coverUrl: undefined })}
+                        className="px-2.5 py-1 text-[11px] font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* SECTION 2: METADATA WAKTU & TANGGAL */}
           <div className="space-y-2">
@@ -229,7 +303,7 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
             <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3 text-xs">
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[11px] text-text-muted font-medium">
-                  <span>{project.status === 'released' ? 'Tanggal Rilis' : 'Target Rilis'}</span>
+                  <span>{isReadyOrReleased ? 'Tanggal Rilis' : 'Target Rilis'}</span>
                   {project.targetReleaseDate && (
                     <button
                       type="button"
@@ -285,6 +359,20 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
 
         </div>
       </aside>
+
+      {/* MODAL LAMPIRKAN COVER ART ALBUM / EP */}
+      <InsertImageModal
+        isOpen={isCoverModalOpen}
+        onClose={() => setIsCoverModalOpen(false)}
+        customTitle={`Lampirkan Cover Art ${project.type === 'ep' ? 'EP' : 'Album'}`}
+        uploadTabLabel="Unggah Cover"
+        libraryTabLabel="Pustaka Cover"
+        submitButtonLabel="Gunakan Sebagai Cover Art"
+        onInsertImage={({ src }) => {
+          onUpdateProject({ coverUrl: src });
+          setIsCoverModalOpen(false);
+        }}
+      />
     </>
   );
 };

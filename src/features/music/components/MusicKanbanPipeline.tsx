@@ -38,6 +38,27 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
   const autoScrollRafRef = useRef<number | null>(null);
   const currentPointerPosRef = useRef<{ clientX: number; clientY: number } | null>(null);
 
+  // Restore horizontal scroll position on mount
+  useEffect(() => {
+    const savedX = sessionStorage.getItem('music_kanban_scroll_x');
+    if (savedX && scrollContainerRef.current) {
+      const targetX = parseFloat(savedX);
+      // Small timeout to allow DOM columns layout calculation
+      const raf = requestAnimationFrame(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollLeft = targetX;
+        }
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, []);
+
+  const handleContainerScroll = useCallback(() => {
+    if (scrollContainerRef.current) {
+      sessionStorage.setItem('music_kanban_scroll_x', String(scrollContainerRef.current.scrollLeft));
+    }
+  }, []);
+
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
@@ -176,6 +197,7 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
     >
       <div 
         ref={scrollContainerRef}
+        onScroll={handleContainerScroll}
         className="flex gap-3 overflow-x-auto overflow-y-hidden pb-1 pt-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full h-full min-h-0 items-stretch select-none"
       >
         {PRODUCTION_STAGES.map((stage) => {

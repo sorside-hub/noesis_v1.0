@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Kanban, ListMusic, Disc3 } from 'lucide-react';
+import { Kanban, Disc3 } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
-export type StudioViewTab = 'pipeline' | 'songs' | 'projects';
+export type StudioViewTab = 'pipeline' | 'discography';
 
 interface MusicStudioDrawerDockProps {
   activeTab: StudioViewTab;
@@ -27,16 +27,11 @@ export const MusicStudioDrawerDock: React.FC<MusicStudioDrawerDockProps> = ({
   const navItems: StudioNavItem[] = [
     {
       id: 'pipeline',
-      label: 'Pipeline Triage',
+      label: 'Kanban',
       icon: Kanban,
     },
     {
-      id: 'songs',
-      label: 'Daftar Lagu',
-      icon: ListMusic,
-    },
-    {
-      id: 'projects',
+      id: 'discography',
       label: 'Diskografi',
       icon: Disc3,
     },

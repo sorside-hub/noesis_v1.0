@@ -242,6 +242,7 @@ export const initRealtimeSync = async () => {
             scratchpad: s.scratchpad || '',
             referenceLink: s.reference_link || undefined,
             audioUrl: s.audio_url || undefined,
+            coverUrl: s.cover_url || undefined,
             createdAt: s.created_at,
             updatedAt: s.updated_at,
           };
