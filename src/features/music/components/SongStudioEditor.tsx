@@ -134,10 +134,10 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
             </div>
             <div className="min-w-0">
               <h2 className="text-xs sm:text-sm font-bold text-text-heading truncate">
-                Lirik & Chord Lagu
+                {song.title}
               </h2>
               <p className="text-[10px] text-text-muted truncate">
-                {song.title}
+                Lirik & Chord
               </p>
             </div>
           </div>

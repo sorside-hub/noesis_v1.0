@@ -18,11 +18,12 @@ export const MusicProjectCard: React.FC<MusicProjectCardProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const completedTracks = project.songs.filter(
-    s => s.status === 'ready' || s.status === 'released'
-  ).length;
   const totalTracks = project.songs.length;
-  const progressPercent = totalTracks > 0 ? Math.round((completedTracks / totalTracks) * 100) : 0;
+  const totalTrackProgress = project.songs.reduce(
+    (sum, s) => sum + (s.progress !== undefined ? s.progress : (s.status === 'ready' || s.status === 'released' ? 100 : 0)),
+    0
+  );
+  const progressPercent = totalTracks > 0 ? Math.round(totalTrackProgress / totalTracks) : 0;
 
   const typeBadgeColor = 
     project.type === 'album' 
@@ -94,8 +95,8 @@ export const MusicProjectCard: React.FC<MusicProjectCardProps> = ({
       {totalTracks > 0 && (
         <div className="space-y-1">
           <div className="flex justify-between text-[10px] font-medium text-text-muted">
-            <span>Progres Produksi Track</span>
-            <span>{completedTracks} / {totalTracks} lagu ({progressPercent}%)</span>
+            <span>Progres Produksi Album</span>
+            <span>{progressPercent}% ({totalTracks} lagu)</span>
           </div>
           <div className="w-full h-1.5 bg-bg-primary rounded-full overflow-hidden">
             <div 

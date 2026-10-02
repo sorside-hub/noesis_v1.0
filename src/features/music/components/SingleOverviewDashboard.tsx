@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ArrowLeft, 
   Edit3, 
@@ -31,6 +31,7 @@ import { EditorCore } from '../../editor/components/EditorCore';
 import { Toolbar } from '../../editor/components/Toolbar';
 import { SingleMetadataSidebar } from './SingleMetadataSidebar';
 import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
+import { useNavigation } from '../../../context/NavigationContext';
 
 interface SingleOverviewDashboardProps {
   song: StudioSongRecord;
@@ -81,8 +82,12 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   // Delete Song Modal state
   const [isDeleteSongModalOpen, setIsDeleteSongModalOpen] = useState(false);
 
-  // Metadata Sidebar state
-  const [isMetadataSidebarOpen, setIsMetadataSidebarOpen] = useState(false);
+  // Metadata Sidebar state from global NavigationContext
+  const {
+    isMobileRightSidebarOpen: isMetadataSidebarOpen,
+    openMobileRightSidebar,
+    closeMobileRightSidebar,
+  } = useNavigation();
 
   // Touch Swipe Physics Gestures
   const {
@@ -96,8 +101,8 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
     openMobileSidebar: () => {},
     closeMobileSidebar: () => {},
     isMobileRightSidebarOpen: isMetadataSidebarOpen,
-    openMobileRightSidebar: () => setIsMetadataSidebarOpen(true),
-    closeMobileRightSidebar: () => setIsMetadataSidebarOpen(false),
+    openMobileRightSidebar,
+    closeMobileRightSidebar,
   });
 
   useEffect(() => {
@@ -111,6 +116,29 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
     list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     setLyricVersions(list);
   };
+
+  // Sorted versions:
+  // Tier 1: FINAL (Score 2) - At the very top
+  // Tier 2: FOKUS (Score 1) - Right below Final (or top if no Final)
+  // Tier 3: Other regular versions (Score 0) - Chronological ASCENDING (v1, v2, v3...)
+  const sortedLyricVersions = useMemo(() => {
+    return [...lyricVersions].sort((a, b) => {
+      const aFinal = a.isFocused !== undefined ? !!a.isFinal : false;
+      const bFinal = b.isFocused !== undefined ? !!b.isFinal : false;
+      const aFocused = a.isFocused !== undefined ? !!a.isFocused : !!a.isFinal;
+      const bFocused = b.isFocused !== undefined ? !!b.isFocused : !!b.isFinal;
+
+      const aScore = aFinal ? 2 : aFocused ? 1 : 0;
+      const bScore = bFinal ? 2 : bFocused ? 1 : 0;
+
+      if (aScore !== bScore) {
+        return bScore - aScore; // Higher score comes first
+      }
+
+      // If scores are equal, sort chronologically ASCENDING
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  }, [lyricVersions]);
 
   useEffect(() => {
     loadVersions();
@@ -161,13 +189,14 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
       songId: song.id,
       versionName,
       content: song.contentLyrics || '',
-      isFinal: isFirst, // First version created is focused by default
+      isFocused: isFirst, // First version created is focused by default
+      isFinal: false,
       createdAt: new Date().toISOString(),
     };
 
     if (isFirst) {
       for (const v of lyricVersions) {
-        await saveLyricVersion({ ...v, isFinal: false });
+        await saveLyricVersion({ ...v, isFocused: false });
       }
     }
 
@@ -177,24 +206,56 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
     setNewVersionTitleInput('');
   };
 
-  // Toggle or Set focused version
-  const handleToggleFocusedVersion = async (version: StudioLyricVersionRecord, e?: React.MouseEvent) => {
+  // Toggle or Set focused version (INSTANT OPTIMISTIC UI)
+  const handleToggleFocusedVersion = (version: StudioLyricVersionRecord, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    const isCurrentlyFocused = !!version.isFinal;
+    const isCurrentlyFocused = version.isFocused !== undefined ? !!version.isFocused : !!version.isFinal;
     const targetState = !isCurrentlyFocused;
 
-    for (const v of lyricVersions) {
-      const isTarget = v.id === version.id;
-      await saveLyricVersion({
-        ...v,
-        isFinal: isTarget ? targetState : false,
-      });
-    }
+    // 1. Instant 0ms Optimistic UI update
+    const updatedList = lyricVersions.map((v) => ({
+      ...v,
+      isFocused: v.id === version.id ? targetState : false,
+    }));
+    setLyricVersions(updatedList);
 
     if (targetState) {
       onUpdateSong({ contentLyrics: version.content });
     }
-    await loadVersions();
+
+    // 2. Persist in background without blocking UI
+    const changedRecords = updatedList.filter((v) => {
+      const orig = lyricVersions.find((o) => o.id === v.id);
+      return (orig?.isFocused !== undefined ? orig.isFocused : orig?.isFinal) !== v.isFocused;
+    });
+
+    Promise.all(changedRecords.map((v) => saveLyricVersion(v))).catch((err) => {
+      console.warn('[MusicStudio] Failed to persist focused version:', err);
+    });
+  };
+
+  // Toggle or Set final version (INSTANT OPTIMISTIC UI)
+  const handleToggleFinalVersion = (version: StudioLyricVersionRecord, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const isCurrentlyFinal = !!version.isFinal;
+    const targetState = !isCurrentlyFinal;
+
+    // 1. Instant 0ms Optimistic UI update
+    const updatedList = lyricVersions.map((v) => ({
+      ...v,
+      isFinal: v.id === version.id ? targetState : false,
+    }));
+    setLyricVersions(updatedList);
+
+    // 2. Persist in background without blocking UI
+    const changedRecords = updatedList.filter((v) => {
+      const orig = lyricVersions.find((o) => o.id === v.id);
+      return !!orig?.isFinal !== v.isFinal;
+    });
+
+    Promise.all(changedRecords.map((v) => saveLyricVersion(v))).catch((err) => {
+      console.warn('[MusicStudio] Failed to persist final version:', err);
+    });
   };
 
   // Open rename modal
@@ -205,24 +266,31 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
     setOpenVersionMenuId(null);
   };
 
-  // Save renamed version
-  const handleSaveRename = async () => {
+  // Save renamed version (INSTANT OPTIMISTIC UI)
+  const handleSaveRename = () => {
     if (!renamingVersion) return;
     const cleanTitle = renameTitleInput.trim() || renamingVersion.versionName;
-    await saveLyricVersion({
+    const updatedRecord = {
       ...renamingVersion,
       versionName: cleanTitle,
-    });
-    await loadVersions();
+    };
+
+    setLyricVersions((prev) => prev.map((v) => (v.id === updatedRecord.id ? updatedRecord : v)));
     setRenamingVersion(null);
     setRenameTitleInput('');
+
+    saveLyricVersion(updatedRecord).catch((err) => {
+      console.warn('[MusicStudio] Failed to persist renamed version:', err);
+    });
   };
 
-  // Delete version
-  const handleDeleteVersion = async (id: string, e: React.MouseEvent) => {
+  // Delete version (INSTANT OPTIMISTIC UI)
+  const handleDeleteVersion = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    await deleteLyricVersion(id);
-    await loadVersions();
+    setLyricVersions((prev) => prev.filter((v) => v.id !== id));
+    deleteLyricVersion(id).catch((err) => {
+      console.warn('[MusicStudio] Failed to delete lyric version:', err);
+    });
   };
 
   // Delete entire single
@@ -279,10 +347,10 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               </div>
               <div className="min-w-0">
                 <h2 className="text-xs sm:text-sm font-bold text-text-heading truncate">
-                  Premis & Konsep Cerita
+                  {song.title}
                 </h2>
                 <p className="text-[10px] text-text-muted truncate">
-                  {song.title}
+                  Premis & Konsep Cerita
                 </p>
               </div>
             </div>
@@ -341,10 +409,10 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               </div>
               <div className="min-w-0">
                 <h2 className="text-xs sm:text-sm font-bold text-text-heading truncate">
-                  Raw Bars & Ide Mentah
+                  {song.title}
                 </h2>
                 <p className="text-[10px] text-text-muted truncate">
-                  {song.title}
+                  Raw Bars & Ide Mentah
                 </p>
               </div>
             </div>
@@ -444,7 +512,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               {currentProject && (
                 <>
                   <span>•</span>
-                  <span className="text-accent-primary font-medium truncate">{currentProject.title}</span>
+                  <span className="text-text-muted font-medium truncate">{currentProject.title}</span>
                 </>
               )}
             </div>
@@ -453,75 +521,37 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
 
         {/* Right Header Actions */}
         <div className="flex items-center gap-2 shrink-0">
-          {currentProject ? (
-            /* Track mode: Boolean Toggle Button (No Box / No BG) */
-            <button
-              type="button"
-              onClick={() => {
-                const isCurrentlyDone = song.status === 'ready' || song.status === 'released';
-                onUpdateSong({ status: isCurrentlyDone ? 'idea' : 'ready' });
-              }}
-              title={song.status === 'ready' || song.status === 'released' ? 'Status: Selesai (Klik untuk ubah)' : 'Status: Dalam Pengerjaan (Klik untuk tandai selesai)'}
-              className={`h-8 flex items-center gap-1.5 px-2 rounded-xl text-xs font-semibold cursor-pointer transition-all active:scale-95 ${
-                song.status === 'ready' || song.status === 'released'
-                  ? 'text-emerald-400 hover:text-emerald-300'
-                  : 'text-amber-400 hover:text-amber-300'
-              }`}
-            >
-              <span className="text-sm font-bold">{song.status === 'ready' || song.status === 'released' ? '✓' : '⏳'}</span>
-              <span className="hidden sm:inline text-xs">
-                {song.status === 'ready' || song.status === 'released' ? 'Selesai' : 'Dalam Proses'}
-              </span>
-            </button>
-          ) : (
-            /* Single mode: 6-Stage Dropdown (No Box / No BG) */
-            <div className="relative" onClick={(e) => e.stopPropagation()}>
-              <button
-                type="button"
-                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                title={`Status: ${currentStage.label}`}
-                className={`h-8 flex items-center gap-1.5 px-2 rounded-xl text-xs font-semibold cursor-pointer transition-all ${currentStage.color} hover:opacity-80`}
+          {(() => {
+            const prog = song.progress || 0;
+            const colorClass = prog === 100 ? 'text-emerald-400' : prog >= 50 ? 'text-amber-400' : 'text-text-muted';
+            return currentProject ? (
+              /* Track Mode Info Badge (Only Track Progress %) */
+              <div 
+                title={`Progres Lirik Track: ${prog}% (${prog === 100 ? 'Selesai' : 'Dalam Proses'})`}
+                className={`h-8 flex items-center gap-1.5 px-2.5 rounded-xl text-xs font-semibold select-none bg-bg-primary ${colorClass}`}
+              >
+                <span className="text-xs sm:text-sm">{prog === 100 ? '✓' : '⏳'}</span>
+                <span className="hidden sm:inline text-xs font-bold">
+                  {prog === 100 ? '100% Selesai' : `${prog}% Dalam Proses`}
+                </span>
+                <span className="sm:hidden text-xs font-bold font-mono">{prog}%</span>
+              </div>
+            ) : (
+              /* Single Mode Info Badge (Stage + Progress %) */
+              <div 
+                title={`Tahapan Produksi: ${currentStage.label} (${prog}%) - Ubah di Metadata Sidebar`}
+                className={`h-8 flex items-center gap-1.5 px-2.5 rounded-xl text-xs font-semibold select-none bg-bg-primary ${colorClass}`}
               >
                 <span className="text-xs sm:text-sm">{currentStage.icon}</span>
-                <span className="hidden sm:inline text-xs">{currentStage.label}</span>
-                <ChevronDown size={12} className="hidden sm:inline ml-0.5 opacity-70" />
-              </button>
-
-              {isStatusDropdownOpen && (
-                <>
-                  {/* Backdrop click-away for mobile & desktop */}
-                  <div 
-                    className="fixed inset-0 z-40 bg-transparent" 
-                    onClick={() => setIsStatusDropdownOpen(false)} 
-                  />
-                  <div className="absolute right-0 top-full mt-1.5 w-44 bg-bg-secondary rounded-2xl shadow-2xl p-1.5 z-50 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
-                    {PRODUCTION_STAGES.map((st) => (
-                      <button
-                        key={st.id}
-                        type="button"
-                        onClick={() => {
-                          onUpdateSong({ status: st.id });
-                          setIsStatusDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-colors text-left cursor-pointer ${
-                          song.status === st.id
-                            ? 'bg-bg-hover font-bold text-text-primary'
-                            : 'hover:bg-bg-hover/60 text-text-secondary'
-                        }`}
-                      >
-                        <span>{st.icon}</span>
-                        <span>{st.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+                <span className="hidden sm:inline text-xs font-bold">{currentStage.label} ({prog}%)</span>
+                <span className="sm:hidden text-xs font-bold font-mono">{prog}%</span>
+              </div>
+            );
+          })()}
 
           <button
             type="button"
-            onClick={() => setIsMetadataSidebarOpen(!isMetadataSidebarOpen)}
+            onClick={() => isMetadataSidebarOpen ? closeMobileRightSidebar() : openMobileRightSidebar()}
             title={isMetadataSidebarOpen ? 'Tutup Metadata Single' : 'Buka Metadata Single'}
             className={`h-8 px-2.5 sm:px-3 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
               isMetadataSidebarOpen
@@ -653,9 +683,10 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                   </p>
                 </div>
               ) : (
-                lyricVersions.map((v, index) => {
-                  const isFocused = !!v.isFinal;
-                  const isLastItem = index === lyricVersions.length - 1 && lyricVersions.length > 1;
+                sortedLyricVersions.map((v, index) => {
+                  const isFocused = v.isFocused !== undefined ? !!v.isFocused : !!v.isFinal;
+                  const isFinal = v.isFocused !== undefined ? !!v.isFinal : false;
+                  const isLastItem = index === sortedLyricVersions.length - 1 && sortedLyricVersions.length > 1;
 
                   return (
                     <div
@@ -664,17 +695,17 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                       className="group p-3 sm:p-3.5 rounded-xl bg-bg-primary hover:bg-bg-hover transition-all cursor-pointer flex items-center justify-between gap-3 relative"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        {/* Icon Box (FileText or Star) */}
+                        {/* Icon Box: Star only when Final, FileText otherwise */}
                         <div className="w-8 h-8 rounded-lg bg-bg-secondary flex items-center justify-center shrink-0 text-text-muted">
-                          {isFocused ? (
+                          {isFinal ? (
                             <Star size={14} className="text-amber-400 fill-amber-400" />
                           ) : (
-                            <FileText size={14} className="text-text-muted" />
+                            <FileText size={14} className={isFocused ? 'text-emerald-400' : 'text-text-muted'} />
                           )}
                         </div>
 
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="text-xs font-bold text-text-primary group-hover:text-accent-primary transition-colors truncate">
                               {v.versionName}
                             </span>
@@ -684,10 +715,13 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                                 <span>FOKUS</span>
                               </span>
                             )}
+                            {isFinal && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-400 text-[9px] font-bold shrink-0">
+                                <Star size={10} className="fill-amber-400" />
+                                <span>FINAL</span>
+                              </span>
+                            )}
                           </div>
-                          <p className="text-[10px] text-text-muted mt-0.5">
-                            Dibuat: {formatDate(v.createdAt)}
-                          </p>
                         </div>
                       </div>
 
@@ -724,7 +758,20 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                               <span>{isFocused ? 'Lepas Fokus' : 'Fokuskan Versi Ini'}</span>
                             </button>
 
-                            {/* Option 2: Ubah Nama Versi */}
+                            {/* Option 2: Toggle Final Versi */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                handleToggleFinalVersion(v, e);
+                                setOpenVersionMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs text-text-primary hover:bg-bg-hover transition-colors text-left cursor-pointer font-medium"
+                            >
+                              <Star size={13} className={isFinal ? 'text-amber-400 fill-amber-400' : 'text-text-muted'} />
+                              <span>{isFinal ? 'Hapus Status Final' : 'Jadikan Versi Final'}</span>
+                            </button>
+
+                            {/* Option 3: Ubah Nama Versi */}
                             <button
                               type="button"
                               onClick={(e) => handleOpenRenameModal(v, e)}
@@ -734,7 +781,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                               <span>Ubah Nama Versi</span>
                             </button>
 
-                            {/* Option 3: Salin Lirik */}
+                            {/* Option 4: Salin Lirik */}
                             <button
                               type="button"
                               onClick={(e) => {
@@ -749,7 +796,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
 
                             <div className="my-1 h-px bg-border-default/30" />
 
-                            {/* Option 4: Hapus Versi */}
+                            {/* Option 5: Hapus Versi */}
                             <button
                               type="button"
                               onClick={(e) => {
@@ -778,7 +825,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
       {/* METADATA SLIDE-OVER SIDEBAR */}
       <SingleMetadataSidebar
         isOpen={isMetadataSidebarOpen}
-        onClose={() => setIsMetadataSidebarOpen(false)}
+        onClose={closeMobileRightSidebar}
         song={song}
         projects={projects}
         allSongs={allSongs}

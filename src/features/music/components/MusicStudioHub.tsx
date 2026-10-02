@@ -6,6 +6,15 @@ import {
   Plus, 
   Loader2,
   FolderPlus,
+  Clock,
+  Calendar,
+  ArrowDownAZ,
+  BarChart3,
+  Check,
+  ChevronDown,
+  X,
+  ArrowDownWideNarrow,
+  ArrowUpNarrowWide,
 } from 'lucide-react';
 import { useMusicStudio } from '../hooks/useMusicStudio';
 import { MusicProjectCard } from './MusicProjectCard';
@@ -19,6 +28,13 @@ import { NewSongModal } from './NewSongModal';
 import { NewProjectModal } from './NewProjectModal';
 import { useNavigation } from '../../../context/NavigationContext';
 import { MusicProductionStatus, MusicProjectType, MusicReleaseItem } from '../types';
+
+const SORT_OPTIONS: { id: 'updated' | 'created' | 'title' | 'progress'; label: string; icon: React.ElementType }[] = [
+  { id: 'updated', label: 'Diubah', icon: Clock },
+  { id: 'created', label: 'Dibuat', icon: Calendar },
+  { id: 'title', label: 'Nama', icon: ArrowDownAZ },
+  { id: 'progress', label: 'Progres', icon: BarChart3 },
+];
 
 interface MusicStudioHubProps {
   vaultState?: any;
@@ -54,10 +70,16 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
   const [activeTab, setActiveTab] = useState<StudioViewTab>('pipeline');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'updated' | 'created' | 'title' | 'progress'>('updated');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
   // Unified creation menu state
   const [isCreationMenuOpen, setIsCreationMenuOpen] = useState(false);
   const creationMenuRef = useRef<HTMLDivElement>(null);
+
+  // Custom Sort Menu Popover state
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
 
   // Modals state
   const [isNewSongModalOpen, setIsNewSongModalOpen] = useState(false);
@@ -89,6 +111,22 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     };
   }, [isCreationMenuOpen]);
 
+  // Close sort menu popover on outside click
+  useEffect(() => {
+    if (!showSortMenu) return;
+
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(e.target as Node)) {
+        setShowSortMenu(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [showSortMenu]);
+
   // Combine Singles, EPs, and Albums into unified release items for Pipeline & Daftar
   const releaseItems: MusicReleaseItem[] = useMemo(() => {
     const list: MusicReleaseItem[] = [];
@@ -103,6 +141,8 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
           type: 'single',
           title: song.title,
           status: song.status,
+          progress: song.progress || 0,
+          progressNote: song.progressNote,
           updatedAt: new Date(song.updatedAt).getTime() || Date.now(),
           createdAt: new Date(song.createdAt).getTime() || Date.now(),
         });
@@ -111,23 +151,32 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
 
     // 2. EPs and Albums
     rawProjects.forEach((proj) => {
+      const projectSongs = rawSongs.filter((s) => s.projectId === proj.id);
+      const totalTrackProgress = projectSongs.reduce((sum, s) => sum + (s.progress || 0), 0);
+      const projProgress =
+        projectSongs.length > 0
+          ? Math.round(totalTrackProgress / projectSongs.length)
+          : 0;
+
       list.push({
         id: proj.id,
         kind: 'project',
         type: proj.type || 'album',
         title: proj.title,
         status: proj.status || 'idea',
+        progress: projProgress,
+        progressNote: proj.progressNote,
         updatedAt: new Date(proj.updatedAt).getTime() || Date.now(),
         createdAt: new Date(proj.createdAt).getTime() || Date.now(),
       });
     });
 
-    return list.sort((a, b) => b.updatedAt - a.updatedAt);
+    return list;
   }, [rawSongs, rawProjects]);
 
-  // Filtered releases for Pipeline and Daftar
+  // Filtered and Sorted releases for Pipeline and Daftar
   const filteredItems = useMemo(() => {
-    return releaseItems.filter((item) => {
+    const filtered = releaseItems.filter((item) => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesTitle = item.title.toLowerCase().includes(q);
@@ -141,7 +190,26 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
 
       return true;
     });
-  }, [releaseItems, searchQuery, selectedStatusFilter]);
+
+    return filtered.sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'created') {
+        cmp = a.createdAt - b.createdAt;
+      } else if (sortBy === 'title') {
+        cmp = a.title.localeCompare(b.title);
+      } else if (sortBy === 'progress') {
+        cmp = (a.progress || 0) - (b.progress || 0);
+      } else {
+        // default 'updated'
+        cmp = a.updatedAt - b.updatedAt;
+      }
+
+      if (sortBy === 'title') {
+        return sortOrder === 'asc' ? cmp : -cmp;
+      }
+      return sortOrder === 'desc' ? -cmp : cmp;
+    });
+  }, [releaseItems, searchQuery, selectedStatusFilter, sortBy, sortOrder]);
 
   // Filtered projects for Discography Tab
   const filteredProjects = useMemo(() => {
@@ -329,7 +397,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     <div className="relative w-full h-full bg-bg-primary text-text-primary select-none flex flex-col overflow-hidden">
       <div className="max-w-7xl w-full mx-auto px-3 sm:px-6 pt-3 pb-2 space-y-2.5 flex-1 flex flex-col min-h-0">
         
-        {/* Streamlined Clean Header */}
+        {/* Streamlined Clean Header (BARIS 1) */}
         <header className="flex items-center justify-between gap-2.5 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-bg-secondary text-accent-primary flex items-center justify-center shrink-0 shadow-xs">
@@ -338,18 +406,6 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
             <h1 className="text-base sm:text-lg font-bold text-text-heading tracking-tight truncate">
               Studio Musik
             </h1>
-          </div>
-
-          {/* Center Search Input */}
-          <div className="relative flex-1 max-w-xs sm:max-w-sm">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input
-              type="text"
-              placeholder="Cari lagu, album, single..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-bg-secondary border border-border-default/20 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
-            />
           </div>
 
           {/* Unified (+) Action Button & Dropdown */}
@@ -458,6 +514,107 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
             )}
           </div>
         </header>
+
+        {/* Search & Sort Bar (BARIS 2 - 1 Baris Elegan, Dipisah Seperti di Halaman Media) */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* 1. Search Bar */}
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Cari lagu, album, single..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-bg-secondary border border-border-default/20 hover:border-accent-primary/40 focus:border-accent-primary/60 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary/20 transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary p-0.5 cursor-pointer"
+                title="Hapus pencarian"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          {/* 2. Custom Popover Sort Menu */}
+          <div className="relative shrink-0" ref={sortMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowSortMenu(!showSortMenu)}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-bg-secondary hover:bg-bg-hover border border-border-default/20 hover:border-accent-primary/40 text-text-primary cursor-pointer transition-all active:scale-95 ${
+                showSortMenu ? 'border-accent-primary/60 bg-bg-hover ring-1 ring-accent-primary/20' : ''
+              }`}
+            >
+              {(() => {
+                const currentOpt = SORT_OPTIONS.find((o) => o.id === sortBy) || SORT_OPTIONS[0];
+                const Icon = currentOpt.icon;
+                return (
+                  <>
+                    <Icon size={13} className="text-text-muted shrink-0" />
+                    <span className="hidden sm:inline">{currentOpt.label}</span>
+                  </>
+                );
+              })()}
+              <ChevronDown size={13} className={`text-text-muted transition-transform duration-150 ${showSortMenu ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Floating Custom Sort Dropdown Popover */}
+            {showSortMenu && (
+              <div className="absolute right-0 top-full mt-1.5 w-44 bg-bg-secondary rounded-2xl shadow-2xl z-50 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 border border-border-default/20">
+                <div className="px-2.5 py-1 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                  Urutkan Berdasarkan
+                </div>
+                {SORT_OPTIONS.map((opt) => {
+                  const Icon = opt.icon;
+                  const isActive = sortBy === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        setSortBy(opt.id);
+                        setShowSortMenu(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-left cursor-pointer transition-colors ${
+                        isActive
+                          ? 'bg-bg-hover text-text-primary font-semibold'
+                          : 'text-text-muted hover:text-text-primary hover:bg-bg-hover/50 font-medium'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon size={13} className={isActive ? 'text-text-primary' : 'text-text-muted'} />
+                        <span className={isActive ? 'text-text-primary' : 'text-text-muted'}>{opt.label}</span>
+                      </div>
+                      {isActive && <Check size={13} className="text-text-primary" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* 3. Sort Direction Toggle Button (Opsi 1: Atas ke Bawah / Bawah ke Atas) */}
+          <button
+            type="button"
+            onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+            className="flex items-center justify-center w-8 h-8 rounded-xl bg-bg-secondary hover:bg-bg-hover border border-border-default/20 hover:border-accent-primary/40 text-text-primary cursor-pointer transition-all active:scale-95 shrink-0 group"
+            title={
+              sortOrder === 'desc'
+                ? 'Urutan: Menurun / Atas ke Bawah (Klik untuk ganti Menaik)'
+                : 'Urutan: Menaik / Bawah ke Atas (Klik untuk ganti Menurun)'
+            }
+            aria-label="Ubah arah urutan"
+          >
+            {sortOrder === 'desc' ? (
+              <ArrowDownWideNarrow size={14} className="text-text-muted group-hover:text-text-primary transition-colors" />
+            ) : (
+              <ArrowUpNarrowWide size={14} className="text-text-muted group-hover:text-text-primary transition-colors" />
+            )}
+          </button>
+        </div>
 
         {/* Loading indicator */}
         {isLoading && (

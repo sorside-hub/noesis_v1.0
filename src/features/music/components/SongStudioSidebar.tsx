@@ -178,7 +178,7 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                     className="w-full h-9 px-3 text-xs font-medium text-text-primary hover:bg-bg-secondary/40 flex items-center justify-between gap-2 cursor-pointer transition-colors text-left"
                   >
                     <span className="truncate font-bold">{song.tuning || 'Standard (E A D G B E)'}</span>
-                    <ChevronDown size={14} className="text-accent-primary shrink-0 rotate-180 transition-transform" />
+                    <ChevronDown size={14} className="text-text-primary shrink-0 rotate-180 transition-transform" />
                   </button>
 
                   <div className="mx-2.5 h-px bg-border-default/30" />
@@ -196,12 +196,12 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                           }}
                           className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left ${
                             isSelected
-                              ? 'bg-bg-secondary text-accent-primary font-bold'
+                              ? 'bg-bg-secondary text-text-primary font-bold'
                               : 'text-text-muted hover:text-text-primary hover:bg-bg-secondary/60'
                           }`}
                         >
                           <span className="truncate">{opt}</span>
-                          {isSelected && <Check size={12} className="text-accent-primary shrink-0" />}
+                          {isSelected && <Check size={12} className="text-text-primary shrink-0" />}
                         </button>
                       );
                     })}
@@ -347,7 +347,7 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                         <span className="truncate w-full text-center font-bold">
                           {song.capo ? `Fret ${song.capo}` : 'Tanpa Capo'}
                         </span>
-                        <ChevronDown size={12} className="text-accent-primary shrink-0 rotate-180 transition-transform" />
+                        <ChevronDown size={12} className="text-text-primary shrink-0 rotate-180 transition-transform" />
                       </button>
 
                       <div className="mx-2.5 h-px bg-border-default/30" />
@@ -361,12 +361,12 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                           }}
                           className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left ${
                             (song.capo || 0) === 0
-                              ? 'bg-bg-primary text-accent-primary font-bold'
+                              ? 'bg-bg-primary text-text-primary font-bold'
                               : 'text-text-muted hover:text-text-primary hover:bg-bg-hover/60'
                           }`}
                         >
                           <span>Tanpa Capo</span>
-                          {(song.capo || 0) === 0 && <Check size={12} className="text-accent-primary shrink-0" />}
+                          {(song.capo || 0) === 0 && <Check size={12} className="text-text-primary shrink-0" />}
                         </button>
 
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((fret) => {
@@ -381,12 +381,12 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
                               }}
                               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left ${
                                 isSelected
-                                  ? 'bg-bg-primary text-accent-primary font-bold'
+                                  ? 'bg-bg-primary text-text-primary font-bold'
                                   : 'text-text-muted hover:text-text-primary hover:bg-bg-hover/60'
                               }`}
                             >
                               <span>Fret {fret}</span>
-                              {isSelected && <Check size={12} className="text-accent-primary shrink-0" />}
+                              {isSelected && <Check size={12} className="text-text-primary shrink-0" />}
                             </button>
                           );
                         })}

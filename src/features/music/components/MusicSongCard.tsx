@@ -42,27 +42,40 @@ export const MusicSongCard: React.FC<MusicSongCardProps> = ({
     return () => document.removeEventListener('pointerdown', handleClickOutside);
   }, [showStatusMenu, showActionMenu]);
 
+  const prog = item.progress || 0;
+  const progressColorClass = prog === 100 ? 'text-emerald-400' : prog >= 50 ? 'text-amber-400' : 'text-text-muted';
+  const typeText = item.type === 'ep' ? 'EP' : item.type === 'album' ? 'Album' : 'Single';
+
   return (
     <div
       onClick={() => onSelectItem(item)}
-      className="group relative px-3.5 py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-hover transition-colors cursor-pointer select-none flex items-center justify-between gap-3"
+      className="group relative px-3.5 py-2.5 rounded-2xl bg-bg-secondary hover:bg-bg-hover transition-colors cursor-pointer select-none flex items-center justify-between gap-3"
     >
-      {/* Icon + Judul + Badge Rilisan */}
-      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-        <div className="text-text-muted group-hover:text-accent-primary transition-colors shrink-0">
-          {isSingle ? <Music2 size={16} /> : <Disc3 size={16} />}
-        </div>
-
-        <h4 className="text-xs sm:text-sm font-semibold text-text-heading group-hover:text-accent-primary transition-colors truncate">
+      {/* LEFT CONTENT: BARIS 1 (JUDUL) + BARIS 2 (SUB-INFO) */}
+      <div className="flex-1 flex flex-col justify-center gap-1 min-w-0">
+        <h4 className="text-xs sm:text-sm font-bold text-text-heading group-hover:text-accent-primary transition-colors truncate">
           {item.title || 'Tanpa Judul'}
         </h4>
 
-        <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-bg-primary text-text-muted uppercase tracking-wider shrink-0">
-          {item.type}
-        </span>
+        {/* BARIS 2: INFO TYPE (teks kecil tanpa box) • % (3 tingkat warna) • CATATAN */}
+        <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
+          <span className="shrink-0">{typeText}</span>
+          <span className="shrink-0 opacity-40">•</span>
+          <span className={`font-mono font-bold shrink-0 ${progressColorClass}`}>
+            {prog}%
+          </span>
+          {item.progressNote && item.progressNote.trim() && (
+            <>
+              <span className="shrink-0 opacity-40">•</span>
+              <span className="truncate italic text-text-muted/80">
+                {item.progressNote}
+              </span>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Right Controls: Status Selector & Titik 3 Menu */}
+      {/* RIGHT CONTENT: STATUS BADGE & TITIK 3 MENU (VERTICALLY CENTERED) */}
       <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
         {/* Status Badge & Dropdown - NO BORDER */}
         <div className="relative" ref={statusMenuRef}>
@@ -75,7 +88,7 @@ export const MusicSongCard: React.FC<MusicSongCardProps> = ({
             className={`text-[10px] font-medium px-2.5 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${currentStage.bgLight} ${currentStage.color}`}
           >
             <span>{currentStage.icon}</span>
-            <span>{currentStage.label}</span>
+            <span className="hidden sm:inline">{currentStage.label}</span>
           </button>
 
           {showStatusMenu && (
@@ -104,7 +117,7 @@ export const MusicSongCard: React.FC<MusicSongCardProps> = ({
           )}
         </div>
 
-        {/* Titik 3 Action Button & Dropdown - NO BORDER */}
+        {/* Action Menu (Titik 3) */}
         <div className="relative" ref={actionMenuRef}>
           <button
             type="button"
@@ -112,11 +125,11 @@ export const MusicSongCard: React.FC<MusicSongCardProps> = ({
               setShowActionMenu(!showActionMenu);
               setShowStatusMenu(false);
             }}
-            className="w-7 h-7 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-primary flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+            className="w-6 h-6 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-primary flex items-center justify-center transition-colors cursor-pointer active:scale-95"
             title="Aksi"
             aria-label="Aksi"
           >
-            <MoreVertical size={14} />
+            <MoreVertical size={13} />
           </button>
 
           {showActionMenu && (

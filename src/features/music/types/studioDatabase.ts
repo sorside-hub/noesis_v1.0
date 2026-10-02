@@ -9,6 +9,7 @@ export interface StudioProjectRecord {
   targetReleaseDate?: string;
   coverUrl?: string;
   description?: string;
+  progressNote?: string; // Catatan/komen progres album (misal: "3/6 track beres")
   createdAt: string;
   updatedAt: string;
   deletedAt?: number;
@@ -31,6 +32,8 @@ export interface StudioSongRecord {
   targetReleaseDate?: string;
   premise?: string; // Konsep / Premis / Cerita lagu
   scratchpad: string; // Raw bars & ide mentah
+  progress?: number; // Manual progress 0 - 100%
+  progressNote?: string; // Catatan/komen progres (misal: "chorus kurang mantab")
   referenceLink?: string;
   audioUrl?: string;
   createdAt: string;
@@ -43,6 +46,7 @@ export interface StudioLyricVersionRecord {
   songId: string;
   versionName: string;
   content: string;
+  isFocused?: boolean; // Penanda versi aktif / sedang dikerjakan
   isFinal?: boolean; // Penanda versi final / master
   createdAt: string;
 }

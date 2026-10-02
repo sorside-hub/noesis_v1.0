@@ -24,6 +24,7 @@ export interface SongItem {
   id: string;
   title: string;
   status: MusicProductionStatus;
+  progress?: number;
   key?: string;
   bpm?: number;
   timeSignature?: string;
@@ -57,6 +58,8 @@ export interface MusicReleaseItem {
   type: MusicProjectType;
   title: string;
   status: MusicProductionStatus;
+  progress?: number;
+  progressNote?: string;
   updatedAt: number;
   createdAt: number;
 }

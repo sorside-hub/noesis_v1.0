@@ -294,7 +294,11 @@ export const useNavigationActions = ({
   // Close Left Mobile Sidebar
   const closeMobileSidebar = useCallback(() => {
     if (!isMobileSidebarOpen) return;
-    setIsMobileSidebarOpen(false);
+    if (typeof window !== 'undefined' && window.history?.state?.isMobileSidebarOpen) {
+      safeHistoryBack();
+    } else {
+      setIsMobileSidebarOpen(false);
+    }
   }, [isMobileSidebarOpen, setIsMobileSidebarOpen]);
 
   // Open Right Mobile Sidebar
@@ -326,7 +330,11 @@ export const useNavigationActions = ({
   // Close Right Mobile Sidebar
   const closeMobileRightSidebar = useCallback(() => {
     if (!isMobileRightSidebarOpen) return;
-    setIsMobileRightSidebarOpen(false);
+    if (typeof window !== 'undefined' && window.history?.state?.isMobileRightSidebarOpen) {
+      safeHistoryBack();
+    } else {
+      setIsMobileRightSidebarOpen(false);
+    }
   }, [isMobileRightSidebarOpen, setIsMobileRightSidebarOpen]);
 
   // Toggle Desktop Sidebar
@@ -374,7 +382,11 @@ export const useNavigationActions = ({
   // Close Modal
   const closeModal = useCallback(() => {
     if (!activeModal) return;
-    setActiveModal(null);
+    if (typeof window !== 'undefined' && window.history?.state?.activeModal) {
+      safeHistoryBack();
+    } else {
+      setActiveModal(null);
+    }
   }, [activeModal, setActiveModal]);
 
   // Manual Trigger for Back button

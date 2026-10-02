@@ -73,6 +73,10 @@ export const MusicKanbanCard: React.FC<MusicKanbanCardProps> = ({
     return () => document.removeEventListener('pointerdown', handlePointerDown);
   }, [showMenu]);
 
+  const prog = item.progress || 0;
+  const progressColorClass = prog === 100 ? 'text-emerald-400' : prog >= 50 ? 'text-amber-400' : 'text-text-muted';
+  const typeText = item.type === 'ep' ? 'EP' : item.type === 'album' ? 'Album' : 'Single';
+
   return (
     <div
       ref={setNodeRef}
@@ -84,7 +88,7 @@ export const MusicKanbanCard: React.FC<MusicKanbanCardProps> = ({
           onSelectItem(item);
         }
       }}
-      className={`group relative flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl bg-bg-primary transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${
+      className={`group relative flex items-center justify-between gap-3 p-3 rounded-2xl bg-bg-primary transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${
         isDraggingOverlay
           ? 'shadow-2xl ring-2 ring-accent-primary/50 rotate-1 scale-102 bg-bg-primary/95 backdrop-blur-md z-50 touch-none'
           : isDragging
@@ -92,128 +96,135 @@ export const MusicKanbanCard: React.FC<MusicKanbanCardProps> = ({
           : 'shadow-2xs hover:shadow-md hover:bg-bg-hover'
       }`}
     >
-      {/* Icon & Judul */}
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        <div className="text-text-muted group-hover:text-accent-primary transition-colors shrink-0">
-          {isSingle ? <Music2 size={15} /> : <Disc3 size={15} />}
-        </div>
-        <h4 className="text-xs font-semibold text-text-heading truncate">
+      {/* LEFT CONTENT: BARIS 1 (JUDUL) + BARIS 2 (INFO TYPE • % • CATATAN) */}
+      <div className="flex-1 flex flex-col justify-center gap-1 min-w-0">
+        {/* BARIS 1: JUDUL */}
+        <h4 className="text-xs font-bold text-text-heading truncate group-hover:text-accent-primary transition-colors">
           {item.title || 'Tanpa Judul'}
         </h4>
+
+        {/* BARIS 2: INFO TYPE (teks kecil tanpa box) • % (3 tingkat warna) • CATATAN */}
+        <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
+          <span className="shrink-0">{typeText}</span>
+          <span className="shrink-0 opacity-40">•</span>
+          <span className={`font-mono font-bold shrink-0 ${progressColorClass}`}>
+            {prog}%
+          </span>
+          {item.progressNote && item.progressNote.trim() && (
+            <>
+              <span className="shrink-0 opacity-40">•</span>
+              <span className="truncate italic text-text-muted/80">
+                {item.progressNote}
+              </span>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Right Controls: Badge & Titik 3 */}
-      <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-        {/* Badge / Info Single / EP / Album */}
-        <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-bg-secondary text-text-muted uppercase tracking-wider shrink-0">
-          {item.type}
-        </span>
+      {/* RIGHT CONTENT: TITIK 3 MENU (VERTICALLY CENTERED) */}
+      {!isDraggingOverlay && (
+        <div className="relative shrink-0 flex items-center justify-center" ref={menuRef} onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            onClick={() => {
+              setShowMenu(!showMenu);
+              setShowStageSelector(false);
+            }}
+            className="w-6 h-6 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-secondary flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+            title="Aksi"
+            aria-label="Aksi"
+          >
+            <MoreVertical size={14} />
+          </button>
 
-        {/* Titik 3 Action Button */}
-        {!isDraggingOverlay && (
-          <div className="relative" ref={menuRef}>
-            <button
-              type="button"
-              onClick={() => {
-                setShowMenu(!showMenu);
-                setShowStageSelector(false);
-              }}
-              className="w-6 h-6 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-secondary flex items-center justify-center transition-colors cursor-pointer active:scale-95"
-              title="Aksi"
-              aria-label="Aksi"
-            >
-              <MoreVertical size={13} />
-            </button>
+          {/* Menu Popup - NO BORDER */}
+          {showMenu && (
+            <div className="absolute right-0 top-full mt-1 w-44 bg-bg-secondary rounded-xl shadow-xl p-1 z-40 select-none animate-in fade-in zoom-in-95 duration-100">
+              {!showStageSelector ? (
+                <>
+                  {/* 1. Ubah Judul */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMenu(false);
+                      onRenameItem?.(item);
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer text-left"
+                  >
+                    <Pencil size={13} className="text-text-muted" />
+                    <span>Ubah Judul</span>
+                  </button>
 
-            {/* Menu Popup - NO BORDER */}
-            {showMenu && (
-              <div className="absolute right-0 top-full mt-1 w-44 bg-bg-secondary rounded-xl shadow-xl p-1 z-40 select-none animate-in fade-in zoom-in-95 duration-100">
-                {!showStageSelector ? (
-                  <>
-                    {/* 1. Ubah Judul */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMenu(false);
-                        onRenameItem?.(item);
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer text-left"
-                    >
-                      <Pencil size={13} className="text-text-muted" />
-                      <span>Ubah Judul</span>
-                    </button>
+                  {/* 2. Pindah Tahapan */}
+                  <button
+                    type="button"
+                    onClick={() => setShowStageSelector(true)}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer text-left"
+                  >
+                    <span className="flex items-center gap-2">
+                      <ArrowRightLeft size={13} className="text-text-muted" />
+                      <span>Pindah Tahapan</span>
+                    </span>
+                    <ChevronRight size={12} className="text-text-muted" />
+                  </button>
 
-                    {/* 2. Pindah Tahapan */}
-                    <button
-                      type="button"
-                      onClick={() => setShowStageSelector(true)}
-                      className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer text-left"
-                    >
-                      <span className="flex items-center gap-2">
-                        <ArrowRightLeft size={13} className="text-text-muted" />
-                        <span>Pindah Tahapan</span>
-                      </span>
-                      <ChevronRight size={12} className="text-text-muted" />
-                    </button>
+                  <div className="h-px bg-border-default/20 my-1" />
 
-                    <div className="h-px bg-border-default/20 my-1" />
+                  {/* 3. Hapus */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMenu(false);
+                      onDeleteItem?.(item);
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer text-left"
+                  >
+                    <Trash2 size={13} />
+                    <span>Hapus</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* Back header for Stage Selector */}
+                  <button
+                    type="button"
+                    onClick={() => setShowStageSelector(false)}
+                    className="w-full flex items-center gap-1.5 px-2 py-1 text-[11px] text-text-muted hover:text-text-primary transition-colors cursor-pointer border-b border-border-default/20 mb-1"
+                  >
+                    <ChevronLeft size={12} />
+                    <span>Kembali</span>
+                  </button>
 
-                    {/* 3. Hapus */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMenu(false);
-                        onDeleteItem?.(item);
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer text-left"
-                    >
-                      <Trash2 size={13} />
-                      <span>Hapus</span>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {/* Back header for Stage Selector */}
-                    <button
-                      type="button"
-                      onClick={() => setShowStageSelector(false)}
-                      className="w-full flex items-center gap-1.5 px-2 py-1 text-[11px] text-text-muted hover:text-text-primary transition-colors cursor-pointer border-b border-border-default/20 mb-1"
-                    >
-                      <ChevronLeft size={12} />
-                      <span>Kembali</span>
-                    </button>
-
-                    {/* List of Stages */}
-                    <div className="space-y-0.5">
-                      {PRODUCTION_STAGES.map((st) => (
-                        <button
-                          key={st.id}
-                          type="button"
-                          onClick={() => {
-                            onUpdateStatus?.(item, st.id);
-                            setShowMenu(false);
-                            setShowStageSelector(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-2 py-1.5 text-xs rounded-lg transition-colors cursor-pointer ${
-                            item.status === st.id
-                              ? 'bg-accent-primary text-accent-contrast font-medium'
-                              : 'text-text-primary hover:bg-bg-hover'
-                          }`}
-                        >
-                          <span className="flex items-center gap-1.5 truncate">
-                            <span>{st.icon}</span>
-                            <span className="truncate">{st.label}</span>
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                  {/* List of Stages */}
+                  <div className="space-y-0.5">
+                    {PRODUCTION_STAGES.map((st) => (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => {
+                          onUpdateStatus?.(item, st.id);
+                          setShowMenu(false);
+                          setShowStageSelector(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-2 py-1.5 text-xs rounded-lg transition-colors cursor-pointer ${
+                          item.status === st.id
+                            ? 'bg-accent-primary text-accent-contrast font-medium'
+                            : 'text-text-primary hover:bg-bg-hover'
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5 truncate">
+                          <span>{st.icon}</span>
+                          <span className="truncate">{st.label}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

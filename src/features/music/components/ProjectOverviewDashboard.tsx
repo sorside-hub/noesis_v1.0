@@ -28,6 +28,7 @@ import { EditorCore } from '../../editor/components/EditorCore';
 import { Toolbar } from '../../editor/components/Toolbar';
 import { ProjectMetadataSidebar } from './ProjectMetadataSidebar';
 import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
+import { useNavigation } from '../../../context/NavigationContext';
 
 interface ProjectOverviewDashboardProps {
   project: StudioProjectRecord;
@@ -67,8 +68,12 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
 
   const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
 
-  // Metadata Sidebar state
-  const [isMetadataSidebarOpen, setIsMetadataSidebarOpen] = useState(false);
+  // Metadata Sidebar state from global NavigationContext
+  const {
+    isMobileRightSidebarOpen: isMetadataSidebarOpen,
+    openMobileRightSidebar,
+    closeMobileRightSidebar,
+  } = useNavigation();
 
   // Touch Swipe Physics Gestures
   const {
@@ -82,8 +87,8 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
     openMobileSidebar: () => {},
     closeMobileSidebar: () => {},
     isMobileRightSidebarOpen: isMetadataSidebarOpen,
-    openMobileRightSidebar: () => setIsMetadataSidebarOpen(true),
-    closeMobileRightSidebar: () => setIsMetadataSidebarOpen(false),
+    openMobileRightSidebar,
+    closeMobileRightSidebar,
   });
 
   useEffect(() => {
@@ -340,10 +345,10 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
               </div>
               <div className="min-w-0">
                 <h2 className="text-xs sm:text-sm font-bold text-text-heading truncate">
-                  Premis & Konsep Cerita {project.type?.toUpperCase()}
+                  {project.title}
                 </h2>
                 <p className="text-[10px] text-text-muted truncate">
-                  {project.title}
+                  Premis & Konsep Cerita {project.type?.toUpperCase()}
                 </p>
               </div>
             </div>
@@ -446,53 +451,30 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
         {/* Right Actions: Status Dropdown + Metadata + Delete Project */}
         <div className="flex items-center gap-2 shrink-0">
           
-          {/* Status Badge Dropdown (No Box / No BG) */}
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-              title={`Status: ${currentStage.label}`}
-              className={`h-8 flex items-center gap-1.5 px-2 rounded-xl text-xs font-semibold cursor-pointer transition-all ${currentStage.color} hover:opacity-80`}
-            >
-              <span className="text-xs sm:text-sm">{currentStage.icon}</span>
-              <span className="hidden sm:inline text-xs">{currentStage.label}</span>
-              <ChevronDown size={12} className="hidden sm:inline ml-0.5 opacity-70" />
-            </button>
-
-            {isStatusDropdownOpen && (
-              <>
-                {/* Full-screen backdrop to close popup on click anywhere */}
-                <div
-                  className="fixed inset-0 z-40 bg-transparent"
-                  onClick={() => setIsStatusDropdownOpen(false)}
-                />
-                <div className="absolute right-0 top-full mt-1.5 w-44 bg-bg-secondary rounded-2xl shadow-2xl p-1.5 z-50 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
-                  {PRODUCTION_STAGES.map((st) => (
-                    <button
-                      key={st.id}
-                      type="button"
-                      onClick={() => {
-                        onUpdateProject({ status: st.id });
-                        setIsStatusDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-colors text-left cursor-pointer ${
-                        project.status === st.id
-                          ? 'bg-bg-hover font-bold text-text-primary'
-                          : 'hover:bg-bg-hover/60 text-text-secondary'
-                      }`}
-                    >
-                      <span>{st.icon}</span>
-                      <span>{st.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+          {/* Read-Only Status & Progress Info Badge */}
+          {(() => {
+            const totalCount = projectSongs.length;
+            const totalProgressSum = projectSongs.reduce(
+              (sum, s) => sum + (s.progress !== undefined ? s.progress : (s.status === 'ready' || s.status === 'released' ? 100 : 0)),
+              0
+            );
+            const percent = totalCount > 0 ? Math.round(totalProgressSum / totalCount) : 0;
+            const colorClass = percent === 100 ? 'text-emerald-400' : percent >= 50 ? 'text-amber-400' : 'text-text-muted';
+            return (
+              <div 
+                title={`Tahapan Album: ${currentStage.label} (${percent}%) - Ubah di Metadata Sidebar`}
+                className={`h-8 flex items-center gap-1.5 px-2.5 rounded-xl text-xs font-semibold select-none bg-bg-primary ${colorClass}`}
+              >
+                <span className="text-xs sm:text-sm">{currentStage.icon}</span>
+                <span className="hidden sm:inline text-xs font-bold">{currentStage.label} ({percent}%)</span>
+                <span className="sm:hidden text-xs font-bold font-mono">{percent}%</span>
+              </div>
+            );
+          })()}
 
           <button
             type="button"
-            onClick={() => setIsMetadataSidebarOpen(!isMetadataSidebarOpen)}
+            onClick={() => isMetadataSidebarOpen ? closeMobileRightSidebar() : openMobileRightSidebar()}
             title={isMetadataSidebarOpen ? 'Tutup Metadata' : 'Buka Metadata'}
             className={`h-8 px-2.5 sm:px-3 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
               isMetadataSidebarOpen
@@ -593,6 +575,8 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                   const trackStage = PRODUCTION_STAGES.find((s) => s.id === track.status) || PRODUCTION_STAGES[0];
                   const isLastItem = index === sortedProjectSongs.length - 1 && sortedProjectSongs.length > 1;
                   const displayTrackNumber = track.trackNumber || (index + 1);
+                  const trackProg = track.progress !== undefined ? track.progress : (track.status === 'ready' || track.status === 'released' ? 100 : 0);
+                  const trackProgColorClass = trackProg === 100 ? 'text-emerald-400' : trackProg >= 50 ? 'text-amber-400' : 'text-text-muted';
 
                   const isFloating = draggingIndex === index;
                   let translateY = 0;
@@ -623,14 +607,15 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                         transform: `translate3d(0, ${translateY}px, 0)`,
                         zIndex: isFloating ? 50 : 1,
                       }}
-                      className={`group p-2.5 sm:p-3 rounded-xl flex items-center justify-between gap-2.5 relative select-none cursor-pointer ${
+                      className={`group p-2.5 sm:p-3 rounded-2xl flex items-center justify-between gap-2.5 relative select-none cursor-pointer ${
                         isFloating
                           ? 'bg-bg-secondary shadow-2xl ring-2 ring-accent-primary scale-[1.02] cursor-grabbing backdrop-blur-md opacity-95 pointer-events-none'
                           : 'bg-bg-primary hover:bg-bg-hover transition-transform duration-200 ease-out'
                       }`}
                     >
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        {/* Drag Handle (⋮⋮) - Hanya bagian ini yang di-drag, card melayang seperti di Kanban */}
+                      {/* LEFT CONTENT: DRAG HANDLE + TRACK NO. + (BARIS 1 JUDUL & BARIS 2 % + CATATAN) */}
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        {/* Drag Handle (⋮⋮) */}
                         <div
                           onPointerDown={(e) => handleHandlePointerDown(index, e)}
                           onClick={(e) => e.stopPropagation()}
@@ -640,47 +625,48 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                           <GripVertical size={14} />
                         </div>
 
-                        {/* Track Number Badge - text muted font-mono */}
-                        <div className="w-7 h-7 rounded-lg bg-bg-secondary flex items-center justify-center shrink-0 font-mono font-semibold text-xs text-text-muted">
+                        {/* Track Number Badge */}
+                        <div className="w-7 h-7 rounded-lg bg-bg-secondary flex items-center justify-center shrink-0 font-mono font-bold text-xs text-text-muted">
                           #{displayTrackNumber}
                         </div>
 
-                        {/* Title */}
-                        <span className="text-xs font-bold text-text-primary group-hover:text-accent-primary transition-colors truncate">
-                          {track.title}
-                        </span>
+                        {/* Judul + Sub-info 2 Baris */}
+                        <div className="flex-1 flex flex-col justify-center gap-0.5 min-w-0">
+                          {/* BARIS 1: Judul Track */}
+                          <span className="text-xs font-bold text-text-primary group-hover:text-accent-primary transition-colors truncate">
+                            {track.title}
+                          </span>
+
+                          {/* BARIS 2: % Progres Lirik • Catatan */}
+                          <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
+                            <span className={`font-mono font-bold shrink-0 ${trackProgColorClass}`}>
+                              {trackProg}%
+                            </span>
+                            {track.progressNote && track.progressNote.trim() && (
+                              <>
+                                <span className="shrink-0 opacity-40">•</span>
+                                <span className="truncate italic text-text-muted/80">
+                                  {track.progressNote}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Right: Boolean Status Icon (Pure Icon, No Box) + 3-Dots Action Menu */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        {track.status === 'ready' || track.status === 'released' ? (
-                          <span 
-                            title="Selesai"
-                            className="text-emerald-400 text-sm font-bold shrink-0 select-none"
-                          >
-                            ✓
-                          </span>
-                        ) : (
-                          <span 
-                            title="Dalam Pengerjaan"
-                            className="text-amber-400 text-xs shrink-0 select-none opacity-80"
-                          >
-                            ⏳
-                          </span>
-                        )}
-
-                        <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenTrackMenuId(openTrackMenuId === track.id ? null : track.id);
-                            }}
-                            className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-secondary transition-colors cursor-pointer"
-                            title="Opsi Track"
-                          >
-                            <MoreVertical size={15} />
-                          </button>
+                      {/* RIGHT CONTENT: TITIK 3 MENU (VERTICALLY CENTERED) */}
+                      <div className="relative shrink-0 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenTrackMenuId(openTrackMenuId === track.id ? null : track.id);
+                          }}
+                          className="w-7 h-7 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-secondary flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+                          title="Opsi Track"
+                        >
+                          <MoreVertical size={14} />
+                        </button>
 
                         {openTrackMenuId === track.id && (
                           <div 
@@ -729,7 +715,6 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                             </button>
                           </div>
                         )}
-                        </div>
                       </div>
                     </div>
                   );
@@ -743,16 +728,30 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
       </div>
 
       {/* METADATA SIDEBAR */}
-      <ProjectMetadataSidebar
-        isOpen={isMetadataSidebarOpen}
-        onClose={() => setIsMetadataSidebarOpen(false)}
-        project={project}
-        tracksCount={projectSongs.length}
-        totalWordsCount={totalWords}
-        onUpdateProject={onUpdateProject}
-        drawerRef={rightDrawerRef}
-        backdropRef={rightBackdropRef}
-      />
+      {(() => {
+        const totalCount = projectSongs.length;
+        const totalProgressSum = projectSongs.reduce(
+          (sum, s) => sum + (s.progress !== undefined ? s.progress : (s.status === 'ready' || s.status === 'released' ? 100 : 0)),
+          0
+        );
+        const percent = totalCount > 0 ? Math.round(totalProgressSum / totalCount) : 0;
+        const completedCount = projectSongs.filter(s => (s.progress || 0) === 100 || s.status === 'ready' || s.status === 'released').length;
+        return (
+          <ProjectMetadataSidebar
+            isOpen={isMetadataSidebarOpen}
+            onClose={closeMobileRightSidebar}
+            project={project}
+            tracksCount={totalCount}
+            completedTracks={completedCount}
+            totalTracks={totalCount}
+            progressPercent={percent}
+            totalWordsCount={totalWords}
+            onUpdateProject={onUpdateProject}
+            drawerRef={rightDrawerRef}
+            backdropRef={rightBackdropRef}
+          />
+        );
+      })()}
 
       {/* MODAL: TAMBAH TRACK BARU */}
       {isAddTrackModalOpen && (

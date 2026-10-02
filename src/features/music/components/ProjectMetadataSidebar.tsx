@@ -3,7 +3,6 @@ import {
   X, 
   Calendar, 
   Clock, 
-  Rocket, 
   ChevronDown,
   Check,
   Disc3,
@@ -16,6 +15,9 @@ interface ProjectMetadataSidebarProps {
   onClose: () => void;
   project: StudioProjectRecord;
   tracksCount?: number;
+  completedTracks?: number;
+  totalTracks?: number;
+  progressPercent?: number;
   totalWordsCount?: number;
   onUpdateProject: (patch: Partial<StudioProjectRecord>) => void;
   drawerRef?: React.RefObject<HTMLDivElement | null>;
@@ -26,6 +28,9 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
   isOpen,
   onClose,
   project,
+  completedTracks = 0,
+  totalTracks = 0,
+  progressPercent = 0,
   onUpdateProject,
   drawerRef,
   backdropRef,
@@ -133,7 +138,7 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
                       <span className="text-sm">{currentStage.icon}</span>
                       <span>{currentStage.label}</span>
                     </div>
-                    <ChevronDown size={14} className="text-accent-primary shrink-0 rotate-180 transition-transform" />
+                    <ChevronDown size={14} className="text-text-primary shrink-0 rotate-180 transition-transform" />
                   </button>
 
                   <div className="mx-2.5 h-px bg-border-default/30" />
@@ -151,7 +156,7 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
                           }}
                           className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors text-left ${
                             isSelected
-                              ? 'bg-bg-secondary text-accent-primary font-bold'
+                              ? 'bg-bg-secondary text-text-primary font-bold'
                               : 'text-text-muted hover:text-text-primary hover:bg-bg-secondary/70'
                           }`}
                         >
@@ -159,13 +164,59 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
                             <span className="text-sm">{stage.icon}</span>
                             <span>{stage.label}</span>
                           </div>
-                          {isSelected && <Check size={12} className="text-accent-primary shrink-0" />}
+                          {isSelected && <Check size={12} className="text-text-primary shrink-0" />}
                         </button>
                       );
                     })}
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* SECTION: PROGRES PROYEK (AUTOMATIC) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block truncate">
+                Progres {currentStage.label}
+              </label>
+              {(() => {
+                const colorClass = progressPercent === 100 ? 'text-emerald-400' : progressPercent >= 50 ? 'text-amber-400' : 'text-text-muted';
+                return (
+                  <span className={`text-[11px] font-mono font-bold bg-bg-primary px-2 py-0.5 rounded-lg shrink-0 ${colorClass}`}>
+                    {progressPercent}%
+                  </span>
+                );
+              })()}
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3">
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-[11px] text-text-muted font-medium">
+                  <span>Rampung Track</span>
+                  <span className="font-mono text-text-secondary">{completedTracks} / {totalTracks} lagu</span>
+                </div>
+                <div className="w-full h-2 bg-bg-secondary rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-accent-primary rounded-full transition-all duration-300"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Progress Comment / Note Field */}
+              <input
+                type="text"
+                placeholder="Catatan progres proyek (misal: '3/6 track beres')..."
+                value={project.progressNote || ''}
+                onChange={(e) => onUpdateProject({ progressNote: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.currentTarget.blur();
+                  }
+                }}
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-bg-secondary border border-border-default/20 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
+              />
             </div>
           </div>
 
@@ -178,10 +229,7 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
             <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3 text-xs">
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[11px] text-text-muted font-medium">
-                  <span className="flex items-center gap-1">
-                    <Rocket size={11} className="text-emerald-400" />
-                    <span>Target Rilis</span>
-                  </span>
+                  <span>{project.status === 'released' ? 'Tanggal Rilis' : 'Target Rilis'}</span>
                   {project.targetReleaseDate && (
                     <button
                       type="button"

@@ -3,13 +3,10 @@ import {
   X, 
   Calendar, 
   Clock, 
-  Rocket, 
   Sparkles, 
   Disc3,
   ChevronDown,
   Check,
-  CheckCircle2,
-  Hourglass
 } from 'lucide-react';
 import { StudioSongRecord, StudioProjectRecord } from '../types/studioDatabase';
 import { PRODUCTION_STAGES } from '../types';
@@ -167,51 +164,8 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5 [scrollbar-width:thin]">
           
-          {/* TRACK MODE: BOOLEAN TOGGLE STATUS */}
-          {isTrack ? (
-            <div className="space-y-2">
-              <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
-                Status Pengerjaan
-              </label>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onUpdateSong({ status: isTrackCompleted ? 'idea' : 'ready' });
-                }}
-                className={`w-full p-3.5 rounded-2xl flex items-center justify-between transition-all cursor-pointer text-left ${
-                  isTrackCompleted
-                    ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20'
-                    : 'bg-amber-500/15 text-amber-300 hover:bg-amber-500/20'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  {isTrackCompleted ? (
-                    <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
-                  ) : (
-                    <Hourglass size={18} className="text-amber-300 shrink-0" />
-                  )}
-                  <div>
-                    <div className="text-xs font-bold">
-                      {isTrackCompleted ? 'Selesai' : 'Dalam Pengerjaan'}
-                    </div>
-                    <p className="text-[10px] text-text-muted mt-0.5">
-                      {isTrackCompleted 
-                        ? 'Track sudah rampung dan siap' 
-                        : 'Track masih dalam tahap pengerjaan'}
-                    </p>
-                  </div>
-                </div>
-
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                  isTrackCompleted ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-200'
-                }`}>
-                  {isTrackCompleted ? 'Rampung' : 'Proses'}
-                </span>
-              </button>
-            </div>
-          ) : (
-            /* SINGLE MODE: 6-STAGE PRODUCTION STATUS */
+          {/* STATUS PRODUKSI (HANYA UNTUK SINGLE, TRACK MENGINDIKASIKAN ALBUM) */}
+          {!isTrack && (
             <div className="space-y-1.5" ref={statusContainerRef}>
               <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
                 Status Produksi
@@ -241,7 +195,7 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                         <span className="text-sm">{currentStage.icon}</span>
                         <span>{currentStage.label}</span>
                       </div>
-                      <ChevronDown size={14} className="text-accent-primary shrink-0 rotate-180 transition-transform" />
+                      <ChevronDown size={14} className="text-text-primary shrink-0 rotate-180 transition-transform" />
                     </button>
 
                     <div className="mx-2.5 h-px bg-border-default/30" />
@@ -254,12 +208,12 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                             key={stage.id}
                             type="button"
                             onClick={() => {
-                              onUpdateSong({ status: stage.id });
+                              onUpdateSong({ status: stage.id, progress: 0 });
                               setIsStatusDropdownOpen(false);
                             }}
                             className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors text-left ${
                               isSelected
-                                ? 'bg-bg-secondary text-accent-primary font-bold'
+                                ? 'bg-bg-secondary text-text-primary font-bold'
                                 : 'text-text-muted hover:text-text-primary hover:bg-bg-secondary/70'
                             }`}
                           >
@@ -267,7 +221,7 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                               <span className="text-sm">{stage.icon}</span>
                               <span>{stage.label}</span>
                             </div>
-                            {isSelected && <Check size={12} className="text-accent-primary shrink-0" />}
+                            {isSelected && <Check size={12} className="text-text-primary shrink-0" />}
                           </button>
                         );
                       })}
@@ -305,7 +259,7 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                         <button
                           type="button"
                           onClick={() => setIsTrackDropdownOpen(true)}
-                          className="w-full h-8 px-2 text-xs font-mono font-semibold text-text-muted hover:text-text-primary bg-bg-secondary hover:bg-bg-hover/50 rounded-xl flex items-center justify-between gap-1 cursor-pointer transition-colors"
+                          className="w-full h-8 px-2 text-xs font-mono font-semibold text-text-primary hover:text-text-primary bg-bg-secondary hover:bg-bg-hover/50 rounded-xl flex items-center justify-between gap-1 cursor-pointer transition-colors"
                           title="Ubah urutan nomor track dalam album"
                         >
                           <span className="truncate w-full text-center">
@@ -323,7 +277,7 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                             <span className="truncate w-full text-center">
                               #{song.trackNumber || 1}
                             </span>
-                            <ChevronDown size={12} className="text-accent-primary shrink-0 rotate-180 transition-transform" />
+                            <ChevronDown size={12} className="text-text-primary shrink-0 rotate-180 transition-transform" />
                           </button>
 
                           <div className="mx-2 h-px bg-border-default/30" />
@@ -342,12 +296,12 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                                   }}
                                   className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs font-mono cursor-pointer transition-colors text-left ${
                                     isSelected
-                                      ? 'bg-bg-primary text-accent-primary font-bold'
+                                      ? 'bg-bg-primary text-text-primary font-bold'
                                       : 'text-text-muted hover:text-text-primary hover:bg-bg-hover/60'
                                   }`}
                                 >
                                   <span>#{trackNum}</span>
-                                  {isSelected && <Check size={11} className="text-accent-primary shrink-0" />}
+                                  {isSelected && <Check size={11} className="text-text-primary shrink-0" />}
                                 </button>
                               );
                             })}
@@ -356,7 +310,7 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                       )}
                     </div>
                   ) : (
-                    <span className="font-mono font-semibold text-text-muted bg-bg-secondary px-2.5 py-0.5 rounded-md text-xs">
+                    <span className="font-mono font-semibold text-text-primary bg-bg-secondary px-2.5 py-0.5 rounded-md text-xs">
                       #{song.trackNumber || 1}
                     </span>
                   )}
@@ -364,6 +318,69 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
               </div>
             </div>
           )}
+
+          {/* PROGRES STAGE AKTIF / TRACK */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block truncate">
+                {isTrack ? 'Progres Lirik Track' : `Progres ${currentStage.label}`}
+              </label>
+              {(() => {
+                const prog = song.progress || 0;
+                const colorClass = prog === 100 ? 'text-emerald-400' : prog >= 50 ? 'text-amber-400' : 'text-text-muted';
+                return (
+                  <span className={`text-[11px] font-mono font-bold bg-bg-primary px-2 py-0.5 rounded-lg shrink-0 ${colorClass}`}>
+                    {prog}%
+                  </span>
+                );
+              })()}
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-bg-primary space-y-3">
+              {/* Slider */}
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={song.progress || 0}
+                onChange={(e) => onUpdateSong({ progress: Number(e.target.value) })}
+                className="w-full accent-accent-primary h-2 bg-bg-secondary rounded-lg appearance-none cursor-pointer"
+              />
+
+              {/* Quick Preset Buttons */}
+              <div className="flex items-center justify-between gap-1 text-[10px] font-mono font-semibold">
+                {[0, 25, 50, 75, 100].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => onUpdateSong({ progress: preset })}
+                    className={`px-1.5 py-0.5 rounded-md transition-all cursor-pointer ${
+                      (song.progress || 0) === preset
+                        ? 'bg-accent-primary text-accent-contrast shadow-xs'
+                        : 'bg-bg-secondary text-text-muted hover:text-text-primary hover:bg-bg-hover'
+                    }`}
+                  >
+                    {preset}%
+                  </button>
+                ))}
+              </div>
+
+              {/* Progress Comment / Note Field */}
+              <input
+                type="text"
+                placeholder="Catatan progres (misal: 'Chorus kurang mantab')..."
+                value={song.progressNote || ''}
+                onChange={(e) => onUpdateSong({ progressNote: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.currentTarget.blur();
+                  }
+                }}
+                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-bg-secondary border border-border-default/20 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
+              />
+            </div>
+          </div>
 
           {/* DETAIL WAKTU */}
           <div className="space-y-2">
@@ -377,10 +394,7 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                 <>
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[11px] text-text-muted font-medium">
-                      <span className="flex items-center gap-1">
-                        <Rocket size={11} className="text-emerald-400" />
-                        <span>Target Rilis</span>
-                      </span>
+                      <span>{song.status === 'released' ? 'Tanggal Rilis' : 'Target Rilis'}</span>
                       {song.targetReleaseDate && (
                         <button
                           type="button"
