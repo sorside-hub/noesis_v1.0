@@ -335,7 +335,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
             <button
               type="button"
               onClick={onCloseSubView}
-              className="p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
+              className="hidden sm:flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
               title={`Kembali ke Ringkasan ${song.title}`}
             >
               <ArrowLeft size={16} />
@@ -387,7 +387,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
             <button
               type="button"
               onClick={onCloseSubView}
-              className="p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
+              className="hidden sm:flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
               title={`Kembali ke Ringkasan ${song.title}`}
             >
               <ArrowLeft size={16} />

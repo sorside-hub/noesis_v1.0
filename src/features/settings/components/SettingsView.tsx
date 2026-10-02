@@ -14,7 +14,8 @@ import {
   Sun,
   Check,
   Contrast,
-  ClipboardList
+  ClipboardList,
+  Music2
 } from 'lucide-react';
 import { VaultData, FileNode } from '../../../types/vault';
 import { ApiKeyStatusSection } from './ApiKeyStatusSection';
@@ -186,8 +187,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
         {/* 2.8 MUSICIAN SUITE & SONGWRITING */}
         <section className="space-y-2.5">
           <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider px-1 flex items-center gap-2">
-            <BookOpen size={14} className="text-accent-primary" /> 
-            Modul & Ekstensi Khusus
+            <Music2 size={14} className="text-accent-primary" /> 
+            Modul Studio Musik
           </h2>
           <MusicianModeSettingsCard />
         </section>

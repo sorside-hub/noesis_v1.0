@@ -56,17 +56,15 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
     setTransposeOffset(0);
   }, [tiptapEditor, transposeOffset]);
 
-  const handleInsertAudio = (audioItem: any) => {
+  const handleInsertAudio = (audioData: { src: string; title: string }) => {
     if (!tiptapEditor || tiptapEditor.isDestroyed) return;
-    tiptapEditor.chain().focus().insertContent({
-      type: 'audioPill',
-      attrs: {
-        src: audioItem.url,
-        title: audioItem.title,
-        size: audioItem.size,
-        duration: audioItem.duration,
-      }
-    }).run();
+    const src = audioData.src || (audioData as any).url || '';
+    const title = audioData.title || 'Voice Note';
+    if ((tiptapEditor.commands as any).setAudio) {
+      (tiptapEditor.chain().focus() as any).setAudio({ src, title }).run();
+    } else {
+      tiptapEditor.chain().focus().insertContent(`<audio controls src="${src}" title="${title}"></audio>\n\n`).run();
+    }
   };
 
   const isSidebarOpen = isDesktopSidebarOpen || isMobileRightSidebarOpen;
