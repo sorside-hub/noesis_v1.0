@@ -8,6 +8,8 @@ export interface PlayableTrack {
   coverUrl?: string;
   projectId?: string;
   albumTitle?: string;
+  releaseType?: 'single' | 'ep' | 'album';
+  projectType?: 'ep' | 'album';
 }
 
 interface MusicPlayerContextType {
@@ -19,13 +21,15 @@ interface MusicPlayerContextType {
   duration: number;
   isExpanded: boolean;
   isLooping: boolean;
+  isShuffled: boolean;
   playTrack: (track: PlayableTrack, queue?: PlayableTrack[]) => void;
-  playAlbum: (albumTitle: string, coverUrl: string | undefined, tracks: { id: string; title: string; audioUrl?: string; coverUrl?: string }[]) => void;
+  playAlbum: (albumTitle: string, coverUrl: string | undefined, tracks: { id: string; title: string; audioUrl?: string; coverUrl?: string }[], projectType?: 'ep' | 'album') => void;
   togglePlay: () => void;
   seekTo: (timeInSeconds: number) => void;
   nextTrack: () => void;
   prevTrack: () => void;
   toggleLoop: () => void;
+  toggleShuffle: () => void;
   setIsExpanded: (expanded: boolean) => void;
   closePlayer: () => void;
 }
@@ -41,6 +45,7 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [duration, setDuration] = useState<number>(0);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isLooping, setIsLooping] = useState<boolean>(false);
+  const [isShuffled, setIsShuffled] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -98,6 +103,37 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, []);
 
+  // Next Track Logic
+  const nextTrack = useCallback(() => {
+    if (queue.length === 0) return;
+
+    if (isShuffled) {
+      let nextIdx = Math.floor(Math.random() * queue.length);
+      if (queue.length > 1 && nextIdx === currentIndex) {
+        nextIdx = (currentIndex + 1) % queue.length;
+      }
+      playTrackAtIndex(queue, nextIdx);
+    } else {
+      const nextIdx = (currentIndex + 1) % queue.length;
+      playTrackAtIndex(queue, nextIdx);
+    }
+  }, [currentIndex, queue, isShuffled, playTrackAtIndex]);
+
+  // Previous Track Logic
+  const prevTrack = useCallback(() => {
+    if (!audioRef.current || queue.length === 0) return;
+
+    // If song played for > 3 seconds, reset to start (0:00)
+    if (audioRef.current.currentTime > 3) {
+      audioRef.current.currentTime = 0;
+      setCurrentTime(0);
+    } else {
+      // Otherwise go to previous track in queue (wrapping around)
+      const prevIdx = (currentIndex - 1 + queue.length) % queue.length;
+      playTrackAtIndex(queue, prevIdx);
+    }
+  }, [currentIndex, queue, playTrackAtIndex]);
+
   // On track ended
   useEffect(() => {
     const audio = audioRef.current;
@@ -107,8 +143,8 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (isLooping) {
         audio.currentTime = 0;
         audio.play().catch(console.warn);
-      } else if (currentIndex < queue.length - 1) {
-        playTrackAtIndex(queue, currentIndex + 1);
+      } else if (queue.length > 0) {
+        nextTrack();
       } else {
         setIsPlaying(false);
         setCurrentTime(0);
@@ -117,7 +153,7 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     audio.addEventListener('ended', handleEnded);
     return () => audio.removeEventListener('ended', handleEnded);
-  }, [currentIndex, queue, isLooping, playTrackAtIndex]);
+  }, [queue, isLooping, nextTrack]);
 
   const playTrack = useCallback((track: PlayableTrack, newQueue?: PlayableTrack[]) => {
     if (!track.audioUrl) return;
@@ -130,15 +166,18 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const playAlbum = useCallback((
     albumTitle: string,
     coverUrl: string | undefined,
-    tracks: { id: string; title: string; audioUrl?: string; coverUrl?: string }[]
+    tracks: { id: string; title: string; audioUrl?: string; coverUrl?: string }[],
+    projectType: 'ep' | 'album' = 'album'
   ) => {
     const validTracks: PlayableTrack[] = tracks
       .filter((t) => Boolean(t.audioUrl))
       .map((t) => ({
         id: t.id,
         title: t.title,
-        subtitle: albumTitle,
+        subtitle: `${projectType === 'album' ? 'Album' : 'EP'} • ${albumTitle}`,
         albumTitle,
+        releaseType: projectType,
+        projectType,
         audioUrl: t.audioUrl!,
         coverUrl: t.coverUrl || coverUrl,
       }));
@@ -163,27 +202,12 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setCurrentTime(timeInSeconds);
   }, []);
 
-  const nextTrack = useCallback(() => {
-    if (currentIndex < queue.length - 1) {
-      playTrackAtIndex(queue, currentIndex + 1);
-    }
-  }, [currentIndex, queue, playTrackAtIndex]);
-
-  const prevTrack = useCallback(() => {
-    if (!audioRef.current) return;
-    if (audioRef.current.currentTime > 3) {
-      audioRef.current.currentTime = 0;
-      setCurrentTime(0);
-    } else if (currentIndex > 0) {
-      playTrackAtIndex(queue, currentIndex - 1);
-    } else {
-      audioRef.current.currentTime = 0;
-      setCurrentTime(0);
-    }
-  }, [currentIndex, queue, playTrackAtIndex]);
-
   const toggleLoop = useCallback(() => {
     setIsLooping((prev) => !prev);
+  }, []);
+
+  const toggleShuffle = useCallback(() => {
+    setIsShuffled((prev) => !prev);
   }, []);
 
   const closePlayer = useCallback(() => {
@@ -211,6 +235,7 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         duration,
         isExpanded,
         isLooping,
+        isShuffled,
         playTrack,
         playAlbum,
         togglePlay,
@@ -218,6 +243,7 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         nextTrack,
         prevTrack,
         toggleLoop,
+        toggleShuffle,
         setIsExpanded,
         closePlayer,
       }}

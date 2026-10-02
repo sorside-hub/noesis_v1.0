@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { StudioProjectRecord, StudioSongRecord } from '../types/studioDatabase';
 import { MusicProjectType } from '../types';
-import { useMusicPlayer } from '../context/MusicPlayerContext';
+import { useMusicPlayer, PlayableTrack } from '../context/MusicPlayerContext';
 
 interface MusicDiscographyViewProps {
   projects: StudioProjectRecord[];
@@ -165,6 +165,43 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
 
     return list;
   }, [projects, songs]);
+
+  // Global Queue of all playable tracks across the Discography for seamless Autoplay & Shuffle
+  const allDiscographyQueue = useMemo<PlayableTrack[]>(() => {
+    const queue: PlayableTrack[] = [];
+
+    unifiedItems.forEach((item) => {
+      if (item.kind === 'single' && item.audioUrl) {
+        queue.push({
+          id: item.id,
+          title: item.title,
+          subtitle: 'Single',
+          releaseType: 'single',
+          audioUrl: item.audioUrl,
+          coverUrl: item.coverUrl,
+        });
+      } else if (item.kind === 'project') {
+        const pType: 'ep' | 'album' = item.type === 'album' ? 'album' : 'ep';
+        item.tracks.forEach((t) => {
+          if (t.audioUrl) {
+            queue.push({
+              id: t.id,
+              title: t.title,
+              subtitle: `${pType === 'album' ? 'Album' : 'EP'} • ${item.title}`,
+              albumTitle: item.title,
+              releaseType: pType,
+              projectType: pType,
+              audioUrl: t.audioUrl,
+              coverUrl: t.coverUrl || item.coverUrl,
+              projectId: item.id,
+            });
+          }
+        });
+      }
+    });
+
+    return queue;
+  }, [unifiedItems]);
 
   // Filter based on selected tab and search query
   const filteredItems = useMemo(() => {
@@ -342,23 +379,29 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
                             if (currentTrack?.id === item.id) {
                               togglePlay();
                             } else {
-                              playTrack({
-                                id: item.id,
-                                title: item.title,
-                                subtitle: 'Single Rilis Resmi',
-                                audioUrl: item.audioUrl,
-                                coverUrl: item.coverUrl,
-                              });
+                              const target = allDiscographyQueue.find((t) => t.id === item.id);
+                              if (target) {
+                                playTrack(target, allDiscographyQueue);
+                              } else {
+                                playTrack({
+                                  id: item.id,
+                                  title: item.title,
+                                  subtitle: 'Single',
+                                  releaseType: 'single',
+                                  audioUrl: item.audioUrl,
+                                  coverUrl: item.coverUrl,
+                                }, allDiscographyQueue);
+                              }
                             }
                           }}
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all cursor-pointer ${
-                            currentTrack?.id === item.id && isPlaying
-                              ? 'bg-accent-primary text-accent-contrast shadow-xs' 
-                              : 'bg-bg-primary text-text-muted hover:text-text-primary hover:bg-bg-hover'
-                          }`}
+                          className="w-8 h-8 rounded-xl bg-accent-primary text-white shadow-xs hover:opacity-90 flex items-center justify-center shrink-0 transition-transform active:scale-95 cursor-pointer"
                           title={currentTrack?.id === item.id && isPlaying ? 'Jeda Single' : 'Putar Single'}
                         >
-                          {currentTrack?.id === item.id && isPlaying ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
+                          {currentTrack?.id === item.id && isPlaying ? (
+                            <Pause size={13} fill="white" className="text-white" />
+                          ) : (
+                            <Play size={13} fill="white" className="text-white ml-0.5" />
+                          )}
                         </button>
                       )}
 
@@ -374,14 +417,17 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
                                 if (isAlbumCurrentlyPlaying) {
                                   togglePlay();
                                 } else {
-                                  playAlbum(item.title, item.coverUrl, item.tracks);
+                                  const albumTrackIds = item.tracks.map((t) => t.id);
+                                  const firstTrack = allDiscographyQueue.find((t) => albumTrackIds.includes(t.id));
+                                  if (firstTrack) {
+                                    playTrack(firstTrack, allDiscographyQueue);
+                                  } else {
+                                    const projectType: 'ep' | 'album' = item.type === 'album' ? 'album' : 'ep';
+                                    playAlbum(item.title, item.coverUrl, item.tracks, projectType);
+                                  }
                                 }
                               }}
-                              className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all cursor-pointer ${
-                                isPlaying && item.tracks.some((t) => t.id === currentTrack?.id)
-                                  ? 'bg-accent-primary text-accent-contrast shadow-xs'
-                                  : 'bg-bg-primary text-text-muted hover:text-text-primary hover:bg-bg-hover'
-                              }`}
+                              className="w-8 h-8 rounded-xl bg-accent-primary text-white shadow-xs hover:opacity-90 flex items-center justify-center shrink-0 transition-transform active:scale-95 cursor-pointer"
                               title={
                                 isPlaying && item.tracks.some((t) => t.id === currentTrack?.id)
                                   ? 'Jeda Album'
@@ -389,9 +435,9 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
                               }
                             >
                               {isPlaying && item.tracks.some((t) => t.id === currentTrack?.id) ? (
-                                <Pause size={13} />
+                                <Pause size={13} fill="white" className="text-white" />
                               ) : (
-                                <Play size={13} className="ml-0.5" />
+                                <Play size={13} fill="white" className="text-white ml-0.5" />
                               )}
                             </button>
                           )}
@@ -457,31 +503,33 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
                                     if (isTrackPlaying) {
                                       togglePlay();
                                     } else {
-                                      const allAlbumTracks = item.tracks
-                                        .filter((t) => Boolean(t.audioUrl))
-                                        .map((t) => ({
-                                          id: t.id,
-                                          title: t.title,
-                                          subtitle: item.title,
-                                          albumTitle: item.title,
-                                          audioUrl: t.audioUrl!,
-                                          coverUrl: t.coverUrl || item.coverUrl,
-                                          projectId: item.id,
-                                        }));
-                                      const target = allAlbumTracks.find((t) => t.id === track.id);
+                                      const target = allDiscographyQueue.find((t) => t.id === track.id);
                                       if (target) {
-                                        playTrack(target, allAlbumTracks);
+                                        playTrack(target, allDiscographyQueue);
+                                      } else {
+                                        const pType: 'ep' | 'album' = item.type === 'album' ? 'album' : 'ep';
+                                        playTrack({
+                                          id: track.id,
+                                          title: track.title,
+                                          subtitle: `${pType === 'album' ? 'Album' : 'EP'} • ${item.title}`,
+                                          albumTitle: item.title,
+                                          releaseType: pType,
+                                          projectType: pType,
+                                          audioUrl: track.audioUrl,
+                                          coverUrl: track.coverUrl || item.coverUrl,
+                                          projectId: item.id,
+                                        }, allDiscographyQueue);
                                       }
                                     }
                                   }}
-                                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all cursor-pointer ${
-                                    isTrackPlaying 
-                                      ? 'bg-accent-primary text-accent-contrast shadow-xs' 
-                                      : 'bg-bg-primary text-text-muted hover:text-text-primary hover:bg-bg-hover'
-                                  }`}
+                                  className="w-7 h-7 rounded-lg bg-accent-primary text-white shadow-xs hover:opacity-90 flex items-center justify-center shrink-0 transition-transform active:scale-95 cursor-pointer"
                                   title={isTrackPlaying ? 'Jeda' : 'Putar Track'}
                                 >
-                                  {isTrackPlaying ? <Pause size={11} /> : <Play size={11} className="ml-0.5" />}
+                                  {isTrackPlaying ? (
+                                    <Pause size={11} fill="white" className="text-white" />
+                                  ) : (
+                                    <Play size={11} fill="white" className="text-white ml-0.5" />
+                                  )}
                                 </button>
                               )}
                             </div>
