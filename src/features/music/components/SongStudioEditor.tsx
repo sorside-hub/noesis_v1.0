@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Editor } from '@tiptap/react';
-import { ArrowLeft, SlidersVertical, Save, Music2 } from 'lucide-react';
+import { ArrowLeft, SlidersVertical, Music2 } from 'lucide-react';
 import { SongStudioToolbar } from './SongStudioToolbar';
 import { SongStudioSidebar } from './SongStudioSidebar';
 import { BpmTapModal } from './BpmTapModal';
@@ -144,17 +144,6 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {/* Simpan Button: Icon-only on mobile, Icon+Text on desktop */}
-          <button
-            type="button"
-            onClick={onBack}
-            title="Simpan & kembali ke Ringkasan Single"
-            className="h-8 px-2.5 sm:px-3 text-xs font-semibold rounded-xl bg-accent-primary text-accent-contrast shadow-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
-          >
-            <Save size={14} />
-            <span className="hidden sm:inline">Simpan</span>
-          </button>
-
           {/* Toggle Parameter Musikal Sidebar (Far Right, Matching Height & Shape) */}
           <button
             type="button"

@@ -22,6 +22,9 @@ export function useMusicStudio() {
     dbSongsRef.current = dbSongs;
   }, [dbSongs]);
 
+  // Debounce timers for typing (premise, raw, lyrics)
+  const songDebounceTimersRef = useRef<Map<string, any>>(new Map());
+
   // Load all studio data from local Dexie & trigger cloud sync
   const reloadData = useCallback(async () => {
     try {
@@ -43,6 +46,15 @@ export function useMusicStudio() {
     syncMusicStudioFromCloud().then(() => {
       reloadData();
     });
+
+    const handleStudioUpdate = () => {
+      reloadData();
+    };
+
+    window.addEventListener('music-studio-updated', handleStudioUpdate);
+    return () => {
+      window.removeEventListener('music-studio-updated', handleStudioUpdate);
+    };
   }, [reloadData]);
 
   // Convert dbSongs to UI SongItems
@@ -272,7 +284,7 @@ export function useMusicStudio() {
     });
   }, [dbProjects]);
 
-  const updateSongRecord = useCallback(async (songId: string, patch: Partial<StudioSongRecord>) => {
+  const updateSongRecord = useCallback((songId: string, patch: Partial<StudioSongRecord>) => {
     const existing = dbSongsRef.current.find((s) => s.id === songId);
     if (!existing) return;
 
@@ -283,11 +295,23 @@ export function useMusicStudio() {
       updatedAt: now,
     };
 
+    // 1. Instant in-memory state update for snappy 0ms UI reactivity
     setDbSongs((prev) => prev.map((s) => (s.id === songId ? updated : s)));
 
-    saveStudioSong(updated).catch((err) => {
-      console.error('[MusicStudio] Failed to save song patch:', err);
-    });
+    // 2. Debounced save to IndexedDB and Supabase (400ms)
+    const existingTimer = songDebounceTimersRef.current.get(songId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    const timer = setTimeout(() => {
+      saveStudioSong(updated).catch((err) => {
+        console.error('[MusicStudio] Failed to save song patch:', err);
+      });
+      songDebounceTimersRef.current.delete(songId);
+    }, 400);
+
+    songDebounceTimersRef.current.set(songId, timer);
   }, []);
 
   const updateProjectRecord = useCallback(async (projectId: string, patch: Partial<StudioProjectRecord>) => {

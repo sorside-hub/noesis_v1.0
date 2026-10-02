@@ -10,6 +10,7 @@ import {
   markNodeAsDeleted,
   isNodeRecentlyDeleted,
 } from './sync/syncHelpers';
+import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord } from '../features/music/types/studioDatabase';
 
 export { syncPullFromCloud, syncPushAllToCloud } from './sync/syncOperations';
 export type { SyncSummary } from './sync/syncOperations';
@@ -180,6 +181,97 @@ export const initRealtimeSync = async () => {
         }
         // Assuming we need a way to notify media view of updates
         window.dispatchEvent(new Event('media-updated'));
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'studio_projects', filter: `user_id=eq.${userId}` },
+      async (payload) => {
+        if (payload.eventType === 'DELETE') {
+          if (payload.old?.id) {
+            await db.studio_projects.delete(payload.old.id);
+          }
+        } else if (payload.new) {
+          const p = payload.new as any;
+          const localProject: StudioProjectRecord = {
+            id: p.id,
+            title: p.title,
+            type: p.type,
+            status: p.status || 'idea',
+            genre: p.genre || undefined,
+            targetReleaseDate: p.target_release_date || undefined,
+            coverUrl: p.cover_url || undefined,
+            description: p.description || undefined,
+            progressNote: p.progress_note || undefined,
+            createdAt: p.created_at,
+            updatedAt: p.updated_at,
+          };
+          await db.studio_projects.put(localProject);
+        }
+        window.dispatchEvent(new Event('music-studio-updated'));
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'studio_songs', filter: `user_id=eq.${userId}` },
+      async (payload) => {
+        if (payload.eventType === 'DELETE') {
+          if (payload.old?.id) {
+            await db.studio_songs.delete(payload.old.id);
+          }
+        } else if (payload.new) {
+          const s = payload.new as any;
+          const localSong: StudioSongRecord = {
+            id: s.id,
+            projectId: s.project_id || undefined,
+            releaseType: s.release_type || 'single',
+            trackNumber: s.track_number ? Number(s.track_number) : undefined,
+            title: s.title,
+            premise: s.premise || '',
+            contentLyrics: s.content_lyrics || '',
+            status: s.status || 'idea',
+            progress: typeof s.progress === 'number' ? s.progress : 0,
+            progressNote: s.progress_note || undefined,
+            musicalKey: s.musical_key || 'C',
+            bpm: s.bpm || 120,
+            capo: s.capo || 0,
+            timeSignature: s.time_signature || '4/4',
+            tuning: s.tuning || 'Standard (E A D G B E)',
+            genre: s.genre || undefined,
+            targetReleaseDate: s.target_release_date || undefined,
+            scratchpad: s.scratchpad || '',
+            referenceLink: s.reference_link || undefined,
+            audioUrl: s.audio_url || undefined,
+            createdAt: s.created_at,
+            updatedAt: s.updated_at,
+          };
+          await db.studio_songs.put(localSong);
+        }
+        window.dispatchEvent(new Event('music-studio-updated'));
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'studio_lyric_versions', filter: `user_id=eq.${userId}` },
+      async (payload) => {
+        if (payload.eventType === 'DELETE') {
+          if (payload.old?.id) {
+            await db.studio_lyric_versions.delete(payload.old.id);
+          }
+        } else if (payload.new) {
+          const v = payload.new as any;
+          const localVersion: StudioLyricVersionRecord = {
+            id: v.id,
+            songId: v.song_id,
+            versionName: v.version_name,
+            content: v.content,
+            isFocused: !!v.is_focused,
+            isFinal: !!v.is_final,
+            createdAt: v.created_at,
+          };
+          await db.studio_lyric_versions.put(localVersion);
+        }
+        window.dispatchEvent(new Event('music-studio-updated'));
       }
     )
     .subscribe();

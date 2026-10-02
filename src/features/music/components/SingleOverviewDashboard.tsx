@@ -13,7 +13,6 @@ import {
   Flame, 
   Lightbulb,
   SlidersVertical,
-  Save,
   MoreVertical,
   Edit2,
   Focus,
@@ -336,7 +335,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
             <button
               type="button"
               onClick={onCloseSubView}
-              className="hidden sm:flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
+              className="p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
               title={`Kembali ke Ringkasan ${song.title}`}
             >
               <ArrowLeft size={16} />
@@ -355,16 +354,6 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               </div>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={onCloseSubView}
-            title="Simpan & kembali ke Ringkasan Single"
-            className="h-8 px-2.5 sm:px-3 text-xs font-semibold rounded-xl bg-accent-primary text-accent-contrast shadow-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
-          >
-            <Save size={14} />
-            <span className="hidden sm:inline">Simpan</span>
-          </button>
         </header>
 
         <div className="flex-1 w-full min-h-0 overflow-hidden relative">
@@ -398,7 +387,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
             <button
               type="button"
               onClick={onCloseSubView}
-              className="hidden sm:flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
+              className="p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
               title={`Kembali ke Ringkasan ${song.title}`}
             >
               <ArrowLeft size={16} />
@@ -417,16 +406,6 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               </div>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={onCloseSubView}
-            title="Simpan & kembali ke Ringkasan Single"
-            className="h-8 px-2.5 sm:px-3 text-xs font-semibold rounded-xl bg-accent-primary text-accent-contrast shadow-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
-          >
-            <Save size={14} />
-            <span className="hidden sm:inline">Simpan</span>
-          </button>
         </header>
 
         <div className="flex-1 w-full min-h-0 overflow-hidden relative">

@@ -2,6 +2,7 @@ import { supabase } from '../supabase';
 import { db } from '../db';
 import { FileNode } from '../../types/vault';
 import { getUserId, toIsoString, toTimestamp, markNodeAsDeleted } from './syncHelpers';
+import { syncMusicStudioFromCloud } from '../../features/music/lib/musicStudioStorage';
 
 export interface SyncSummary {
   nodesCount: number;
@@ -248,6 +249,13 @@ export const syncPullFromCloud = async (): Promise<SyncSummary> => {
       window.dispatchEvent(new Event('media-updated'));
     }
 
+    // Pull Music Studio Data (Projects, Songs, Lyric Versions)
+    try {
+      await syncMusicStudioFromCloud();
+    } catch (musicErr) {
+      console.warn('Failed to pull music studio from cloud:', musicErr);
+    }
+
     return { nodesCount, sessionsCount, messagesCount };
   } catch (err) {
     console.warn('Failed to pull from cloud:', err);
@@ -364,6 +372,86 @@ export const syncPushAllToCloud = async (): Promise<SyncSummary> => {
       if (error && error.code !== 'PGRST205') {
         console.warn('Failed to push media attachments to cloud:', error);
       }
+    }
+
+    // Push Music Studio Projects
+    try {
+      const allProjects = await db.studio_projects.filter((p) => !p.deletedAt).toArray();
+      if (allProjects.length > 0) {
+        const cloudProjects = allProjects.map((p) => ({
+          id: p.id,
+          title: p.title,
+          type: p.type,
+          status: p.status || 'idea',
+          genre: p.genre || null,
+          target_release_date: p.targetReleaseDate || null,
+          cover_url: p.coverUrl || null,
+          description: p.description || null,
+          progress_note: p.progressNote || null,
+          user_id: userId,
+          created_at: p.createdAt,
+          updated_at: p.updatedAt,
+        }));
+        const { error: projErr } = await supabase.from('studio_projects').upsert(cloudProjects);
+        if (projErr && projErr.code !== 'PGRST205') {
+          console.warn('Failed to push studio projects to cloud:', projErr);
+        }
+      }
+
+      // Push Music Studio Songs
+      const allSongs = await db.studio_songs.filter((s) => !s.deletedAt).toArray();
+      if (allSongs.length > 0) {
+        const cloudSongs = allSongs.map((s) => ({
+          id: s.id,
+          project_id: s.projectId || null,
+          release_type: s.releaseType || 'single',
+          track_number: s.trackNumber || null,
+          title: s.title,
+          premise: s.premise || '',
+          scratchpad: s.scratchpad || '',
+          content_lyrics: s.contentLyrics || '',
+          status: s.status,
+          progress: typeof s.progress === 'number' ? s.progress : 0,
+          progress_note: s.progressNote || null,
+          musical_key: s.musicalKey,
+          bpm: s.bpm,
+          capo: s.capo,
+          time_signature: s.timeSignature,
+          tuning: s.tuning,
+          genre: s.genre || null,
+          target_release_date: s.targetReleaseDate || null,
+          reference_link: s.referenceLink || null,
+          audio_url: s.audioUrl || null,
+          user_id: userId,
+          created_at: s.createdAt,
+          updated_at: s.updatedAt,
+        }));
+        const { error: songErr } = await supabase.from('studio_songs').upsert(cloudSongs);
+        if (songErr && songErr.code !== 'PGRST205') {
+          console.warn('Failed to push studio songs to cloud:', songErr);
+        }
+      }
+
+      // Push Music Studio Lyric Versions
+      const allVersions = await db.studio_lyric_versions.toArray();
+      if (allVersions.length > 0) {
+        const cloudVersions = allVersions.map((v) => ({
+          id: v.id,
+          song_id: v.songId,
+          version_name: v.versionName,
+          content: v.content,
+          is_focused: !!v.isFocused,
+          is_final: !!v.isFinal,
+          user_id: userId,
+          created_at: v.createdAt,
+        }));
+        const { error: verErr } = await supabase.from('studio_lyric_versions').upsert(cloudVersions);
+        if (verErr && verErr.code !== 'PGRST205') {
+          console.warn('Failed to push lyric versions to cloud:', verErr);
+        }
+      }
+    } catch (studioPushErr) {
+      console.warn('Failed to push studio data to cloud:', studioPushErr);
     }
 
     return { nodesCount, sessionsCount, messagesCount };

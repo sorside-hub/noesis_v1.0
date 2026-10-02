@@ -305,14 +305,21 @@ CREATE TABLE IF NOT EXISTS studio_projects (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   type TEXT NOT NULL DEFAULT 'album', -- 'album' | 'ep' | 'single'
+  status TEXT NOT NULL DEFAULT 'idea', -- 'idea' | 'demo' | 'recording' | 'mixing' | 'ready' | 'released'
   genre TEXT,
   target_release_date TEXT,
   cover_url TEXT,
-  description TEXT,
+  description TEXT, -- Premis / konsep cerita album
+  progress_note TEXT, -- Catatan progres album (misal: "3/6 track beres")
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Pastikan kolom baru tetap ada jika tabel sudah dibuat sebelumnya (Auto-migration)
+ALTER TABLE studio_projects 
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'idea',
+  ADD COLUMN IF NOT EXISTS progress_note TEXT;
 
 ALTER TABLE studio_projects ENABLE ROW LEVEL SECURITY;
 
@@ -325,13 +332,17 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- 2. TABEL LAGU STUDIO (Songs)
+-- 2. TABEL LAGU STUDIO (Songs: Single & Track Album)
 CREATE TABLE IF NOT EXISTS studio_songs (
   id TEXT PRIMARY KEY,
   project_id TEXT REFERENCES studio_projects(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
-  content_lyrics TEXT DEFAULT '',
+  premise TEXT DEFAULT '', -- Premis & konsep cerita lagu
+  scratchpad TEXT DEFAULT '', -- Raw bars & ide rima mentah
+  content_lyrics TEXT DEFAULT '', -- Lirik aktif & chord
   status TEXT NOT NULL DEFAULT 'idea', -- 'idea' | 'demo' | 'recording' | 'mixing' | 'ready' | 'released'
+  progress INTEGER DEFAULT 0, -- Progres manual 0 - 100%
+  progress_note TEXT, -- Catatan progres lagu
   release_type TEXT DEFAULT 'single', -- 'single' | 'ep' | 'album'
   track_number INTEGER,
   musical_key TEXT DEFAULT 'C',
@@ -341,13 +352,18 @@ CREATE TABLE IF NOT EXISTS studio_songs (
   tuning TEXT DEFAULT 'Standard (E A D G B E)',
   genre TEXT,
   target_release_date TEXT,
-  scratchpad TEXT DEFAULT '',
   reference_link TEXT,
   audio_url TEXT,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Pastikan kolom baru tetap ada jika tabel sudah dibuat sebelumnya (Auto-migration)
+ALTER TABLE studio_songs 
+  ADD COLUMN IF NOT EXISTS premise TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS progress INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS progress_note TEXT;
 
 ALTER TABLE studio_songs ENABLE ROW LEVEL SECURITY;
 
@@ -366,9 +382,16 @@ CREATE TABLE IF NOT EXISTS studio_lyric_versions (
   song_id TEXT NOT NULL REFERENCES studio_songs(id) ON DELETE CASCADE,
   version_name TEXT NOT NULL,
   content TEXT NOT NULL,
+  is_focused BOOLEAN DEFAULT FALSE, -- Penanda versi aktif / sedang dikerjakan
+  is_final BOOLEAN DEFAULT FALSE, -- Penanda versi master release
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Pastikan kolom baru tetap ada jika tabel sudah dibuat sebelumnya (Auto-migration)
+ALTER TABLE studio_lyric_versions 
+  ADD COLUMN IF NOT EXISTS is_focused BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS is_final BOOLEAN DEFAULT FALSE;
 
 ALTER TABLE studio_lyric_versions ENABLE ROW LEVEL SECURITY;
 
@@ -381,7 +404,11 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- 4. AKTIFKAN SUPABASE REALTIME UNTUK STUDIO MUSIK
+-- 4. INDEKS PERFORMA QUERY
+CREATE INDEX IF NOT EXISTS idx_studio_songs_project_id ON studio_songs(project_id);
+CREATE INDEX IF NOT EXISTS idx_studio_lyric_versions_song_id ON studio_lyric_versions(song_id);
+
+-- 5. AKTIFKAN SUPABASE REALTIME UNTUK STUDIO MUSIK
 DO $$ 
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'studio_projects') THEN
