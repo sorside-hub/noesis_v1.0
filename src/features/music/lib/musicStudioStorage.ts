@@ -276,7 +276,7 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Fetch projects
+    // 1. Fetch projects
     const { data: remoteProjects, error: projErr } = await supabase
       .from('studio_projects')
       .select('*')
@@ -296,10 +296,21 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
         createdAt: p.created_at,
         updatedAt: p.updated_at,
       }));
+
+      // Reconcile: Purge local projects that were deleted on cloud
+      const remoteProjIds = new Set(localProjects.map((p) => p.id));
+      const allLocalProjects = await db.studio_projects.toArray();
+      const deletedProjIds = allLocalProjects
+        .filter((p) => !remoteProjIds.has(p.id))
+        .map((p) => p.id);
+      if (deletedProjIds.length > 0) {
+        await db.studio_projects.bulkDelete(deletedProjIds);
+      }
+
       await db.studio_projects.bulkPut(localProjects);
     }
 
-    // Fetch songs
+    // 2. Fetch songs
     const { data: remoteSongs, error: songErr } = await supabase
       .from('studio_songs')
       .select('*')
@@ -331,10 +342,21 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
         createdAt: s.created_at,
         updatedAt: s.updated_at,
       }));
+
+      // Reconcile: Purge local songs that were deleted on cloud
+      const remoteSongIds = new Set(localSongs.map((s) => s.id));
+      const allLocalSongs = await db.studio_songs.toArray();
+      const deletedSongIds = allLocalSongs
+        .filter((s) => !remoteSongIds.has(s.id))
+        .map((s) => s.id);
+      if (deletedSongIds.length > 0) {
+        await db.studio_songs.bulkDelete(deletedSongIds);
+      }
+
       await db.studio_songs.bulkPut(localSongs);
     }
 
-    // Fetch lyric versions
+    // 3. Fetch lyric versions
     const { data: remoteVersions, error: verErr } = await supabase
       .from('studio_lyric_versions')
       .select('*')
@@ -350,8 +372,21 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
         isFinal: !!v.is_final,
         createdAt: v.created_at,
       }));
+
+      // Reconcile: Purge local versions that were deleted on cloud
+      const remoteVersionIds = new Set(localVersions.map((v) => v.id));
+      const allLocalVersions = await db.studio_lyric_versions.toArray();
+      const deletedVersionIds = allLocalVersions
+        .filter((v) => !remoteVersionIds.has(v.id))
+        .map((v) => v.id);
+      if (deletedVersionIds.length > 0) {
+        await db.studio_lyric_versions.bulkDelete(deletedVersionIds);
+      }
+
       await db.studio_lyric_versions.bulkPut(localVersions);
     }
+
+    window.dispatchEvent(new Event('music-studio-updated'));
   } catch (err) {
     console.warn('[MusicStudio] Cloud pull error:', err);
   }

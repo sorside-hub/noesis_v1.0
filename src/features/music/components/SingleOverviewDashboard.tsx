@@ -197,6 +197,15 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
 
   useEffect(() => {
     loadVersions();
+
+    const handleStudioUpdate = () => {
+      loadVersions();
+    };
+
+    window.addEventListener('music-studio-updated', handleStudioUpdate);
+    return () => {
+      window.removeEventListener('music-studio-updated', handleStudioUpdate);
+    };
   }, [song.id]);
 
   // Clean legacy dummy template from current song if present

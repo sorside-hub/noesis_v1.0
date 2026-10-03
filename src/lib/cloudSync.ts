@@ -11,6 +11,7 @@ import {
   isNodeRecentlyDeleted,
 } from './sync/syncHelpers';
 import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord } from '../features/music/types/studioDatabase';
+import { syncMusicStudioFromCloud } from '../features/music/lib/musicStudioStorage';
 
 export { syncPullFromCloud, syncPushAllToCloud } from './sync/syncOperations';
 export type { SyncSummary } from './sync/syncOperations';
@@ -258,6 +259,9 @@ export const initRealtimeSync = async () => {
         if (payload.eventType === 'DELETE') {
           if (payload.old?.id) {
             await db.studio_lyric_versions.delete(payload.old.id);
+          } else {
+            // Full cloud reconciliation in case replica identity lacked old.id
+            await syncMusicStudioFromCloud();
           }
         } else if (payload.new) {
           const v = payload.new as any;
