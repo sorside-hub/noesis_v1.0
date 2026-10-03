@@ -52,6 +52,8 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     updateSongStatus,
     updateSongRecord,
     updateProjectRecord,
+    updateLyricVersionContent,
+    flushSongAndVersion,
     removeSong,
     removeProject,
   } = useMusicStudio();
@@ -65,6 +67,9 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     navigateToMusicSubView,
     goBack,
   } = useNavigation();
+
+  // Active lyric version being edited in SongStudioEditor
+  const [activeEditingVersionId, setActiveEditingVersionId] = useState<string | null>(null);
 
   // Active view tab managed via Drawer Dock
   const [activeTab, setActiveTab] = useState<StudioViewTab>('pipeline');
@@ -332,12 +337,17 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     return (
       <SongStudioEditor
         song={activeEditingSong}
+        activeVersionId={activeEditingVersionId}
         projects={rawProjects}
-        onBack={() => {
+        onBack={async () => {
+          await flushSongAndVersion(activeEditingSong.id, activeEditingVersionId);
           goBack();
         }}
         onUpdateSong={(patch) => {
           updateSongRecord(activeEditingSong.id, patch);
+          if (activeEditingVersionId && patch.contentLyrics !== undefined) {
+            updateLyricVersionContent(activeEditingVersionId, patch.contentLyrics);
+          }
         }}
       />
     );
@@ -373,7 +383,8 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         onBack={() => {
           goBack();
         }}
-        onOpenFullEditor={() => {
+        onOpenFullEditor={(versionId?: string) => {
+          setActiveEditingVersionId(versionId || null);
           navigateToMusicSubView(activeEditingSong.id, 'editor');
         }}
         onOpenPremise={() => {

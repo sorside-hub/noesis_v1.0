@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Editor } from '@tiptap/react';
 import { ArrowLeft, SlidersVertical, Music2, Wand2 } from 'lucide-react';
 import { SongStudioToolbar } from './SongStudioToolbar';
@@ -9,11 +9,13 @@ import { EditorCore } from '../../editor/components/EditorCore';
 import { transposeEditorChords } from '../../editor/lib/transposeUtils';
 import { CollapsibleReadingDock } from '../../editor/components/CollapsibleReadingDock';
 import { StudioSongRecord, StudioProjectRecord } from '../types/studioDatabase';
+import { getLyricVersionById } from '../lib/musicStudioStorage';
 import { useNavigation } from '../../../context/NavigationContext';
 import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
 
 interface SongStudioEditorProps {
   song: StudioSongRecord;
+  activeVersionId?: string | null;
   projects?: StudioProjectRecord[];
   onBack: () => void;
   onUpdateSong: (patch: Partial<StudioSongRecord>) => void;
@@ -21,6 +23,7 @@ interface SongStudioEditorProps {
 
 export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
   song,
+  activeVersionId,
   projects = [],
   onBack,
   onUpdateSong,
@@ -33,6 +36,20 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
     openModal,
     closeModal
   } = useNavigation();
+
+  const [versionName, setVersionName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!activeVersionId) {
+      setVersionName(null);
+      return;
+    }
+    getLyricVersionById(activeVersionId).then((ver) => {
+      if (ver) {
+        setVersionName(ver.versionName);
+      }
+    });
+  }, [activeVersionId]);
 
   const [tiptapEditor, setTiptapEditor] = useState<Editor | null>(null);
   const editorRef = useRef<any>(null);
@@ -137,7 +154,7 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
                 {song.title}
               </h2>
               <p className="text-[10px] text-text-muted truncate">
-                Lirik & Chord
+                Lirik & Chord{versionName ? ` • ${versionName}` : ''}
               </p>
             </div>
           </div>

@@ -193,6 +193,24 @@ export async function deleteStudioSong(id: string): Promise<void> {
 // 3. LYRIC VERSIONS CRUD
 // ==========================================
 
+export const isDefaultTemplate = (content?: string): boolean => {
+  if (!content) return false;
+  return (
+    content.includes('Tulis lirik dan chord') ||
+    content.includes('Bagian reff lagu') ||
+    content.includes('<h3>[Intro]</h3>\n<p>[C]</p>')
+  );
+};
+
+export async function getLyricVersionById(id: string): Promise<StudioLyricVersionRecord | undefined> {
+  try {
+    return await db.studio_lyric_versions.get(id);
+  } catch (err) {
+    console.error('[MusicStudio] Failed to get lyric version by id:', err);
+    return undefined;
+  }
+}
+
 export async function getLyricVersionsBySongId(songId: string): Promise<StudioLyricVersionRecord[]> {
   try {
     const versions = await db.studio_lyric_versions

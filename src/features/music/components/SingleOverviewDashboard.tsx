@@ -26,6 +26,7 @@ import {
   saveLyricVersion, 
   deleteLyricVersion, 
   deleteStudioSong,
+  isDefaultTemplate,
 } from '../lib/musicStudioStorage';
 import { EditorCore, EditorCoreRef } from '../../editor/components/EditorCore';
 import { Toolbar } from '../../editor/components/Toolbar';
@@ -39,7 +40,7 @@ interface SingleOverviewDashboardProps {
   allSongs?: StudioSongRecord[];
   currentSubView?: MusicSubView;
   onBack: () => void;
-  onOpenFullEditor: () => void;
+  onOpenFullEditor: (versionId?: string) => void;
   onOpenPremise: () => void;
   onOpenScratchpad: () => void;
   onCloseSubView: () => void;
@@ -74,6 +75,9 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   const [lyricVersions, setLyricVersions] = useState<StudioLyricVersionRecord[]>([]);
   const [isNewVersionModalOpen, setIsNewVersionModalOpen] = useState(false);
   const [newVersionTitleInput, setNewVersionTitleInput] = useState('');
+  const [copyFromPrevious, setCopyFromPrevious] = useState(false);
+  const [isSubmittingVersion, setIsSubmittingVersion] = useState(false);
+  const isCreatingVersionRef = useRef(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [copiedVersionId, setCopiedVersionId] = useState<string | null>(null);
   const [openVersionMenuId, setOpenVersionMenuId] = useState<string | null>(null);
@@ -117,7 +121,55 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
     if (!song.id) return;
     const list = await getLyricVersionsBySongId(song.id);
     list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-    setLyricVersions(list);
+    
+    // 1. Auto-clean any legacy dummy template from stored versions
+    const cleaned = list.map((v) => {
+      if (isDefaultTemplate(v.content)) {
+        const fixed = { ...v, content: '' };
+        saveLyricVersion(fixed).catch(console.warn);
+        return fixed;
+      }
+      return v;
+    });
+
+    // 2. Auto-deduplicate any exact duplicate version names caused by rapid taps
+    const seenNames = new Set<string>();
+    const deduplicated: StudioLyricVersionRecord[] = [];
+    const duplicatesToDelete: StudioLyricVersionRecord[] = [];
+
+    cleaned.forEach((v) => {
+      const key = v.versionName.trim().toLowerCase();
+      if (seenNames.has(key)) {
+        duplicatesToDelete.push(v);
+      } else {
+        seenNames.add(key);
+        deduplicated.push(v);
+      }
+    });
+
+    if (duplicatesToDelete.length > 0) {
+      duplicatesToDelete.forEach((dup) => {
+        deleteLyricVersion(dup.id).catch(console.warn);
+      });
+    }
+
+    // 3. Ensure only ONE version can be isFocused at a time
+    let hasFocused = false;
+    const finalNormalized = deduplicated.map((v) => {
+      if (v.isFocused) {
+        if (!hasFocused) {
+          hasFocused = true;
+          return v;
+        } else {
+          const unfocused = { ...v, isFocused: false };
+          saveLyricVersion(unfocused).catch(console.warn);
+          return unfocused;
+        }
+      }
+      return v;
+    });
+
+    setLyricVersions(finalNormalized);
   };
 
   // Sorted versions:
@@ -146,6 +198,13 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   useEffect(() => {
     loadVersions();
   }, [song.id]);
+
+  // Clean legacy dummy template from current song if present
+  useEffect(() => {
+    if (song.contentLyrics && isDefaultTemplate(song.contentLyrics)) {
+      onUpdateSong({ contentLyrics: '' });
+    }
+  }, [song.id, song.contentLyrics]);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -178,39 +237,66 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
     }
   };
 
+  // Open version in editor
+  const handleOpenVersionInEditor = (v: StudioLyricVersionRecord) => {
+    const cleanContent = isDefaultTemplate(v.content) ? '' : (v.content || '');
+    onUpdateSong({ contentLyrics: cleanContent });
+    onOpenFullEditor(v.id);
+  };
+
   // Next version prefix calculation (e.g. v1, v2, v3)
   const nextVersionPrefix = `v${lyricVersions.length + 1}`;
 
   // Create new version with smart "v1", "v2" prefix + optional title (INSTANT OPTIMISTIC UI)
   const handleCreateNewVersion = () => {
-    const customTitle = newVersionTitleInput.trim();
-    const versionName = customTitle ? `${nextVersionPrefix} - ${customTitle}` : nextVersionPrefix;
+    if (isCreatingVersionRef.current) return;
+    isCreatingVersionRef.current = true;
+    setIsSubmittingVersion(true);
 
-    const isFirst = lyricVersions.length === 0;
-    const newVersion: StudioLyricVersionRecord = {
-      id: `ver_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      songId: song.id,
-      versionName,
-      content: song.contentLyrics || '',
-      isFocused: isFirst, // First version created is focused by default
-      isFinal: false,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const customTitle = newVersionTitleInput.trim();
+      const versionName = customTitle ? `${nextVersionPrefix} - ${customTitle}` : nextVersionPrefix;
 
-    // 1. Instant 0ms Optimistic UI update
-    const updatedList = isFirst
-      ? [newVersion, ...lyricVersions.map((v) => ({ ...v, isFocused: false }))]
-      : [...lyricVersions, newVersion];
+      const isFirst = lyricVersions.length === 0;
+      // If user specifically checked "Salin dari versi aktif" AND there are existing versions:
+      const initialContent = copyFromPrevious && lyricVersions.length > 0
+        ? (song.contentLyrics || '')
+        : '';
 
-    setLyricVersions(updatedList);
-    setIsNewVersionModalOpen(false);
-    setNewVersionTitleInput('');
+      const newVersion: StudioLyricVersionRecord = {
+        id: `ver_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        songId: song.id,
+        versionName,
+        content: initialContent,
+        isFocused: isFirst, // First version created is focused by default
+        isFinal: false,
+        createdAt: new Date().toISOString(),
+      };
 
-    // 2. Non-blocking background persistence
-    if (isFirst) {
-      lyricVersions.forEach((v) => saveLyricVersion({ ...v, isFocused: false }).catch(console.warn));
+      // 1. Instant 0ms Optimistic UI update
+      const updatedList = isFirst
+        ? [newVersion, ...lyricVersions.map((v) => ({ ...v, isFocused: false }))]
+        : [...lyricVersions, newVersion];
+
+      setLyricVersions(updatedList);
+      setIsNewVersionModalOpen(false);
+      setNewVersionTitleInput('');
+      setCopyFromPrevious(false);
+
+      // 2. Non-blocking background persistence
+      if (isFirst) {
+        lyricVersions.forEach((v) => saveLyricVersion({ ...v, isFocused: false }).catch(console.warn));
+      }
+      saveLyricVersion(newVersion).catch(console.warn);
+
+      // Open immediately in full editor for seamless songwriting
+      handleOpenVersionInEditor(newVersion);
+    } finally {
+      setTimeout(() => {
+        isCreatingVersionRef.current = false;
+        setIsSubmittingVersion(false);
+      }, 500);
     }
-    saveLyricVersion(newVersion).catch(console.warn);
   };
 
   // Toggle or Set focused version (INSTANT OPTIMISTIC UI)
@@ -294,10 +380,26 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   // Delete version (INSTANT OPTIMISTIC UI)
   const handleDeleteVersion = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setLyricVersions((prev) => prev.filter((v) => v.id !== id));
+    const remaining = lyricVersions.filter((v) => v.id !== id);
+    setLyricVersions(remaining);
     deleteLyricVersion(id).catch((err) => {
       console.warn('[MusicStudio] Failed to delete lyric version:', err);
     });
+
+    // If no versions left, clear song lyrics so no ghost content remains!
+    if (remaining.length === 0) {
+      onUpdateSong({ contentLyrics: '' });
+    } else {
+      const deletedWasFocused = lyricVersions.find((v) => v.id === id)?.isFocused;
+      if (deletedWasFocused) {
+        // Transfer focus to the remaining first version
+        const newFocus = remaining[0];
+        const updated = remaining.map((v) => ({ ...v, isFocused: v.id === newFocus.id }));
+        setLyricVersions(updated);
+        saveLyricVersion({ ...newFocus, isFocused: true }).catch(console.warn);
+        onUpdateSong({ contentLyrics: newFocus.content || '' });
+      }
+    }
   };
 
   // Delete entire single
@@ -325,12 +427,6 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   };
 
   const currentStage = PRODUCTION_STAGES.find((s) => s.id === song.status) || PRODUCTION_STAGES[0];
-
-  // Open version in editor
-  const handleOpenVersionInEditor = (v: StudioLyricVersionRecord) => {
-    onUpdateSong({ contentLyrics: v.content });
-    onOpenFullEditor();
-  };
 
   // =========================================================================
   // VIEW MODE 1: KONSEP LAGU EDITOR
@@ -893,7 +989,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                 Buat Versi Lirik Baru
               </h3>
               <p className="text-xs text-text-muted mt-0.5">
-                Kondisi lirik saat ini akan disimpan sebagai versi baru.
+                Mulai draf lirik baru dari kanvas kosong.
               </p>
             </div>
 
@@ -911,13 +1007,30 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                   placeholder="Judul opsional (misal: Chorus Alternatif)..."
                   value={newVersionTitleInput}
                   onChange={(e) => setNewVersionTitleInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreateNewVersion()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleCreateNewVersion();
+                    }
+                  }}
                   className="w-full px-3 py-2 text-xs rounded-xl bg-bg-primary text-text-primary focus:outline-hidden focus:ring-1 focus:ring-accent-primary font-medium"
                 />
               </div>
               <p className="text-[10px] text-text-muted italic">
                 *Bisa langsung tekan Enter untuk menyimpan dengan nama <strong className="text-text-secondary">{nextVersionPrefix}</strong>.
               </p>
+
+              {lyricVersions.length > 0 && (
+                <label className="flex items-center gap-2 pt-2 text-xs text-text-secondary cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={copyFromPrevious}
+                    onChange={(e) => setCopyFromPrevious(e.target.checked)}
+                    className="rounded-md border-border-default text-accent-primary focus:ring-accent-primary"
+                  />
+                  <span>Salin lirik dari versi saat ini</span>
+                </label>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-1">
@@ -926,6 +1039,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
                 onClick={() => {
                   setIsNewVersionModalOpen(false);
                   setNewVersionTitleInput('');
+                  setCopyFromPrevious(false);
                 }}
                 className="px-3 py-1.5 rounded-xl text-xs text-text-muted hover:bg-bg-hover transition-colors cursor-pointer"
               >
@@ -933,10 +1047,11 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               </button>
               <button
                 type="button"
+                disabled={isSubmittingVersion}
                 onClick={handleCreateNewVersion}
-                className="px-4 py-1.5 rounded-xl bg-accent-primary text-accent-contrast text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                className="px-4 py-1.5 rounded-xl bg-accent-primary text-accent-contrast text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Simpan Versi
+                {isSubmittingVersion ? 'Menyimpan...' : 'Simpan Versi'}
               </button>
             </div>
           </div>

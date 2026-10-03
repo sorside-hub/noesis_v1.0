@@ -8,6 +8,8 @@ import {
   saveStudioSong,
   deleteStudioProject,
   deleteStudioSong,
+  saveLyricVersion,
+  getLyricVersionById,
   syncMusicStudioFromCloud,
 } from '../lib/musicStudioStorage';
 
@@ -296,7 +298,11 @@ export function useMusicStudio() {
     };
 
     // 1. Instant in-memory state update for snappy 0ms UI reactivity
-    setDbSongs((prev) => prev.map((s) => (s.id === songId ? updated : s)));
+    setDbSongs((prev) => {
+      const next = prev.map((s) => (s.id === songId ? updated : s));
+      dbSongsRef.current = next;
+      return next;
+    });
 
     // 2. Debounced save to IndexedDB and Supabase (400ms)
     const existingTimer = songDebounceTimersRef.current.get(songId);
@@ -312,6 +318,65 @@ export function useMusicStudio() {
     }, 400);
 
     songDebounceTimersRef.current.set(songId, timer);
+  }, []);
+
+  // Debounced update for active lyric version (e.g. while editing in SongStudioEditor)
+  const versionDebounceTimersRef = useRef<Map<string, any>>(new Map());
+
+  const updateLyricVersionContent = useCallback((versionId: string, content: string) => {
+    const existingTimer = versionDebounceTimersRef.current.get(versionId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const ver = await getLyricVersionById(versionId);
+        if (ver) {
+          const updatedVer = {
+            ...ver,
+            content,
+          };
+          await saveLyricVersion(updatedVer);
+        }
+      } catch (err) {
+        console.error('[MusicStudio] Failed to save lyric version content:', err);
+      }
+      versionDebounceTimersRef.current.delete(versionId);
+    }, 400);
+
+    versionDebounceTimersRef.current.set(versionId, timer);
+  }, []);
+
+  // Instant flush to ensure no pending keystrokes are lost on navigation/back
+  const flushSongAndVersion = useCallback(async (songId: string, versionId?: string | null) => {
+    const songTimer = songDebounceTimersRef.current.get(songId);
+    if (songTimer) {
+      clearTimeout(songTimer);
+      songDebounceTimersRef.current.delete(songId);
+      const song = dbSongsRef.current.find((s) => s.id === songId);
+      if (song) {
+        await saveStudioSong(song).catch(console.error);
+      }
+    }
+    if (versionId) {
+      const verTimer = versionDebounceTimersRef.current.get(versionId);
+      if (verTimer) {
+        clearTimeout(verTimer);
+        versionDebounceTimersRef.current.delete(versionId);
+      }
+      try {
+        const ver = await getLyricVersionById(versionId);
+        if (ver) {
+          const song = dbSongsRef.current.find((s) => s.id === songId);
+          if (song && song.contentLyrics !== undefined) {
+            await saveLyricVersion({ ...ver, content: song.contentLyrics }).catch(console.error);
+          }
+        }
+      } catch (err) {
+        console.error('[MusicStudio] Failed to flush lyric version:', err);
+      }
+    }
   }, []);
 
   const updateProjectRecord = useCallback(async (projectId: string, patch: Partial<StudioProjectRecord>) => {
@@ -356,6 +421,8 @@ export function useMusicStudio() {
     updateProjectStatus,
     updateSongRecord,
     updateProjectRecord,
+    updateLyricVersionContent,
+    flushSongAndVersion,
     removeSong,
     removeProject,
   };
