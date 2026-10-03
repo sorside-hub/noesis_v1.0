@@ -222,7 +222,7 @@ export const getEditorExtensions = (
     types: ['heading', 'paragraph', 'tableCell', 'tableHeader', 'blockquote'],
   }),
   SafeDeleteExtension,
-  FoldingExtension,
+  ...(options.enableChords ? [] : [FoldingExtension]),
   Markdown.configure({
     html: true,
     transformPastedText: true,

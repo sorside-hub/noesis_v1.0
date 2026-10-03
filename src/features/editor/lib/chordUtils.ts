@@ -12,7 +12,8 @@ export const INLINE_CHORD_REGEX = /\[([A-Ga-g][a-zA-Z0-9#\/b\+\-]*?)\]/g;
 
 // List of non-chord words that might accidentally slip through
 const EXCLUDED_WORDS = new Set([
-  'a', 'an', 'and', 'am', 'as', 'at', 'be', 'by', 'do', 'go', 'he', 'if', 'in', 'is', 'it', 'me', 'my', 'no', 'of', 'on', 'or', 'so', 'to', 'up', 'us', 'we'
+  'a', 'an', 'and', 'am', 'as', 'at', 'be', 'by', 'do', 'go', 'he', 'if', 'in', 'is', 'it', 'me', 'my', 'no', 'of', 'on', 'or', 'so', 'to', 'up', 'us', 'we',
+  'intro', 'verse', 'chorus', 'bridge', 'outro', 'solo', 'interlude', 'reff', 'pre-chorus', 'hook', 'coda'
 ]);
 
 /**

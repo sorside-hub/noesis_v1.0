@@ -71,12 +71,13 @@ export const FoldingExtension = Extension.create({
 
         props: {
           decorations(state) {
-            const pluginState = foldingPluginKey.getState(state) as FoldingState;
-            if (!pluginState) return DecorationSet.empty;
+            try {
+              const pluginState = foldingPluginKey.getState(state) as FoldingState;
+              if (!pluginState) return DecorationSet.empty;
 
-            const { foldedHeadings, foldedLists } = pluginState;
-            const decorations: Decoration[] = [];
-            const doc = state.doc;
+              const { foldedHeadings, foldedLists } = pluginState;
+              const decorations: Decoration[] = [];
+              const doc = state.doc;
 
             // 1. Scan Top-Level Nodes for Headings & their Folding
             let currentFoldedHeadingLevel: number | null = null;
@@ -286,7 +287,10 @@ export const FoldingExtension = Extension.create({
             });
 
             return DecorationSet.create(doc, decorations);
-          },
+          } catch (err) {
+            return DecorationSet.empty;
+          }
+        },
         },
       }),
     ];

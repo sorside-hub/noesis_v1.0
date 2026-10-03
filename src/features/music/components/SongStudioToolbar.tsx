@@ -19,14 +19,14 @@ interface SongStudioToolbarProps {
 }
 
 const SONG_SECTIONS = [
-  { label: 'Intro', tag: '<h3>[Intro]</h3>' },
-  { label: 'Verse 1', tag: '<h3>[Verse 1]</h3>' },
-  { label: 'Verse 2', tag: '<h3>[Verse 2]</h3>' },
-  { label: 'Pre-Chorus', tag: '<h3>[Pre-Chorus]</h3>' },
-  { label: 'Chorus / Reff', tag: '<h3>[Chorus]</h3>' },
-  { label: 'Bridge', tag: '<h3>[Bridge]</h3>' },
-  { label: 'Solo / Interlude', tag: '<h3>[Solo]</h3>' },
-  { label: 'Outro', tag: '<h3>[Outro]</h3>' },
+  { label: 'Intro', tag: '[Intro]' },
+  { label: 'Verse 1', tag: '[Verse 1]' },
+  { label: 'Verse 2', tag: '[Verse 2]' },
+  { label: 'Pre-Chorus', tag: '[Pre-Chorus]' },
+  { label: 'Chorus / Reff', tag: '[Chorus]' },
+  { label: 'Bridge', tag: '[Bridge]' },
+  { label: 'Solo / Interlude', tag: '[Solo]' },
+  { label: 'Outro', tag: '[Outro]' },
 ];
 
 export const SongStudioToolbar: React.FC<SongStudioToolbarProps> = ({
@@ -244,8 +244,8 @@ export const SongStudioToolbar: React.FC<SongStudioToolbarProps> = ({
     }
   };
 
-  const insertSection = (htmlTag: string) => {
-    editor.chain().focus().insertContent(`\n${htmlTag}\n<p></p>`).run();
+  const insertSection = (sectionLabel: string) => {
+    editor.chain().focus().insertContent(`\n<p><strong>${sectionLabel}</strong></p>\n<p></p>`).run();
     setShowSectionMenu(false);
   };
 

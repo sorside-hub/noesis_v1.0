@@ -165,20 +165,6 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
     }
   }, [editor, onEditorReady]);
 
-  // Sync initialContent into TipTap editor if initialContent changes while editor is not focused
-  useEffect(() => {
-    if (!editor || editor.isDestroyed) return;
-    if (lastEmittedContentRef.current === initialContent) return;
-
-    const currentMarkdown = (editor.storage as any).markdown?.getMarkdown?.() ?? '';
-    if (currentMarkdown !== initialContent) {
-      if (!editor.isFocused) {
-        lastEmittedContentRef.current = initialContent;
-        editor.commands.setContent(initialContent || '');
-      }
-    }
-  }, [editor, initialContent]);
-
   // Sync isReadOnly with TipTap editable state
   useEffect(() => {
     if (editor && !editor.isDestroyed) {
