@@ -31,6 +31,7 @@ export const useEditorScroll = (
       // When selecting text, 'head' represents the active moving end of selection (where user is dragging).
       // If we only used 'from', downwards selection would always measure the top of the selection and never auto-scroll down.
       const activePos = (selection as any).head ?? (selection.empty ? selection.from : selection.to);
+      if (typeof activePos !== 'number' || activePos < 0 || activePos > editor.state.doc.content.size) return;
       const coords = editor.view.coordsAtPos(activePos);
       if (!coords || !Number.isFinite(coords.bottom) || !Number.isFinite(coords.top)) return;
 

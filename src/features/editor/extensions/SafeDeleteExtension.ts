@@ -164,32 +164,23 @@ export const SafeDeleteExtension = Extension.create({
           if (!selection.empty) {
             return safeDeleteSelection(editor.state, editor.view.dispatch);
           }
-          // If cursor is at or within a reminder tag, atomically delete it
           if (safeDeleteReminderBackward(editor.state, editor.view.dispatch)) {
             return true;
           }
-          // If at the absolute beginning of the document, safely consume the backspace
-          if (selection.$from.pos <= 1) {
-            return true;
-          }
           return false;
-        } catch (e) {
-          return true; // prevent unhandled crash
+        } catch {
+          return false;
         }
       },
       Delete: ({ editor }) => {
         try {
-          const { selection, doc } = editor.state;
+          const { selection } = editor.state;
           if (!selection.empty) {
             return safeDeleteSelection(editor.state, editor.view.dispatch);
           }
-          // If at the absolute end of the document, safely consume the delete
-          if (selection.$from.pos >= doc.content.size - 1) {
-            return true;
-          }
           return false;
-        } catch (e) {
-          return true;
+        } catch {
+          return false;
         }
       },
     };
@@ -211,23 +202,14 @@ export const SafeDeleteExtension = Extension.create({
                   event.preventDefault();
                   return true;
                 }
-                if (view.state.selection.$from.pos <= 1) {
-                  event.preventDefault();
-                  return true;
-                }
               } else if (event.key === 'Delete') {
                 if (!view.state.selection.empty) {
                   event.preventDefault();
                   return safeDeleteSelection(view.state, view.dispatch);
                 }
-                if (view.state.selection.$from.pos >= view.state.doc.content.size - 1) {
-                  event.preventDefault();
-                  return true;
-                }
               }
-            } catch (err) {
-              event.preventDefault();
-              return true;
+            } catch {
+              return false;
             }
             return false;
           },
@@ -236,23 +218,13 @@ export const SafeDeleteExtension = Extension.create({
             beforeinput(view, event: any) {
               try {
                 const inputType = event.inputType;
-                if (inputType === 'deleteContentBackward') {
-                  if (!view.state.selection.empty) {
-                    event.preventDefault();
-                    return safeDeleteSelection(view.state, view.dispatch);
-                  }
-                  if (safeDeleteReminderBackward(view.state, view.dispatch)) {
-                    event.preventDefault();
-                    return true;
-                  }
-                  if (view.state.selection.$from.pos <= 1) {
-                    event.preventDefault();
-                    return true;
-                  }
-                } else if (
+                if (
+                  inputType === 'deleteContentBackward' ||
                   inputType === 'deleteContentForward' ||
                   inputType === 'deleteByCut' ||
                   inputType === 'deleteByDrag' ||
+                  inputType === 'deleteWordBackward' ||
+                  inputType === 'deleteWordForward' ||
                   inputType === 'deleteHardLineBackward' ||
                   inputType === 'deleteSoftLineBackward'
                 ) {
@@ -279,7 +251,7 @@ export const SafeDeleteExtension = Extension.create({
                   view.dispatch(tr.scrollIntoView());
                   return true;
                 }
-              } catch (err) {
+              } catch {
                 // Prevent DOM error from bubbling up
               }
 

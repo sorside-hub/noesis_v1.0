@@ -17,6 +17,7 @@ import { VoiceNoteModal } from './features/voice/components/VoiceNoteModal';
 import { VoiceMemoModal } from './features/voice/components/VoiceMemoModal';
 import { mediaGC } from './lib/mediaGarbageCollector';
 import { reminderService } from './lib/reminder/reminderService';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useEffect } from 'react';
 
 function AppContent({ vaultState }: { vaultState: ReturnType<typeof useVault> }) {
@@ -144,16 +145,18 @@ export default function App() {
   }
 
   return (
-    <AuthProvider>
-      <MusicPlayerProvider>
-        <NavigationProvider
-          activeTabId={vaultState.vault.activeTabId}
-          onSelectTabId={vaultState.setActiveTabId}
-        >
-          <AppContent vaultState={vaultState} />
-        </NavigationProvider>
-      </MusicPlayerProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <MusicPlayerProvider>
+          <NavigationProvider
+            activeTabId={vaultState.vault.activeTabId}
+            onSelectTabId={vaultState.setActiveTabId}
+          >
+            <AppContent vaultState={vaultState} />
+          </NavigationProvider>
+        </MusicPlayerProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -236,26 +236,43 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
 
     const handleSelectionUpdate = () => {
       requestAnimationFrame(() => {
-        const sel = editor.state.selection;
-        // Don't auto-scroll if an image or atom node is selected (prevents scroll jumps during resize)
-        if (sel.constructor.name !== 'NodeSelection' && !(sel as any).node) {
-          scrollToCursor(false);
+        if (!editor || editor.isDestroyed) return;
+        try {
+          const sel = editor.state.selection;
+          // Don't auto-scroll if an image or atom node is selected (prevents scroll jumps during resize)
+          if (sel && sel.constructor.name !== 'NodeSelection' && !(sel as any).node) {
+            scrollToCursor(false);
+          }
+          checkSlashPopup();
+          checkWikilinkPopup();
+          checkTagPopup();
+        } catch {
+          // ignore layout glitches during rapid typing
         }
-        checkSlashPopup();
-        checkWikilinkPopup();
-        checkTagPopup();
       });
     };
 
     editor.on('selectionUpdate', handleSelectionUpdate);
     editor.on('focus', () => {
       setTimeout(() => {
-        scrollToCursor(true);
-        checkSlashPopup();
-        checkWikilinkPopup();
-        checkTagPopup();
+        if (!editor || editor.isDestroyed) return;
+        try {
+          scrollToCursor(true);
+          checkSlashPopup();
+          checkWikilinkPopup();
+          checkTagPopup();
+        } catch {
+          // ignore
+        }
       }, 50);
-      setTimeout(() => scrollToCursor(true), 250);
+      setTimeout(() => {
+        if (!editor || editor.isDestroyed) return;
+        try {
+          scrollToCursor(true);
+        } catch {
+          // ignore
+        }
+      }, 250);
     });
 
     const vv = window.visualViewport;

@@ -10,6 +10,7 @@ import { transposeEditorChords } from '../../editor/lib/transposeUtils';
 import { CollapsibleReadingDock } from '../../editor/components/CollapsibleReadingDock';
 import { StudioSongRecord, StudioProjectRecord } from '../types/studioDatabase';
 import { getLyricVersionById } from '../lib/musicStudioStorage';
+import { ErrorBoundary } from '../../../components/common/ErrorBoundary';
 import { useNavigation } from '../../../context/NavigationContext';
 import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
 
@@ -184,20 +185,22 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
         <div className="flex-1 h-full overflow-hidden relative flex flex-col">
           <div className="flex-1 overflow-hidden relative">
             <div className="absolute inset-0">
-              <EditorCore
-                key={song.id}
-                noteId={song.id}
-                ref={editorRef}
-                hideTitle={true}
-                title=""
-                onTitleChange={() => {}}
-                initialContent={song.contentLyrics || ''}
-                onChange={(newContent) => onUpdateSong({ contentLyrics: newContent })}
-                onSelectionChange={setHasSelection}
-                onAiMenuStateChange={setIsAiMenuOpen}
-                onEditorReady={setTiptapEditor}
-                enableChords={true}
-              />
+              <ErrorBoundary>
+                <EditorCore
+                  key={song.id}
+                  noteId={song.id}
+                  ref={editorRef}
+                  hideTitle={true}
+                  title=""
+                  onTitleChange={() => {}}
+                  initialContent={song.contentLyrics || ''}
+                  onChange={(newContent) => onUpdateSong({ contentLyrics: newContent })}
+                  onSelectionChange={setHasSelection}
+                  onAiMenuStateChange={setIsAiMenuOpen}
+                  onEditorReady={setTiptapEditor}
+                  enableChords={true}
+                />
+              </ErrorBoundary>
             </div>
 
             {/* Floating AI Actions Button - Mobile & Desktop when text is selected */}

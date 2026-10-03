@@ -393,7 +393,8 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         onOpenScratchpad={() => {
           navigateToMusicSubView(activeEditingSong.id, 'scratchpad');
         }}
-        onCloseSubView={() => {
+        onCloseSubView={async () => {
+          await flushSongAndVersion(activeEditingSong.id);
           navigateToMusicSubView(activeEditingSong.id, 'overview');
         }}
         onUpdateSong={(patch) => {

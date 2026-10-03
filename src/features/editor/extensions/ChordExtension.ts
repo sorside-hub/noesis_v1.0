@@ -59,6 +59,11 @@ export const ChordExtension = Extension.create({
                     const start = pos + matchIndex;
                     const end = start + fullMatch.length;
 
+                    // Range boundary sanity check
+                    if (start < 0 || end > doc.content.size || start >= end || end - 1 <= start) {
+                      continue;
+                    }
+
                     // Check if cursor is currently inside or touching this chord token
                     const isCursorInside = selection.from >= start && selection.to <= end;
 

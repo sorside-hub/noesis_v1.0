@@ -96,19 +96,21 @@ export const useAutocomplete = (
       const endDocPos = $from.pos;
 
       try {
-        const coords = editor.view.coordsAtPos(endDocPos);
-        if (coords && Number.isFinite(coords.bottom) && Number.isFinite(coords.left)) {
-          setWikilinkPopupState({
-            isOpen: true,
-            query: rawQuery,
-            startPos: startDocPos,
-            endPos: endDocPos,
-            position: {
-              top: coords.bottom + 6,
-              left: coords.left,
-            },
-          });
-          return;
+        if (endDocPos >= 0 && endDocPos <= editor.state.doc.content.size) {
+          const coords = editor.view.coordsAtPos(endDocPos);
+          if (coords && Number.isFinite(coords.bottom) && Number.isFinite(coords.left)) {
+            setWikilinkPopupState({
+              isOpen: true,
+              query: rawQuery,
+              startPos: startDocPos,
+              endPos: endDocPos,
+              position: {
+                top: coords.bottom + 6,
+                left: coords.left,
+              },
+            });
+            return;
+          }
         }
       } catch {
         // coords failed
@@ -158,19 +160,21 @@ export const useAutocomplete = (
       const endDocPos = $from.pos;
 
       try {
-        const coords = editor.view.coordsAtPos(endDocPos);
-        if (coords && Number.isFinite(coords.bottom) && Number.isFinite(coords.left)) {
-          setTagPopupState({
-            isOpen: true,
-            query: rawQuery,
-            startPos: startDocPos,
-            endPos: endDocPos,
-            position: {
-              top: coords.bottom + 6,
-              left: coords.left,
-            },
-          });
-          return;
+        if (endDocPos >= 0 && endDocPos <= editor.state.doc.content.size) {
+          const coords = editor.view.coordsAtPos(endDocPos);
+          if (coords && Number.isFinite(coords.bottom) && Number.isFinite(coords.left)) {
+            setTagPopupState({
+              isOpen: true,
+              query: rawQuery,
+              startPos: startDocPos,
+              endPos: endDocPos,
+              position: {
+                top: coords.bottom + 6,
+                left: coords.left,
+              },
+            });
+            return;
+          }
         }
       } catch {
         // coords failed
@@ -220,19 +224,21 @@ export const useAutocomplete = (
       const endDocPos = $from.pos;
 
       try {
-        const coords = editor.view.coordsAtPos(endDocPos);
-        if (coords && Number.isFinite(coords.bottom) && Number.isFinite(coords.left)) {
-          setSlashPopupState({
-            isOpen: true,
-            query: rawQuery,
-            startPos: startDocPos,
-            endPos: endDocPos,
-            position: {
-              top: coords.bottom + 6,
-              left: Math.max(12, coords.left),
-            },
-          });
-          return;
+        if (endDocPos >= 0 && endDocPos <= editor.state.doc.content.size) {
+          const coords = editor.view.coordsAtPos(endDocPos);
+          if (coords && Number.isFinite(coords.bottom) && Number.isFinite(coords.left)) {
+            setSlashPopupState({
+              isOpen: true,
+              query: rawQuery,
+              startPos: startDocPos,
+              endPos: endDocPos,
+              position: {
+                top: coords.bottom + 6,
+                left: Math.max(12, coords.left),
+              },
+            });
+            return;
+          }
         }
       } catch {
         // coords failed
