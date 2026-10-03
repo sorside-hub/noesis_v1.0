@@ -183,7 +183,7 @@ export function useMusicStudio() {
       }
     }
 
-    const defaultLyrics = params.initialContent || `<h3>[Intro]</h3>\n<p>[${params.key || 'C'}]</p>\n\n<h3>[Verse 1]</h3>\n<p>Tulis lirik dan chord di sini...</p>\n\n<h3>[Chorus]</h3>\n<p>Bagian reff lagu...</p>\n`;
+    const defaultLyrics = params.initialContent || '';
 
     const newSong: StudioSongRecord = {
       id: songId,

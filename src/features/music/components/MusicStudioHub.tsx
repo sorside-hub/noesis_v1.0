@@ -406,6 +406,9 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
       <ProjectOverviewDashboard
         project={activeSelectedProject}
         projectSongs={projectTracks}
+        currentSubView={musicSubView || 'overview'}
+        onOpenPremise={() => navigateToMusicSubView('', 'premise')}
+        onCloseSubView={() => navigateToMusicSubView('', 'overview')}
         onBack={() => goBack()}
         onSelectTrack={(songId) => navigateToMusicSong(songId)}
         onUpdateProject={(patch) => updateProjectRecord(activeSelectedProject.id, patch)}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Editor } from '@tiptap/react';
 import { 
   Undo, 
@@ -33,11 +34,61 @@ export const SongStudioToolbar: React.FC<SongStudioToolbarProps> = ({
   onOpenAudioModal,
 }) => {
   const [showSectionMenu, setShowSectionMenu] = useState(false);
+  const sectionButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPosition, setMenuPosition] = useState<{ bottom?: number; top?: number; left: number }>({ left: 0 });
   const [isMobile, setIsMobile] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [bottomOffset, setBottomOffset] = useState(0);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [, setTick] = useState(0);
+
+  // Close section menu when clicking/touching anywhere outside
+  useEffect(() => {
+    if (!showSectionMenu) return;
+
+    const handlePointerDown = (e: Event) => {
+      const target = e.target as Node;
+      if (menuRef.current && menuRef.current.contains(target)) {
+        return;
+      }
+      if (sectionButtonRef.current && sectionButtonRef.current.contains(target)) {
+        return;
+      }
+      setShowSectionMenu(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    document.addEventListener('touchstart', handlePointerDown, true);
+    document.addEventListener('mousedown', handlePointerDown, true);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+      document.removeEventListener('touchstart', handlePointerDown, true);
+      document.removeEventListener('mousedown', handlePointerDown, true);
+    };
+  }, [showSectionMenu]);
+
+  // Close menu when mobile keyboard closes or visualViewport changes
+  useEffect(() => {
+    if (isMobile && !isKeyboardOpen) {
+      setShowSectionMenu(false);
+    }
+  }, [isMobile, isKeyboardOpen]);
+
+  useEffect(() => {
+    const handleClose = () => {
+      if (showSectionMenu) {
+        setShowSectionMenu(false);
+      }
+    };
+    window.addEventListener('resize', handleClose);
+    window.addEventListener('scroll', handleClose, true);
+    return () => {
+      window.removeEventListener('resize', handleClose);
+      window.removeEventListener('scroll', handleClose, true);
+    };
+  }, [showSectionMenu]);
 
   // Detect mobile viewport width
   useEffect(() => {
@@ -198,6 +249,32 @@ export const SongStudioToolbar: React.FC<SongStudioToolbarProps> = ({
     setShowSectionMenu(false);
   };
 
+  const handleToggleSectionMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (showSectionMenu) {
+      setShowSectionMenu(false);
+      return;
+    }
+    if (sectionButtonRef.current) {
+      const rect = sectionButtonRef.current.getBoundingClientRect();
+      const menuWidth = 180;
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8));
+      if (isMobile) {
+        setMenuPosition({
+          bottom: window.innerHeight - rect.top + 8,
+          left,
+        });
+      } else {
+        setMenuPosition({
+          top: rect.bottom + 6,
+          left,
+        });
+      }
+    }
+    setShowSectionMenu(true);
+  };
+
   const isToolbarStripVisible = !isMobile || (isFocused && isKeyboardOpen);
   if (!isToolbarStripVisible) return null;
 
@@ -248,38 +325,60 @@ export const SongStudioToolbar: React.FC<SongStudioToolbarProps> = ({
       </button>
 
       {/* Insert Section Dropdown */}
-      <div className="relative shrink-0">
-        <button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => setShowSectionMenu(!showSectionMenu)}
-          title="Sisip Bagian Lagu ([Intro], [Chorus], dll)"
-          className="px-2.5 py-1 flex items-center gap-1 rounded-lg bg-bg-primary text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
-        >
-          <ListPlus size={13} className="text-text-muted" />
-          <span>+ Bagian Lagu</span>
-          <ChevronDown size={11} className="text-text-muted" />
-        </button>
+      <button
+        ref={sectionButtonRef}
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onClick={handleToggleSectionMenu}
+        title="Sisip Bagian Lagu ([Intro], [Chorus], dll)"
+        className={`px-2.5 py-1 flex items-center gap-1 rounded-lg transition-colors cursor-pointer shrink-0 ${
+          showSectionMenu 
+            ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs' 
+            : 'bg-bg-primary text-text-primary hover:bg-bg-hover'
+        }`}
+      >
+        <ListPlus size={13} className={showSectionMenu ? 'text-accent-contrast' : 'text-text-muted'} />
+        <span>+ Bagian Lagu</span>
+        <ChevronDown size={11} className={showSectionMenu ? 'text-accent-contrast' : 'text-text-muted'} />
+      </button>
 
-        {showSectionMenu && (
-          <div 
-            className={`absolute left-0 ${isMobile ? 'bottom-full mb-1' : 'top-full mt-1'} w-44 bg-bg-secondary rounded-xl shadow-xl p-1 z-50 ring-1 ring-border-default/40 backdrop-blur-md`}
-            onMouseLeave={() => setShowSectionMenu(false)}
-          >
-            {SONG_SECTIONS.map((sec) => (
-              <button
-                key={sec.label}
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => insertSection(sec.tag)}
-                className="w-full text-left px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer font-medium"
-              >
-                {sec.label}
-              </button>
-            ))}
+      {/* Portalized Section Dropdown - Rendered directly to document.body so it NEVER clips or hides behind canvas */}
+      {showSectionMenu && typeof document !== 'undefined' && createPortal(
+        <div 
+          ref={menuRef}
+          className="fixed w-44 bg-bg-secondary rounded-xl shadow-2xl p-1.5 ring-1 ring-border-default/40 backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 max-h-[70vh] overflow-y-auto [scrollbar-width:none] z-[999] select-none"
+          style={{
+            ...(menuPosition.bottom !== undefined ? { bottom: `${menuPosition.bottom}px` } : {}),
+            ...(menuPosition.top !== undefined ? { top: `${menuPosition.top}px` } : {}),
+            left: `${menuPosition.left}px`,
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-2 py-1 text-[10px] font-semibold text-text-muted uppercase tracking-wider border-b border-border-default/20 mb-1">
+            Bagian Lagu
           </div>
-        )}
-      </div>
+          {SONG_SECTIONS.map((sec) => (
+            <button
+              key={sec.label}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                insertSection(sec.tag);
+                setShowSectionMenu(false);
+              }}
+              className="w-full text-left px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover hover:text-accent-primary rounded-lg transition-colors cursor-pointer font-medium active:scale-98"
+            >
+              {sec.label}
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
 
       {/* Audio Memo */}
       <button

@@ -15,6 +15,7 @@ import {
   Edit2,
   Disc3,
   GripVertical,
+  Wand2,
 } from 'lucide-react';
 import { Editor } from '@tiptap/react';
 import { StudioProjectRecord, StudioSongRecord } from '../types/studioDatabase';
@@ -24,7 +25,7 @@ import {
   saveStudioSong, 
   deleteStudioSong, 
 } from '../lib/musicStudioStorage';
-import { EditorCore } from '../../editor/components/EditorCore';
+import { EditorCore, EditorCoreRef } from '../../editor/components/EditorCore';
 import { Toolbar } from '../../editor/components/Toolbar';
 import { ProjectMetadataSidebar } from './ProjectMetadataSidebar';
 import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
@@ -33,6 +34,9 @@ import { useNavigation } from '../../../context/NavigationContext';
 interface ProjectOverviewDashboardProps {
   project: StudioProjectRecord;
   projectSongs: StudioSongRecord[];
+  currentSubView?: string;
+  onOpenPremise?: () => void;
+  onCloseSubView?: () => void;
   onBack: () => void;
   onSelectTrack: (songId: string) => void;
   onUpdateProject: (patch: Partial<StudioProjectRecord>) => void;
@@ -42,6 +46,9 @@ interface ProjectOverviewDashboardProps {
 export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> = ({
   project,
   projectSongs = [],
+  currentSubView: propSubView = 'overview',
+  onOpenPremise,
+  onCloseSubView,
   onBack,
   onSelectTrack,
   onUpdateProject,
@@ -49,7 +56,27 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
 }) => {
   // TipTap Editor instance for Album Premise
   const [activeNoteEditor, setActiveNoteEditor] = useState<Editor | null>(null);
-  const [currentSubView, setCurrentSubView] = useState<'overview' | 'premise'>('overview');
+  const premiseEditorRef = useRef<EditorCoreRef>(null);
+  const [hasSelection, setHasSelection] = useState(false);
+  const [isAiMenuOpen, setIsAiMenuOpen] = useState(false);
+  const [localSubView, setLocalSubView] = useState<'overview' | 'premise'>('overview');
+  const activeSubView = propSubView === 'premise' ? 'premise' : localSubView;
+
+  const handleOpenPremise = () => {
+    if (onOpenPremise) {
+      onOpenPremise();
+    } else {
+      setLocalSubView('premise');
+    }
+  };
+
+  const handleCloseSubView = () => {
+    if (onCloseSubView) {
+      onCloseSubView();
+    } else {
+      setLocalSubView('overview');
+    }
+  };
 
   // Title rename state
   const [titleText, setTitleText] = useState(project.title || '');
@@ -239,7 +266,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
       projectId: project.id,
       trackNumber: nextTrackNum,
       title,
-      contentLyrics: `<h3>[Intro]</h3>\n<p>[C]</p>\n\n<h3>[Verse 1]</h3>\n<p>Tulis lirik dan chord track ini...</p>\n`,
+      contentLyrics: '',
       status: 'idea',
       musicalKey: 'C',
       bpm: 120,
@@ -326,14 +353,14 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
   // =========================================================================
   // VIEW MODE 1: ALBUM CONCEPT NOTE EDITOR
   // =========================================================================
-  if (currentSubView === 'premise') {
+  if (activeSubView === 'premise') {
     return (
       <div className="w-full h-full bg-bg-primary text-text-primary flex flex-col overflow-hidden relative select-none">
         <header className="px-3 sm:px-6 py-2.5 sm:py-3 bg-bg-secondary flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <button
               type="button"
-              onClick={() => setCurrentSubView('overview')}
+              onClick={handleCloseSubView}
               className="hidden sm:flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
               title={`Kembali ke Overview ${project.title}`}
             >
@@ -348,26 +375,17 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                   {project.title}
                 </h2>
                 <p className="text-[10px] text-text-muted truncate">
-                  Konsep
+                  Konsep (Otomatis Tersimpan)
                 </p>
               </div>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setCurrentSubView('overview')}
-            title="Simpan & kembali ke Overview Album"
-            className="h-8 px-2.5 sm:px-3 text-xs font-semibold rounded-xl bg-accent-primary text-accent-contrast shadow-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
-          >
-            <Save size={14} />
-            <span className="hidden sm:inline">Simpan</span>
-          </button>
         </header>
 
         <div className="flex-1 w-full min-h-0 overflow-hidden relative">
           <EditorCore
             key={`project-premise-${project.id}`}
+            ref={premiseEditorRef}
             hideTitle={true}
             enableChords={false}
             title=""
@@ -376,10 +394,27 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
             onChange={(newContent) => {
               onUpdateProject({ description: newContent });
             }}
+            onSelectionChange={setHasSelection}
+            onAiMenuStateChange={setIsAiMenuOpen}
             onEditorReady={(editor) => setActiveNoteEditor(editor)}
           />
 
           <Toolbar editor={activeNoteEditor} />
+
+          {/* Floating AI Actions Button - Mobile & Desktop when text is selected */}
+          {hasSelection && !isAiMenuOpen && (
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => premiseEditorRef.current?.triggerAiMenu()}
+              className="fixed right-4 bottom-24 lg:bottom-12 lg:right-1/2 lg:translate-x-1/2 z-50 flex items-center gap-2.5 bg-accent-primary text-accent-contrast px-4 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-accent-primary font-bold text-[13px] tracking-wide transition-all duration-200 ease-out animate-in fade-in slide-in-from-right-8 lg:slide-in-from-bottom-8 active:scale-95 cursor-pointer [.editor-selecting_&]:pointer-events-none"
+              title="AI Actions"
+              aria-label="AI Actions"
+            >
+              <Wand2 size={16} className="text-accent-contrast" />
+              <span>AI Actions</span>
+            </button>
+          )}
         </div>
       </div>
     );
@@ -527,7 +562,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
           
           {/* SECTION 1: KONSEP ALBUM */}
           <div
-            onClick={() => setCurrentSubView('premise')}
+            onClick={handleOpenPremise}
             className="group p-4 rounded-2xl bg-bg-secondary hover:bg-bg-hover transition-all cursor-pointer shadow-xs flex flex-col justify-between gap-2.5 text-left"
           >
             <div className="space-y-1.5">
