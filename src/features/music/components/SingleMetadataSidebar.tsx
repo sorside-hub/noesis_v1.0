@@ -18,6 +18,7 @@ import { PRODUCTION_STAGES } from '../types';
 import { saveStudioSong } from '../lib/musicStudioStorage';
 import { InsertAudioModal } from '../../editor/components/InsertAudioModal';
 import { InsertImageModal } from '../../editor/components/InsertImageModal';
+import { ThemeSelector } from './ThemeSelector';
 
 interface SingleMetadataSidebarProps {
   isOpen: boolean;
@@ -98,6 +99,18 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       });
   }, [allSongs, song.projectId]);
+
+  // Existing themes across all songs & projects for smart autocomplete
+  const existingThemes = useMemo(() => {
+    const set = new Set<string>();
+    allSongs.forEach((s) => {
+      if (s.theme && s.theme.trim()) set.add(s.theme.trim());
+    });
+    projects.forEach((p) => {
+      if (p.theme && p.theme.trim()) set.add(p.theme.trim());
+    });
+    return Array.from(set);
+  }, [allSongs, projects]);
 
   // Handle reordering track number with smart auto-shift
   const handleTrackNumberChange = async (targetTrackNumber: number) => {
@@ -272,6 +285,17 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                 )}
               </div>
             </div>
+          )}
+
+          {/* TEMA SINGLE MANDIRI (HANYA UNTUK SINGLE, OTOMATIS HIDE SAAT JADI TRACK ALBUM) */}
+          {!isTrack && (
+            <ThemeSelector
+              theme={song.theme || ''}
+              existingThemes={existingThemes}
+              onChange={(val) => onUpdateSong({ theme: val })}
+              label="Tema Single"
+              placeholder="Contoh: Patah Hati, Nostalgia, Perjalanan Hidup..."
+            />
           )}
 
           {/* TRACK MODE: INFORMASI PROYEK & NOMOR TRACK */}

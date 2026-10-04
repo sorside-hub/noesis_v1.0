@@ -5,6 +5,7 @@ export interface StudioProjectRecord {
   title: string;
   type: MusicProjectType;
   status?: MusicProductionStatus;
+  theme?: string; // Tema Album (e.g. Cinta, Patah Hati, Perjalanan, dll.)
   genre?: string;
   targetReleaseDate?: string;
   coverUrl?: string;
@@ -28,6 +29,7 @@ export interface StudioSongRecord {
   capo: number;
   timeSignature: string;
   tuning: string;
+  theme?: string; // Tema Single Mandiri (e.g. Nostalgia, Patah Hati, dll.)
   genre?: string;
   targetReleaseDate?: string;
   premise?: string; // Konsep / Premis / Cerita lagu

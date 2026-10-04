@@ -59,6 +59,7 @@ export interface MusicReleaseItem {
   type: MusicProjectType;
   title: string;
   status: MusicProductionStatus;
+  theme?: string;
   coverUrl?: string;
   progress?: number;
   progressNote?: string;

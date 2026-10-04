@@ -318,6 +318,7 @@ CREATE TABLE IF NOT EXISTS studio_projects (
   title TEXT NOT NULL,
   type TEXT NOT NULL DEFAULT 'album', -- 'album' | 'ep' | 'single'
   status TEXT NOT NULL DEFAULT 'idea', -- 'idea' | 'demo' | 'recording' | 'mixing' | 'ready' | 'released'
+  theme TEXT, -- Tema album / EP
   genre TEXT,
   target_release_date TEXT,
   cover_url TEXT,
@@ -331,6 +332,7 @@ CREATE TABLE IF NOT EXISTS studio_projects (
 -- Pastikan kolom baru tetap ada jika tabel sudah dibuat sebelumnya (Auto-migration)
 ALTER TABLE studio_projects 
   ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'idea',
+  ADD COLUMN IF NOT EXISTS theme TEXT,
   ADD COLUMN IF NOT EXISTS progress_note TEXT;
 
 ALTER TABLE studio_projects ENABLE ROW LEVEL SECURITY;
@@ -361,6 +363,7 @@ CREATE TABLE IF NOT EXISTS studio_songs (
   capo INTEGER DEFAULT 0,
   time_signature TEXT DEFAULT '4/4',
   tuning TEXT DEFAULT 'Standard (E A D G B E)',
+  theme TEXT, -- Tema single mandiri
   genre TEXT,
   target_release_date TEXT,
   reference_link TEXT,
@@ -376,6 +379,7 @@ ALTER TABLE studio_songs
   ADD COLUMN IF NOT EXISTS premise TEXT DEFAULT '',
   ADD COLUMN IF NOT EXISTS progress INTEGER DEFAULT 0,
   ADD COLUMN IF NOT EXISTS progress_note TEXT,
+  ADD COLUMN IF NOT EXISTS theme TEXT,
   ADD COLUMN IF NOT EXISTS cover_url TEXT;
 
 ALTER TABLE studio_songs ENABLE ROW LEVEL SECURITY;

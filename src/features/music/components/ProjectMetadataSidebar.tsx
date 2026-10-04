@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   X, 
   Calendar, 
@@ -8,9 +8,10 @@ import {
   Disc3,
   Image as ImageIcon,
 } from 'lucide-react';
-import { StudioProjectRecord } from '../types/studioDatabase';
+import { StudioProjectRecord, StudioSongRecord } from '../types/studioDatabase';
 import { PRODUCTION_STAGES } from '../types';
 import { InsertImageModal } from '../../editor/components/InsertImageModal';
+import { ThemeSelector } from './ThemeSelector';
 
 interface ProjectMetadataSidebarProps {
   isOpen: boolean;
@@ -21,6 +22,8 @@ interface ProjectMetadataSidebarProps {
   totalTracks?: number;
   progressPercent?: number;
   totalWordsCount?: number;
+  allSongs?: StudioSongRecord[];
+  allProjects?: StudioProjectRecord[];
   onUpdateProject: (patch: Partial<StudioProjectRecord>) => void;
   drawerRef?: React.RefObject<HTMLDivElement | null>;
   backdropRef?: React.RefObject<HTMLDivElement | null>;
@@ -33,6 +36,8 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
   completedTracks = 0,
   totalTracks = 0,
   progressPercent = 0,
+  allSongs = [],
+  allProjects = [],
   onUpdateProject,
   drawerRef,
   backdropRef,
@@ -40,6 +45,18 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
   const statusContainerRef = useRef<HTMLDivElement>(null);
+
+  // Existing themes across all songs & projects for smart autocomplete
+  const existingThemes = useMemo(() => {
+    const set = new Set<string>();
+    allSongs.forEach((s) => {
+      if (s.theme && s.theme.trim()) set.add(s.theme.trim());
+    });
+    allProjects.forEach((p) => {
+      if (p.theme && p.theme.trim()) set.add(p.theme.trim());
+    });
+    return Array.from(set);
+  }, [allSongs, allProjects]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -177,6 +194,15 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
               )}
             </div>
           </div>
+
+          {/* TEMA EP / ALBUM */}
+          <ThemeSelector
+            theme={project.theme || ''}
+            existingThemes={existingThemes}
+            onChange={(val) => onUpdateProject({ theme: val })}
+            label={`Tema ${project.type === 'ep' ? 'EP' : 'Album'}`}
+            placeholder="Contoh: Cinta Pertama, Pencarian Jati Diri, Musim Panas..."
+          />
 
           {/* SECTION: PROGRES PROYEK (Hanya jika belum ready/released) */}
           {!isReadyOrReleased && (

@@ -26,6 +26,7 @@ type UnifiedDiscographyItem =
       id: string;
       title: string;
       type: MusicProjectType;
+      theme?: string;
       genre?: string;
       releaseDate?: string;
       coverUrl?: string;
@@ -39,6 +40,7 @@ type UnifiedDiscographyItem =
       id: string;
       title: string;
       type: 'single';
+      theme?: string;
       genre?: string;
       releaseDate?: string;
       coverUrl?: string;
@@ -122,6 +124,7 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
           id: proj.id,
           title: proj.title,
           type: proj.type,
+          theme: proj.theme,
           genre: proj.genre,
           releaseDate: proj.targetReleaseDate,
           coverUrl: proj.coverUrl,
@@ -144,6 +147,7 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
           id: song.id,
           title: song.title,
           type: 'single',
+          theme: song.theme,
           genre: song.genre,
           releaseDate: song.targetReleaseDate,
           coverUrl: song.coverUrl,
@@ -217,8 +221,9 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
       // Search Query
       if (query) {
         const matchTitle = item.title.toLowerCase().includes(query);
+        const matchTheme = item.theme?.toLowerCase().includes(query);
         const matchGenre = item.genre?.toLowerCase().includes(query);
-        return matchTitle || matchGenre;
+        return matchTitle || matchTheme || matchGenre;
       }
 
       return true;

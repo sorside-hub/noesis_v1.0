@@ -152,6 +152,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
           type: 'single',
           title: song.title,
           status: song.status,
+          theme: song.theme,
           coverUrl: song.coverUrl,
           progress: song.progress || 0,
           progressNote: song.progressNote,
@@ -176,6 +177,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         type: proj.type || 'album',
         title: proj.title,
         status: proj.status || 'idea',
+        theme: proj.theme,
         coverUrl: proj.coverUrl,
         progress: projProgress,
         progressNote: proj.progressNote,
@@ -194,7 +196,8 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         const q = searchQuery.toLowerCase();
         const matchesTitle = item.title.toLowerCase().includes(q);
         const matchesType = item.type.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesType) return false;
+        const matchesTheme = item.theme ? item.theme.toLowerCase().includes(q) : false;
+        if (!matchesTitle && !matchesType && !matchesTheme) return false;
       }
 
       if (selectedStatusFilter) {

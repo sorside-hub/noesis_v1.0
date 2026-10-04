@@ -33,7 +33,7 @@ export async function saveStudioProject(project: StudioProjectRecord): Promise<v
             title: project.title,
             type: project.type,
             status: project.status || 'idea',
-            genre: project.genre || null,
+            theme: project.theme || null,
             target_release_date: project.targetReleaseDate || null,
             cover_url: project.coverUrl || null,
             description: project.description || null,
@@ -157,7 +157,7 @@ export async function saveStudioSong(song: StudioSongRecord): Promise<void> {
             capo: song.capo,
             time_signature: song.timeSignature,
             tuning: song.tuning,
-            genre: song.genre || null,
+            theme: song.theme || null,
             target_release_date: song.targetReleaseDate || null,
             reference_link: song.referenceLink || null,
             audio_url: song.audioUrl || null,
@@ -283,31 +283,36 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
       .eq('user_id', user.id);
 
     if (!projErr && remoteProjects) {
-      const localProjects: StudioProjectRecord[] = remoteProjects.map((p: any) => ({
-        id: p.id,
-        title: p.title,
-        type: p.type,
-        status: p.status || 'idea',
-        genre: p.genre || undefined,
-        targetReleaseDate: p.target_release_date || undefined,
-        coverUrl: p.cover_url || undefined,
-        description: p.description || undefined,
-        progressNote: p.progress_note || undefined,
-        createdAt: p.created_at,
-        updatedAt: p.updated_at,
-      }));
-
-      // Reconcile: Purge local projects that were deleted on cloud
-      const remoteProjIds = new Set(localProjects.map((p) => p.id));
       const allLocalProjects = await db.studio_projects.toArray();
+      const allLocalProjectsMap = new Map(allLocalProjects.map((p) => [p.id, p]));
+
+      const mergedProjects: StudioProjectRecord[] = remoteProjects.map((p: any) => {
+        const local = allLocalProjectsMap.get(p.id);
+        return {
+          id: p.id,
+          title: p.title,
+          type: p.type,
+          status: p.status || 'idea',
+          theme: p.theme || p.genre || local?.theme || undefined,
+          targetReleaseDate: p.target_release_date || undefined,
+          coverUrl: p.cover_url || undefined,
+          description: p.description || undefined,
+          progressNote: p.progress_note || undefined,
+          createdAt: p.created_at,
+          updatedAt: p.updated_at,
+        };
+      });
+
+      // Reconcile: Purge local projects that were explicitly deleted on cloud
+      const remoteProjIds = new Set(mergedProjects.map((p) => p.id));
       const deletedProjIds = allLocalProjects
-        .filter((p) => !remoteProjIds.has(p.id))
+        .filter((p) => !remoteProjIds.has(p.id) && p.deletedAt)
         .map((p) => p.id);
       if (deletedProjIds.length > 0) {
         await db.studio_projects.bulkDelete(deletedProjIds);
       }
 
-      await db.studio_projects.bulkPut(localProjects);
+      await db.studio_projects.bulkPut(mergedProjects);
     }
 
     // 2. Fetch songs
@@ -317,43 +322,48 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
       .eq('user_id', user.id);
 
     if (!songErr && remoteSongs) {
-      const localSongs: StudioSongRecord[] = remoteSongs.map((s: any) => ({
-        id: s.id,
-        projectId: s.project_id || undefined,
-        releaseType: s.release_type || 'single',
-        trackNumber: s.track_number ? Number(s.track_number) : undefined,
-        title: s.title,
-        premise: s.premise || '',
-        contentLyrics: s.content_lyrics || '',
-        status: s.status || 'idea',
-        progress: typeof s.progress === 'number' ? s.progress : 0,
-        progressNote: s.progress_note || undefined,
-        musicalKey: s.musical_key || 'C',
-        bpm: s.bpm || 120,
-        capo: s.capo || 0,
-        timeSignature: s.time_signature || '4/4',
-        tuning: s.tuning || 'Standard (E A D G B E)',
-        genre: s.genre || undefined,
-        targetReleaseDate: s.target_release_date || undefined,
-        scratchpad: s.scratchpad || '',
-        referenceLink: s.reference_link || undefined,
-        audioUrl: s.audio_url || undefined,
-        coverUrl: s.cover_url || undefined,
-        createdAt: s.created_at,
-        updatedAt: s.updated_at,
-      }));
-
-      // Reconcile: Purge local songs that were deleted on cloud
-      const remoteSongIds = new Set(localSongs.map((s) => s.id));
       const allLocalSongs = await db.studio_songs.toArray();
+      const allLocalSongsMap = new Map(allLocalSongs.map((s) => [s.id, s]));
+
+      const mergedSongs: StudioSongRecord[] = remoteSongs.map((s: any) => {
+        const local = allLocalSongsMap.get(s.id);
+        return {
+          id: s.id,
+          projectId: s.project_id || undefined,
+          releaseType: s.release_type || 'single',
+          trackNumber: s.track_number ? Number(s.track_number) : undefined,
+          title: s.title,
+          premise: s.premise || local?.premise || '',
+          contentLyrics: s.content_lyrics || local?.contentLyrics || '',
+          status: s.status || 'idea',
+          progress: typeof s.progress === 'number' ? s.progress : (local?.progress || 0),
+          progressNote: s.progress_note || local?.progressNote || undefined,
+          musicalKey: s.musical_key || 'C',
+          bpm: s.bpm || 120,
+          capo: s.capo || 0,
+          timeSignature: s.time_signature || '4/4',
+          tuning: s.tuning || 'Standard (E A D G B E)',
+          theme: s.theme || s.genre || local?.theme || undefined,
+          targetReleaseDate: s.target_release_date || undefined,
+          scratchpad: s.scratchpad || local?.scratchpad || '',
+          referenceLink: s.reference_link || undefined,
+          audioUrl: s.audio_url || undefined,
+          coverUrl: s.cover_url || undefined,
+          createdAt: s.created_at,
+          updatedAt: s.updated_at,
+        };
+      });
+
+      // Reconcile: Purge local songs that were explicitly deleted on cloud
+      const remoteSongIds = new Set(mergedSongs.map((s) => s.id));
       const deletedSongIds = allLocalSongs
-        .filter((s) => !remoteSongIds.has(s.id))
+        .filter((s) => !remoteSongIds.has(s.id) && s.deletedAt)
         .map((s) => s.id);
       if (deletedSongIds.length > 0) {
         await db.studio_songs.bulkDelete(deletedSongIds);
       }
 
-      await db.studio_songs.bulkPut(localSongs);
+      await db.studio_songs.bulkPut(mergedSongs);
     }
 
     // 3. Fetch lyric versions
