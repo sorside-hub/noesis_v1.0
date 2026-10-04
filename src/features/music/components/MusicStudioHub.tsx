@@ -24,6 +24,7 @@ import { SingleOverviewDashboard } from './SingleOverviewDashboard';
 import { ProjectOverviewDashboard } from './ProjectOverviewDashboard';
 import { SongStudioEditor } from './SongStudioEditor';
 import { SongDiscographyReader } from './SongDiscographyReader';
+import { MoveSongProjectModal } from './MoveSongProjectModal';
 import { NewSongModal } from './NewSongModal';
 import { NewProjectModal } from './NewProjectModal';
 import { useNavigation } from '../../../context/NavigationContext';
@@ -54,6 +55,8 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     updateProjectRecord,
     updateLyricVersionContent,
     flushSongAndVersion,
+    moveSongToProject,
+    convertTrackToSingle,
     removeSong,
     removeProject,
   } = useMusicStudio();
@@ -99,6 +102,9 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
 
   // Delete Confirmation Modal state
   const [deletingItem, setDeletingItem] = useState<MusicReleaseItem | null>(null);
+
+  // Move Song Modal state
+  const [movingSongItem, setMovingSongItem] = useState<any | null>(null);
 
   // Close creation dropdown on outside click
   useEffect(() => {
@@ -400,6 +406,8 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         onUpdateSong={(patch) => {
           updateSongRecord(activeEditingSong.id, patch);
         }}
+        onMoveSongToProject={moveSongToProject}
+        onConvertTrackToSingle={convertTrackToSingle}
       />
     );
   }
@@ -418,12 +426,16 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
       <ProjectOverviewDashboard
         project={activeSelectedProject}
         projectSongs={projectTracks}
+        allProjects={rawProjects}
+        allSongs={rawSongs}
         currentSubView={musicSubView || 'overview'}
         onOpenPremise={() => navigateToMusicSubView('', 'premise')}
         onCloseSubView={() => navigateToMusicSubView('', 'overview')}
         onBack={() => goBack()}
         onSelectTrack={(songId) => navigateToMusicSong(songId)}
         onUpdateProject={(patch) => updateProjectRecord(activeSelectedProject.id, patch)}
+        onMoveSongToProject={moveSongToProject}
+        onConvertTrackToSingle={convertTrackToSingle}
         onReloadData={reloadData}
       />
     );
@@ -670,6 +682,10 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
                   items={filteredItems}
                   onSelectItem={handleSelectItem}
                   onRenameItem={handleStartRename}
+                  onMoveItem={(item) => {
+                    const song = rawSongs.find((s) => s.id === item.id);
+                    if (song) setMovingSongItem(song);
+                  }}
                   onUpdateStatus={handleUpdateItemStatus}
                   onDeleteItem={handleStartDelete}
                 />
@@ -782,6 +798,23 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         onClose={() => setIsNewProjectModalOpen(false)}
         onSubmit={handleCreateProjectSubmit}
       />
+
+      {/* Move / Convert Song Modal */}
+      {movingSongItem && (
+        <MoveSongProjectModal
+          isOpen={!!movingSongItem}
+          onClose={() => setMovingSongItem(null)}
+          song={movingSongItem}
+          projects={rawProjects}
+          allSongs={rawSongs}
+          onMoveToProject={async (songId, targetProjectId) => {
+            await moveSongToProject(songId, targetProjectId);
+          }}
+          onConvertToSingle={async (songId) => {
+            await convertTrackToSingle(songId);
+          }}
+        />
+      )}
     </div>
   );
 };

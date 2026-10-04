@@ -11,6 +11,7 @@ interface MusicKanbanColumnProps {
   items: MusicReleaseItem[];
   onSelectItem: (item: MusicReleaseItem) => void;
   onRenameItem?: (item: MusicReleaseItem) => void;
+  onMoveItem?: (item: MusicReleaseItem) => void;
   onUpdateStatus?: (item: MusicReleaseItem, status: MusicProductionStatus) => void;
   onDeleteItem?: (item: MusicReleaseItem) => void;
 }
@@ -69,6 +70,7 @@ export const MusicKanbanColumn: React.FC<MusicKanbanColumnProps> = ({
   items,
   onSelectItem,
   onRenameItem,
+  onMoveItem,
   onUpdateStatus,
   onDeleteItem,
 }) => {
@@ -147,6 +149,7 @@ export const MusicKanbanColumn: React.FC<MusicKanbanColumnProps> = ({
               item={item}
               onSelectItem={onSelectItem}
               onRenameItem={onRenameItem}
+              onMoveItem={onMoveItem}
               onUpdateStatus={onUpdateStatus}
               onDeleteItem={onDeleteItem}
             />

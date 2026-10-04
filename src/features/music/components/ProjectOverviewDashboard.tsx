@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   ArrowLeft, 
   Edit3, 
@@ -16,6 +17,8 @@ import {
   Disc3,
   GripVertical,
   Wand2,
+  Music2,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { Editor } from '@tiptap/react';
 import { StudioProjectRecord, StudioSongRecord } from '../types/studioDatabase';
@@ -28,30 +31,39 @@ import {
 import { EditorCore, EditorCoreRef } from '../../editor/components/EditorCore';
 import { Toolbar } from '../../editor/components/Toolbar';
 import { ProjectMetadataSidebar } from './ProjectMetadataSidebar';
+import { MoveSongProjectModal } from './MoveSongProjectModal';
 import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
 import { useNavigation } from '../../../context/NavigationContext';
 
 interface ProjectOverviewDashboardProps {
   project: StudioProjectRecord;
   projectSongs: StudioSongRecord[];
+  allProjects?: StudioProjectRecord[];
+  allSongs?: StudioSongRecord[];
   currentSubView?: string;
   onOpenPremise?: () => void;
   onCloseSubView?: () => void;
   onBack: () => void;
   onSelectTrack: (songId: string) => void;
   onUpdateProject: (patch: Partial<StudioProjectRecord>) => void;
+  onMoveSongToProject?: (songId: string, targetProjectId: string) => Promise<void> | void;
+  onConvertTrackToSingle?: (songId: string) => Promise<void> | void;
   onReloadData: () => Promise<void>;
 }
 
 export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> = ({
   project,
   projectSongs = [],
+  allProjects = [],
+  allSongs = [],
   currentSubView: propSubView = 'overview',
   onOpenPremise,
   onCloseSubView,
   onBack,
   onSelectTrack,
   onUpdateProject,
+  onMoveSongToProject,
+  onConvertTrackToSingle,
   onReloadData,
 }) => {
   // TipTap Editor instance for Album Premise
@@ -84,7 +96,13 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
 
   // Status & Menu state
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
-  const [openTrackMenuId, setOpenTrackMenuId] = useState<string | null>(null);
+  const [activeTrackMenuState, setActiveTrackMenuState] = useState<{
+    trackId: string;
+    track: StudioSongRecord;
+    top?: number;
+    bottom?: number;
+    left: number;
+  } | null>(null);
 
   // Modals state
   const [isAddTrackModalOpen, setIsAddTrackModalOpen] = useState(false);
@@ -93,7 +111,27 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
   const [renamingTrack, setRenamingTrack] = useState<StudioSongRecord | null>(null);
   const [renameTrackTitleInput, setRenameTrackTitleInput] = useState('');
 
+  const [movingTrack, setMovingTrack] = useState<StudioSongRecord | null>(null);
   const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
+
+  // Close floating portal track menu on outside click or scroll
+  useEffect(() => {
+    if (!activeTrackMenuState) return;
+
+    const handleDismiss = () => {
+      setActiveTrackMenuState(null);
+    };
+
+    window.addEventListener('scroll', handleDismiss, true);
+    window.addEventListener('resize', handleDismiss);
+    window.addEventListener('pointerdown', handleDismiss);
+
+    return () => {
+      window.removeEventListener('scroll', handleDismiss, true);
+      window.removeEventListener('resize', handleDismiss);
+      window.removeEventListener('pointerdown', handleDismiss);
+    };
+  }, [activeTrackMenuState]);
 
   // Metadata Sidebar state from global NavigationContext
   const {
@@ -124,7 +162,6 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
 
   useEffect(() => {
     const handleClickOutside = () => {
-      setOpenTrackMenuId(null);
       setIsStatusDropdownOpen(false);
     };
     document.addEventListener('click', handleClickOutside);
@@ -143,6 +180,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
   const [hoverTargetIndex, setHoverTargetIndex] = useState<number | null>(null);
   const [dragOffsetY, setDragOffsetY] = useState<number>(0);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const holdTimerRef = useRef<any>(null);
   const dragStartDataRef = useRef<{
     startIndex: number;
     startY: number;
@@ -151,33 +189,68 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
     currentTargetIndex: number;
   } | null>(null);
 
-  // Handle pointer down specifically on the handle (⋮⋮)
+  // Handle pointer down specifically on the handle (⋮⋮) with hold delay for mobile touch
   const handleHandlePointerDown = (index: number, e: React.PointerEvent) => {
     // Only primary mouse button or touch
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     
-    e.preventDefault();
-    e.stopPropagation();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const isTouch = e.pointerType === 'touch';
+    let isDragActive = false;
 
     const heights = itemRefs.current.map((el) => (el ? el.getBoundingClientRect().height + 6 : 52));
     const tops = itemRefs.current.map((el) => (el ? el.getBoundingClientRect().top : 0));
 
     dragStartDataRef.current = {
       startIndex: index,
-      startY: e.clientY,
+      startY,
       itemHeights: heights,
       itemTops: tops,
       currentTargetIndex: index,
     };
 
-    setDraggingIndex(index);
-    setHoverTargetIndex(index);
-    setDragOffsetY(0);
+    const activateDrag = () => {
+      isDragActive = true;
+      setDraggingIndex(index);
+      setHoverTargetIndex(index);
+      setDragOffsetY(0);
+      try {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(20);
+        }
+      } catch (_) {}
+    };
+
+    if (isTouch) {
+      // Hold delay of 180ms on touch
+      holdTimerRef.current = setTimeout(activateDrag, 180);
+    }
 
     const onPointerMove = (moveEvt: PointerEvent) => {
-      if (!dragStartDataRef.current) return;
-      const { startIndex, startY, itemHeights, itemTops } = dragStartDataRef.current;
+      const deltaX = Math.abs(moveEvt.clientX - startX);
       const deltaY = moveEvt.clientY - startY;
+
+      if (!isDragActive) {
+        if (isTouch) {
+          // If finger moves more than 8px before timer fires, cancel drag (user is scrolling)
+          if (deltaX > 8 || Math.abs(deltaY) > 8) {
+            if (holdTimerRef.current) {
+              clearTimeout(holdTimerRef.current);
+              holdTimerRef.current = null;
+            }
+          }
+        } else {
+          // For mouse: activate drag after small 3px movement
+          if (deltaX > 3 || Math.abs(deltaY) > 3) {
+            activateDrag();
+          }
+        }
+        return;
+      }
+
+      if (!dragStartDataRef.current) return;
+      const { startIndex, itemHeights, itemTops } = dragStartDataRef.current;
       setDragOffsetY(deltaY);
 
       // Determine which slot the pointer is hovering over
@@ -197,6 +270,11 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
     };
 
     const onPointerUp = async () => {
+      if (holdTimerRef.current) {
+        clearTimeout(holdTimerRef.current);
+        holdTimerRef.current = null;
+      }
+
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
@@ -204,7 +282,7 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
       const startData = dragStartDataRef.current;
       dragStartDataRef.current = null;
 
-      if (!startData) {
+      if (!isDragActive || !startData) {
         setDraggingIndex(null);
         setHoverTargetIndex(null);
         setDragOffsetY(0);
@@ -719,62 +797,35 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
                         <button
                           type="button"
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
-                            setOpenTrackMenuId(openTrackMenuId === track.id ? null : track.id);
+                            if (activeTrackMenuState?.trackId === track.id) {
+                              setActiveTrackMenuState(null);
+                              return;
+                            }
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const menuWidth = 190;
+                            const left = Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8));
+                            const isNearBottom = rect.bottom + 230 > window.innerHeight;
+                            setActiveTrackMenuState({
+                              trackId: track.id,
+                              track,
+                              ...(isNearBottom 
+                                ? { bottom: window.innerHeight - rect.top + 6 }
+                                : { top: rect.bottom + 6 }
+                              ),
+                              left,
+                            });
                           }}
-                          className="w-7 h-7 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-secondary flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer active:scale-95 ${
+                            activeTrackMenuState?.trackId === track.id
+                              ? 'bg-accent-primary text-accent-contrast'
+                              : 'text-text-muted hover:text-text-primary hover:bg-bg-secondary'
+                          }`}
                           title="Opsi Track"
                         >
                           <MoreVertical size={14} />
                         </button>
-
-                        {openTrackMenuId === track.id && (
-                          <div 
-                            className={`absolute right-0 w-44 bg-bg-secondary rounded-2xl shadow-2xl z-50 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 ${
-                              isLastItem ? 'bottom-full mb-1' : 'top-full mt-1'
-                            }`}
-                          >
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setRenamingTrack(track);
-                                setRenameTrackTitleInput(track.title);
-                                setOpenTrackMenuId(null);
-                              }}
-                              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs text-text-primary hover:bg-bg-hover transition-colors text-left cursor-pointer font-medium"
-                            >
-                              <Edit2 size={13} className="text-text-muted" />
-                              <span>Ubah Nama Track</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                handleDuplicateTrack(track, e);
-                                setOpenTrackMenuId(null);
-                              }}
-                              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs text-text-primary hover:bg-bg-hover transition-colors text-left cursor-pointer font-medium"
-                            >
-                              <Copy size={13} className="text-text-muted" />
-                              <span>Duplikat Track</span>
-                            </button>
-
-                            <div className="my-1 h-px bg-border-default/30" />
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                handleDeleteTrack(track.id, e);
-                                setOpenTrackMenuId(null);
-                              }}
-                              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs text-status-error hover:bg-status-error-bg/30 transition-colors text-left cursor-pointer font-medium"
-                            >
-                              <Trash2 size={13} />
-                              <span>Hapus Track</span>
-                            </button>
-                          </div>
-                        )}
                       </div>
                     </div>
                   );
@@ -931,6 +982,120 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
             </div>
           </div>
         </div>
+      )}
+      {/* FLOATING PORTAL TRACK MENU - RENDERED DIRECTLY TO DOCUMENT.BODY TO NEVER BE SUBMERGED */}
+      {activeTrackMenuState && typeof document !== 'undefined' && createPortal(
+        <div
+          className="fixed w-48 bg-bg-secondary rounded-2xl shadow-2xl z-[9999] p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 border border-border-default/20 select-none"
+          style={{
+            ...(activeTrackMenuState.bottom !== undefined ? { bottom: `${activeTrackMenuState.bottom}px` } : {}),
+            ...(activeTrackMenuState.top !== undefined ? { top: `${activeTrackMenuState.top}px` } : {}),
+            left: `${activeTrackMenuState.left}px`,
+          }}
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          {/* 1. Ubah Nama Track */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setRenamingTrack(activeTrackMenuState.track);
+              setRenameTrackTitleInput(activeTrackMenuState.track.title);
+              setActiveTrackMenuState(null);
+            }}
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs text-text-primary hover:bg-bg-hover transition-colors text-left cursor-pointer font-medium"
+          >
+            <Edit2 size={13} className="text-text-muted" />
+            <span>Ubah Nama Track</span>
+          </button>
+
+          {/* 2. Duplikat Track */}
+          <button
+            type="button"
+            onClick={(e) => {
+              handleDuplicateTrack(activeTrackMenuState.track, e);
+              setActiveTrackMenuState(null);
+            }}
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs text-text-primary hover:bg-bg-hover transition-colors text-left cursor-pointer font-medium"
+          >
+            <Copy size={13} className="text-text-muted" />
+            <span>Duplikat Track</span>
+          </button>
+
+          <div className="my-1 h-px bg-border-default/30" />
+
+          {/* 3. Jadikan Single Mandiri */}
+          {onConvertTrackToSingle && (
+            <button
+              type="button"
+              onClick={async (e) => {
+                e.stopPropagation();
+                const targetSong = activeTrackMenuState.track;
+                setActiveTrackMenuState(null);
+                await onConvertTrackToSingle(targetSong.id);
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs text-text-primary hover:bg-bg-hover transition-colors text-left cursor-pointer font-medium"
+            >
+              <Music2 size={13} className="text-accent-primary" />
+              <span>Jadikan Single Mandiri</span>
+            </button>
+          )}
+
+          {/* 4. Pindahkan ke Album Lain */}
+          {onMoveSongToProject && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const targetSong = activeTrackMenuState.track;
+                setActiveTrackMenuState(null);
+                setMovingTrack(targetSong);
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs text-text-primary hover:bg-bg-hover transition-colors text-left cursor-pointer font-medium"
+            >
+              <ArrowRightLeft size={13} className="text-sky-400" />
+              <span>Pindahkan ke Album Lain</span>
+            </button>
+          )}
+
+          <div className="my-1 h-px bg-border-default/30" />
+
+          {/* 5. Hapus Track */}
+          <button
+            type="button"
+            onClick={(e) => {
+              handleDeleteTrack(activeTrackMenuState.track.id, e);
+              setActiveTrackMenuState(null);
+            }}
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs text-status-error hover:bg-status-error-bg/30 transition-colors text-left cursor-pointer font-medium"
+          >
+            <Trash2 size={13} />
+            <span>Hapus Track</span>
+          </button>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL: PINDAHKAN LAGU KE PROJECT LAIN */}
+      {movingTrack && (
+        <MoveSongProjectModal
+          isOpen={!!movingTrack}
+          onClose={() => setMovingTrack(null)}
+          song={movingTrack}
+          projects={allProjects}
+          allSongs={allSongs}
+          onMoveToProject={async (songId, targetProjectId) => {
+            if (onMoveSongToProject) {
+              await onMoveSongToProject(songId, targetProjectId);
+            }
+          }}
+          onConvertToSingle={async (songId) => {
+            if (onConvertTrackToSingle) {
+              await onConvertTrackToSingle(songId);
+            }
+          }}
+        />
       )}
     </div>
   );

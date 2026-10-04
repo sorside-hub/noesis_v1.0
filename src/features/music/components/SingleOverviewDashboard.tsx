@@ -17,6 +17,9 @@ import {
   Edit2,
   Focus,
   Wand2,
+  Music2,
+  Disc3,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { Editor } from '@tiptap/react';
 import { StudioSongRecord, StudioProjectRecord, StudioLyricVersionRecord } from '../types/studioDatabase';
@@ -31,6 +34,7 @@ import {
 import { EditorCore, EditorCoreRef } from '../../editor/components/EditorCore';
 import { Toolbar } from '../../editor/components/Toolbar';
 import { SingleMetadataSidebar } from './SingleMetadataSidebar';
+import { MoveSongProjectModal } from './MoveSongProjectModal';
 import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
 import { useNavigation, MusicSubView } from '../../../context/NavigationContext';
 
@@ -45,6 +49,8 @@ interface SingleOverviewDashboardProps {
   onOpenScratchpad: () => void;
   onCloseSubView: () => void;
   onUpdateSong: (patch: Partial<StudioSongRecord>) => void;
+  onMoveSongToProject?: (songId: string, targetProjectId: string) => Promise<void> | void;
+  onConvertTrackToSingle?: (songId: string) => Promise<void> | void;
 }
 
 export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = ({
@@ -58,6 +64,8 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   onOpenScratchpad,
   onCloseSubView,
   onUpdateSong,
+  onMoveSongToProject,
+  onConvertTrackToSingle,
 }) => {
   const currentProject = projects.find((p) => p.id === song.projectId);
 
@@ -85,6 +93,9 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
   // Version Rename Modal state
   const [renamingVersion, setRenamingVersion] = useState<StudioLyricVersionRecord | null>(null);
   const [renameTitleInput, setRenameTitleInput] = useState('');
+
+  // Move / Convert Modal state
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
 
   // Delete Song Modal state
   const [isDeleteSongModalOpen, setIsDeleteSongModalOpen] = useState(false);
@@ -448,7 +459,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
             <button
               type="button"
               onClick={onCloseSubView}
-              className="flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
+              className="hidden sm:flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
               title={`Kembali ke Ringkasan ${song.title}`}
             >
               <ArrowLeft size={16} />
@@ -518,7 +529,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
             <button
               type="button"
               onClick={onCloseSubView}
-              className="flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
+              className="hidden sm:flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
               title={`Kembali ke Ringkasan ${song.title}`}
             >
               <ArrowLeft size={16} />
@@ -596,7 +607,7 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
           <button
             type="button"
             onClick={onBack}
-            className="flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
+            className="hidden sm:flex p-1.5 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
             title="Kembali ke Studio Musik"
           >
             <ArrowLeft size={16} />
@@ -702,6 +713,17 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               </div>
             );
           })()}
+
+          {/* Move / Convert Button */}
+          <button
+            type="button"
+            onClick={() => setIsMoveModalOpen(true)}
+            title={currentProject ? 'Jadikan Single / Pindahkan ke Album Lain' : 'Pindahkan ke EP / Album'}
+            className="h-8 px-2.5 sm:px-3 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold bg-bg-primary hover:bg-bg-hover text-text-secondary hover:text-text-primary"
+          >
+            <ArrowRightLeft size={14} className="text-sky-400 shrink-0" />
+            <span className="hidden sm:inline">{currentProject ? 'Pindah Track' : 'Pindah ke Album'}</span>
+          </button>
 
           <button
             type="button"
@@ -1143,6 +1165,27 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL: PINDAHKAN LAGU / UBAH FORMAT */}
+      {isMoveModalOpen && (
+        <MoveSongProjectModal
+          isOpen={isMoveModalOpen}
+          onClose={() => setIsMoveModalOpen(false)}
+          song={song}
+          projects={projects}
+          allSongs={allSongs}
+          onMoveToProject={async (songId, targetProjectId) => {
+            if (onMoveSongToProject) {
+              await onMoveSongToProject(songId, targetProjectId);
+            }
+          }}
+          onConvertToSingle={async (songId) => {
+            if (onConvertTrackToSingle) {
+              await onConvertTrackToSingle(songId);
+            }
+          }}
+        />
       )}
     </div>
   );

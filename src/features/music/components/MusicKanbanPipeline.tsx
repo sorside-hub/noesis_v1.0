@@ -20,6 +20,7 @@ interface MusicKanbanPipelineProps {
   items: MusicReleaseItem[];
   onSelectItem: (item: MusicReleaseItem) => void;
   onRenameItem?: (item: MusicReleaseItem) => void;
+  onMoveItem?: (item: MusicReleaseItem) => void;
   onUpdateStatus: (item: MusicReleaseItem, status: MusicProductionStatus) => void;
   onDeleteItem?: (item: MusicReleaseItem) => void;
 }
@@ -28,6 +29,7 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
   items,
   onSelectItem,
   onRenameItem,
+  onMoveItem,
   onUpdateStatus,
   onDeleteItem,
 }) => {
@@ -212,6 +214,7 @@ export const MusicKanbanPipeline: React.FC<MusicKanbanPipelineProps> = ({
               items={stageItems}
               onSelectItem={onSelectItem}
               onRenameItem={onRenameItem}
+              onMoveItem={onMoveItem}
               onUpdateStatus={onUpdateStatus}
               onDeleteItem={onDeleteItem}
             />

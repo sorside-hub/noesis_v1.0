@@ -397,6 +397,58 @@ export function useMusicStudio() {
     });
   }, [dbProjects]);
 
+  const moveSongToProject = useCallback(async (songId: string, targetProjectId: string) => {
+    const song = dbSongsRef.current.find((s) => s.id === songId);
+    if (!song) return;
+
+    // Calculate next track number in target project
+    const existingTargetSongs = dbSongsRef.current.filter((s) => s.projectId === targetProjectId && s.id !== songId);
+    const maxTrack = existingTargetSongs.reduce((max, s) => Math.max(max, s.trackNumber || 0), 0);
+    const nextTrackNumber = Math.max(maxTrack, existingTargetSongs.length) + 1;
+
+    const targetProj = dbProjects.find((p) => p.id === targetProjectId);
+    const now = new Date().toISOString();
+    const updated: StudioSongRecord = {
+      ...song,
+      projectId: targetProjectId,
+      releaseType: targetProj?.type || 'album',
+      trackNumber: nextTrackNumber,
+      updatedAt: now,
+    };
+
+    setDbSongs((prev) => {
+      const next = prev.map((s) => (s.id === songId ? updated : s));
+      dbSongsRef.current = next;
+      return next;
+    });
+
+    await saveStudioSong(updated);
+    window.dispatchEvent(new Event('music-studio-updated'));
+  }, []);
+
+  const convertTrackToSingle = useCallback(async (songId: string) => {
+    const song = dbSongsRef.current.find((s) => s.id === songId);
+    if (!song) return;
+
+    const now = new Date().toISOString();
+    const updated: StudioSongRecord = {
+      ...song,
+      projectId: undefined,
+      releaseType: 'single',
+      trackNumber: undefined,
+      updatedAt: now,
+    };
+
+    setDbSongs((prev) => {
+      const next = prev.map((s) => (s.id === songId ? updated : s));
+      dbSongsRef.current = next;
+      return next;
+    });
+
+    await saveStudioSong(updated);
+    window.dispatchEvent(new Event('music-studio-updated'));
+  }, []);
+
   const removeSong = async (songId: string) => {
     await deleteStudioSong(songId);
     await reloadData();
@@ -423,6 +475,8 @@ export function useMusicStudio() {
     updateProjectRecord,
     updateLyricVersionContent,
     flushSongAndVersion,
+    moveSongToProject,
+    convertTrackToSingle,
     removeSong,
     removeProject,
   };

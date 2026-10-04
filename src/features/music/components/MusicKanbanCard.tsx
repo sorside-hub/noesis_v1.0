@@ -17,6 +17,7 @@ interface MusicKanbanCardProps {
   item: MusicReleaseItem;
   onSelectItem: (item: MusicReleaseItem) => void;
   onRenameItem?: (item: MusicReleaseItem) => void;
+  onMoveItem?: (item: MusicReleaseItem) => void;
   onUpdateStatus?: (item: MusicReleaseItem, status: MusicProductionStatus) => void;
   onDeleteItem?: (item: MusicReleaseItem) => void;
   isDraggingOverlay?: boolean;
@@ -26,6 +27,7 @@ export const MusicKanbanCard: React.FC<MusicKanbanCardProps> = ({
   item,
   onSelectItem,
   onRenameItem,
+  onMoveItem,
   onUpdateStatus,
   onDeleteItem,
   isDraggingOverlay = false,
@@ -174,7 +176,22 @@ export const MusicKanbanCard: React.FC<MusicKanbanCardProps> = ({
                     <span>Ubah Judul</span>
                   </button>
 
-                  {/* 2. Pindah Tahapan */}
+                  {/* 2. Pindahkan ke Album (Khusus Single) */}
+                  {isSingle && onMoveItem && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowMenu(false);
+                        onMoveItem(item);
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer text-left"
+                    >
+                      <Disc3 size={13} className="text-sky-400" />
+                      <span>Pindahkan ke Album</span>
+                    </button>
+                  )}
+
+                  {/* 3. Pindah Tahapan */}
                   <button
                     type="button"
                     onClick={() => setShowStageSelector(true)}
