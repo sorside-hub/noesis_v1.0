@@ -290,6 +290,7 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
           {/* TEMA SINGLE MANDIRI (HANYA UNTUK SINGLE, OTOMATIS HIDE SAAT JADI TRACK ALBUM) */}
           {!isTrack && (
             <ThemeSelector
+              id={song.id}
               theme={song.theme || ''}
               existingThemes={existingThemes}
               onChange={(val) => onUpdateSong({ theme: val })}

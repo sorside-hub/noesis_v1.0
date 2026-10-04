@@ -197,6 +197,7 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
 
           {/* TEMA EP / ALBUM */}
           <ThemeSelector
+            id={project.id}
             theme={project.theme || ''}
             existingThemes={existingThemes}
             onChange={(val) => onUpdateProject({ theme: val })}

@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Tag, Sparkles } from 'lucide-react';
 import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
 import { scrollElementIntoViewAboveKeyboard } from '../../../utils/scrollUtils';
 
 interface ThemeSelectorProps {
+  id?: string; // Active song or project ID to trigger sync when switching items
   theme: string;
   existingThemes?: string[];
   onChange: (val: string) => void;
@@ -12,13 +12,14 @@ interface ThemeSelectorProps {
 }
 
 export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
+  id,
   theme,
   existingThemes = [],
   onChange,
   label = 'Tema',
   placeholder = 'Contoh: Cinta, Patah Hati, Nostalgia, Perjalanan...',
 }) => {
-  const [localTheme, setLocalTheme] = useState(theme);
+  const [localTheme, setLocalTheme] = useState(theme || '');
   const [showThemeSuggestions, setShowThemeSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const expandedCardRef = useRef<HTMLDivElement>(null);
@@ -28,7 +29,12 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
   const { isKeyboardOpen } = useVirtualKeyboard();
   const wasKeyboardOpenRef = useRef(false);
 
-  // When mobile virtual keyboard closes, immediately remove cursor focus & hide suggestions
+  // Synchronize localTheme ONLY when switching active song/project ID
+  useEffect(() => {
+    setLocalTheme(theme || '');
+  }, [id]);
+
+  // When mobile virtual keyboard closes, remove cursor focus & hide suggestions
   useEffect(() => {
     if (wasKeyboardOpenRef.current && !isKeyboardOpen) {
       inputRef.current?.blur();
@@ -36,11 +42,6 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
     }
     wasKeyboardOpenRef.current = isKeyboardOpen;
   }, [isKeyboardOpen]);
-
-  // Keep local theme in sync with prop changes
-  useEffect(() => {
-    setLocalTheme(theme || '');
-  }, [theme]);
 
   // Clean up debounce timer on unmount
   useEffect(() => {
@@ -59,7 +60,7 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
     }
     debounceTimerRef.current = setTimeout(() => {
       onChange(val);
-    }, 250);
+    }, 200);
   };
 
   const handleSelectSuggestion = (val: string) => {
@@ -77,7 +78,7 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
       clearTimeout(debounceTimerRef.current);
     }
     onChange(localTheme);
-    
+
     // Close suggestions if focus left the container
     if (containerRef.current && !containerRef.current.contains(e.relatedTarget as Node)) {
       setShowThemeSuggestions(false);
@@ -87,18 +88,22 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
   const filteredThemes = existingThemes.filter(
     (t) =>
       t &&
-      t.toLowerCase().includes(localTheme.toLowerCase()) &&
-      t.toLowerCase() !== localTheme.trim().toLowerCase()
+      t.toLowerCase().includes((localTheme || '').toLowerCase()) &&
+      t.toLowerCase() !== (localTheme || '').trim().toLowerCase()
   );
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setShowThemeSuggestions(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   const isSuggestionsOpen = showThemeSuggestions && filteredThemes.length > 0;
@@ -120,60 +125,59 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
           </span>
         )}
       </label>
+
       <div className="w-full h-9 relative">
-        {!isSuggestionsOpen ? (
-          <div className="w-full h-9 bg-bg-primary rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-accent-primary/50 transition-all border border-border-default/20">
-            <input
-              ref={inputRef}
-              type="text"
-              value={localTheme}
-              onChange={(e) => handleInputChange(e.target.value)}
-              onBlur={handleInputBlur}
-              onFocus={() => {
-                setShowThemeSuggestions(true);
-                scrollElementIntoViewAboveKeyboard(containerRef.current);
-              }}
-              placeholder={placeholder}
-              className="w-full h-full px-3 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-hidden"
-            />
-          </div>
-        ) : (
-          /* Single Seamless Floating Card starting at top-0 matching Vault NoteTypeSelector */
-          <div
-            ref={expandedCardRef}
-            className="absolute top-0 left-0 right-0 z-50 bg-bg-primary rounded-2xl shadow-2xl ring-1 ring-accent-primary/60 overflow-hidden animate-in fade-in zoom-in-95 duration-100 border border-border-default/30"
-          >
-            <input
-              ref={inputRef}
-              type="text"
-              value={localTheme}
-              onChange={(e) => handleInputChange(e.target.value)}
-              onBlur={handleInputBlur}
-              onFocus={() => setShowThemeSuggestions(true)}
-              placeholder={placeholder}
-              className="w-full h-9 px-3 text-xs font-semibold text-text-primary placeholder:text-text-muted/60 focus:outline-hidden"
-            />
-            <div className="mx-2.5 h-px bg-border-default/30" />
-            <div className="max-h-48 overflow-y-auto [scrollbar-width:thin] p-1 space-y-0.5">
-              {filteredThemes.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleSelectSuggestion(t);
-                  }}
-                  className="w-full text-left px-2.5 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer font-medium flex items-center justify-between group"
-                >
-                  <span className="truncate">{t}</span>
-                  <span className="text-[10px] text-accent-primary opacity-0 group-hover:opacity-100 transition-opacity font-mono">
-                    Pilih
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Unified Single Floating Card (Morphs seamlessly when suggestions open) */}
+        <div
+          ref={expandedCardRef}
+          className={`w-full bg-bg-primary overflow-hidden transition-all ${
+            isSuggestionsOpen
+              ? 'absolute top-0 left-0 right-0 z-50 rounded-2xl shadow-2xl ring-1 ring-accent-primary/60 border border-border-default/40 animate-in fade-in zoom-in-95 duration-100'
+              : 'h-9 rounded-xl border border-border-default/20 focus-within:ring-1 focus-within:ring-accent-primary/50'
+          }`}
+        >
+          {/* Single Persistent Input Element - NEVER unmounted to guarantee zero text loss */}
+          <input
+            ref={inputRef}
+            type="text"
+            value={localTheme}
+            onChange={(e) => handleInputChange(e.target.value)}
+            onBlur={handleInputBlur}
+            onFocus={() => {
+              setShowThemeSuggestions(true);
+              scrollElementIntoViewAboveKeyboard(containerRef.current);
+            }}
+            placeholder={placeholder}
+            className={`w-full h-9 px-3 text-xs font-semibold text-text-primary placeholder:text-text-muted/60 focus:outline-hidden ${
+              isSuggestionsOpen ? 'bg-bg-primary' : ''
+            }`}
+          />
+
+          {/* Integrated Suggestions List Inside The Same Floating Card */}
+          {isSuggestionsOpen && (
+            <>
+              <div className="mx-2.5 h-px bg-border-default/30" />
+              <div className="max-h-48 overflow-y-auto [scrollbar-width:thin] p-1 space-y-0.5">
+                {filteredThemes.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault(); // Prevent input blur before click executes
+                      handleSelectSuggestion(t);
+                    }}
+                    className="w-full text-left px-2.5 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer font-medium flex items-center justify-between group"
+                  >
+                    <span className="truncate">{t}</span>
+                    <span className="text-[10px] text-accent-primary opacity-0 group-hover:opacity-100 transition-opacity font-mono">
+                      Pilih
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
