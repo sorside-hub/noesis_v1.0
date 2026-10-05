@@ -56,7 +56,14 @@ export const MusicProjectCard: React.FC<MusicProjectCardProps> = ({
             </div>
 
             <div className="flex items-center gap-3 text-[11px] text-text-muted mt-0.5 flex-wrap">
-              {project.genre && <span>{project.genre}</span>}
+              {(project.theme || project.genre) && (
+                <span className="text-accent-primary font-mono text-[10px] font-semibold truncate">
+                  {(project.theme || project.genre)
+                    ?.split(',')
+                    .map((t) => `#${t.trim().toLowerCase().replace(/\s+/g, '-')}`)
+                    .join(' ')}
+                </span>
+              )}
               {project.releaseDate && (
                 <span className="flex items-center gap-1">
                   <Calendar size={11} /> {project.releaseDate}

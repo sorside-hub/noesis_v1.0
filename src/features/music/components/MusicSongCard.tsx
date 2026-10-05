@@ -57,9 +57,17 @@ export const MusicSongCard: React.FC<MusicSongCardProps> = ({
           {item.title || 'Tanpa Judul'}
         </h4>
 
-        {/* BARIS 2: INFO TYPE (teks kecil tanpa box) • % (3 tingkat warna) • CATATAN */}
+        {/* BARIS 2: INFO TYPE (teks kecil tanpa box) • TEMA • % (3 tingkat warna) • CATATAN */}
         <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
           <span className="shrink-0">{typeText}</span>
+          {item.theme && item.theme.trim() && (
+            <>
+              <span className="shrink-0 opacity-40">•</span>
+              <span className="truncate text-text-secondary font-medium">
+                {item.theme.trim()}
+              </span>
+            </>
+          )}
           <span className="shrink-0 opacity-40">•</span>
           <span className={`font-mono font-bold shrink-0 ${progressColorClass}`}>
             {prog}%

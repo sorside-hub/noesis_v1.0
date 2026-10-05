@@ -24,8 +24,30 @@ export function useMusicStudio() {
     dbSongsRef.current = dbSongs;
   }, [dbSongs]);
 
+  const dbProjectsRef = useRef(dbProjects);
+  useEffect(() => {
+    dbProjectsRef.current = dbProjects;
+  }, [dbProjects]);
+
   // Debounce timers for typing (premise, raw, lyrics)
   const songDebounceTimersRef = useRef<Map<string, any>>(new Map());
+
+  // Flush any pending debounces before window unloads
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      songDebounceTimersRef.current.forEach((timer, songId) => {
+        clearTimeout(timer);
+        const song = dbSongsRef.current.find((s) => s.id === songId);
+        if (song) {
+          saveStudioSong(song).catch(console.error);
+        }
+      });
+      songDebounceTimersRef.current.clear();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   // Load all studio data from local Dexie & trigger cloud sync
   const reloadData = useCallback(async () => {
@@ -297,6 +319,14 @@ export function useMusicStudio() {
       updatedAt: now,
     };
 
+    if (patch.theme !== undefined) {
+      if (!patch.theme || !patch.theme.trim()) {
+        delete (updated as any).theme;
+      } else {
+        updated.theme = patch.theme.trim();
+      }
+    }
+
     // 1. Instant in-memory state update for snappy 0ms UI reactivity
     setDbSongs((prev) => {
       const next = prev.map((s) => (s.id === songId ? updated : s));
@@ -304,7 +334,22 @@ export function useMusicStudio() {
       return next;
     });
 
-    // 2. Debounced save to IndexedDB and Supabase (400ms)
+    const isTextTyping = patch.contentLyrics !== undefined || patch.scratchpad !== undefined || patch.premise !== undefined;
+
+    // For metadata changes (e.g. theme, status, bpm, musicalKey, capo, clear), save immediately to Dexie & Supabase!
+    if (!isTextTyping) {
+      const existingTimer = songDebounceTimersRef.current.get(songId);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+        songDebounceTimersRef.current.delete(songId);
+      }
+      saveStudioSong(updated).catch((err) => {
+        console.error('[MusicStudio] Failed to save song metadata:', err);
+      });
+      return;
+    }
+
+    // 2. Debounced save to IndexedDB and Supabase (400ms) for high-frequency lyric/scratchpad typing
     const existingTimer = songDebounceTimersRef.current.get(songId);
     if (existingTimer) {
       clearTimeout(existingTimer);
@@ -380,7 +425,7 @@ export function useMusicStudio() {
   }, []);
 
   const updateProjectRecord = useCallback(async (projectId: string, patch: Partial<StudioProjectRecord>) => {
-    const existing = dbProjects.find((p) => p.id === projectId);
+    const existing = dbProjectsRef.current.find((p) => p.id === projectId) || dbProjects.find((p) => p.id === projectId);
     if (!existing) return;
 
     const now = new Date().toISOString();
@@ -390,7 +435,19 @@ export function useMusicStudio() {
       updatedAt: now,
     };
 
-    setDbProjects((prev) => prev.map((p) => (p.id === projectId ? updated : p)));
+    if (patch.theme !== undefined) {
+      if (!patch.theme || !patch.theme.trim()) {
+        delete (updated as any).theme;
+      } else {
+        updated.theme = patch.theme.trim();
+      }
+    }
+
+    setDbProjects((prev) => {
+      const next = prev.map((p) => (p.id === projectId ? updated : p));
+      dbProjectsRef.current = next;
+      return next;
+    });
 
     saveStudioProject(updated).catch((err) => {
       console.error('[MusicStudio] Failed to save project patch:', err);

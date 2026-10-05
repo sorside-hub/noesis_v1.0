@@ -11,7 +11,7 @@ import {
   isNodeRecentlyDeleted,
 } from './sync/syncHelpers';
 import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord } from '../features/music/types/studioDatabase';
-import { syncMusicStudioFromCloud } from '../features/music/lib/musicStudioStorage';
+import { syncMusicStudioFromCloud, getDeletedStudioProjectIds, getDeletedStudioSongIds } from '../features/music/lib/musicStudioStorage';
 
 export { syncPullFromCloud, syncPushAllToCloud } from './sync/syncOperations';
 export type { SyncSummary } from './sync/syncOperations';
@@ -194,11 +194,13 @@ export const initRealtimeSync = async () => {
           }
         } else if (payload.new) {
           const p = payload.new as any;
+          if (getDeletedStudioProjectIds().has(p.id)) return;
           const localProject: StudioProjectRecord = {
             id: p.id,
             title: p.title,
             type: p.type,
             status: p.status || 'idea',
+            theme: p.theme || undefined,
             genre: p.genre || undefined,
             targetReleaseDate: p.target_release_date || undefined,
             coverUrl: p.cover_url || undefined,
@@ -222,6 +224,7 @@ export const initRealtimeSync = async () => {
           }
         } else if (payload.new) {
           const s = payload.new as any;
+          if (getDeletedStudioSongIds().has(s.id)) return;
           const localSong: StudioSongRecord = {
             id: s.id,
             projectId: s.project_id || undefined,
@@ -238,6 +241,7 @@ export const initRealtimeSync = async () => {
             capo: s.capo || 0,
             timeSignature: s.time_signature || '4/4',
             tuning: s.tuning || 'Standard (E A D G B E)',
+            theme: s.theme || undefined,
             genre: s.genre || undefined,
             targetReleaseDate: s.target_release_date || undefined,
             scratchpad: s.scratchpad || '',

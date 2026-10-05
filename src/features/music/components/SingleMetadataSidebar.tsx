@@ -53,6 +53,21 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
   const isTrackCompleted = song.status === 'ready' || song.status === 'released';
   const isReadyOrReleased = song.status === 'ready' || song.status === 'released' || parentProject?.status === 'ready' || parentProject?.status === 'released';
 
+  const existingThemes = useMemo(() => {
+    const set = new Set<string>();
+    if (Array.isArray(allSongs)) {
+      allSongs.forEach((s) => {
+        if (s.theme && s.theme.trim()) set.add(s.theme.trim());
+      });
+    }
+    if (Array.isArray(projects)) {
+      projects.forEach((p) => {
+        if (p.theme && p.theme.trim()) set.add(p.theme.trim());
+      });
+    }
+    return Array.from(set);
+  }, [allSongs, projects]);
+
   const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -99,18 +114,6 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       });
   }, [allSongs, song.projectId]);
-
-  // Existing themes across all songs & projects for smart autocomplete
-  const existingThemes = useMemo(() => {
-    const set = new Set<string>();
-    allSongs.forEach((s) => {
-      if (s.theme && s.theme.trim()) set.add(s.theme.trim());
-    });
-    projects.forEach((p) => {
-      if (p.theme && p.theme.trim()) set.add(p.theme.trim());
-    });
-    return Array.from(set);
-  }, [allSongs, projects]);
 
   // Handle reordering track number with smart auto-shift
   const handleTrackNumberChange = async (targetTrackNumber: number) => {
@@ -287,18 +290,6 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
             </div>
           )}
 
-          {/* TEMA SINGLE MANDIRI (HANYA UNTUK SINGLE, OTOMATIS HIDE SAAT JADI TRACK ALBUM) */}
-          {!isTrack && (
-            <ThemeSelector
-              id={song.id}
-              theme={song.theme || ''}
-              existingThemes={existingThemes}
-              onChange={(val) => onUpdateSong({ theme: val })}
-              label="Tema Single"
-              placeholder="Contoh: Patah Hati, Nostalgia, Perjalanan Hidup..."
-            />
-          )}
-
           {/* TRACK MODE: INFORMASI PROYEK & NOMOR TRACK */}
           {isTrack && (
             <div className="space-y-2">
@@ -385,6 +376,15 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
               </div>
             </div>
           )}
+
+          {/* TEMA LAGU / TRACK */}
+          <ThemeSelector
+            label={`Tema ${isTrack ? 'Track' : 'Lagu'}`}
+            theme={song.theme}
+            existingThemes={existingThemes}
+            placeholder={`Tulis tema ${isTrack ? 'track' : 'lagu'}...`}
+            onChange={(newTheme) => onUpdateSong({ theme: newTheme || '' })}
+          />
 
           {/* PROGRES STAGE AKTIF / TRACK (Hanya jika belum ready/released) */}
           {!isReadyOrReleased && (

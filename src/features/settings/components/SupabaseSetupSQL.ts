@@ -318,7 +318,7 @@ CREATE TABLE IF NOT EXISTS studio_projects (
   title TEXT NOT NULL,
   type TEXT NOT NULL DEFAULT 'album', -- 'album' | 'ep' | 'single'
   status TEXT NOT NULL DEFAULT 'idea', -- 'idea' | 'demo' | 'recording' | 'mixing' | 'ready' | 'released'
-  theme TEXT, -- Tema album / EP
+  theme TEXT, -- Tema besar album / EP
   genre TEXT,
   target_release_date TEXT,
   cover_url TEXT,
@@ -363,7 +363,7 @@ CREATE TABLE IF NOT EXISTS studio_songs (
   capo INTEGER DEFAULT 0,
   time_signature TEXT DEFAULT '4/4',
   tuning TEXT DEFAULT 'Standard (E A D G B E)',
-  theme TEXT, -- Tema single mandiri
+  theme TEXT, -- Tema lagu
   genre TEXT,
   target_release_date TEXT,
   reference_link TEXT,

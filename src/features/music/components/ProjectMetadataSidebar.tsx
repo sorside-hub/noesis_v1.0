@@ -22,8 +22,8 @@ interface ProjectMetadataSidebarProps {
   totalTracks?: number;
   progressPercent?: number;
   totalWordsCount?: number;
-  allSongs?: StudioSongRecord[];
   allProjects?: StudioProjectRecord[];
+  allSongs?: StudioSongRecord[];
   onUpdateProject: (patch: Partial<StudioProjectRecord>) => void;
   drawerRef?: React.RefObject<HTMLDivElement | null>;
   backdropRef?: React.RefObject<HTMLDivElement | null>;
@@ -36,8 +36,8 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
   completedTracks = 0,
   totalTracks = 0,
   progressPercent = 0,
-  allSongs = [],
   allProjects = [],
+  allSongs = [],
   onUpdateProject,
   drawerRef,
   backdropRef,
@@ -46,15 +46,18 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
   const statusContainerRef = useRef<HTMLDivElement>(null);
 
-  // Existing themes across all songs & projects for smart autocomplete
   const existingThemes = useMemo(() => {
     const set = new Set<string>();
-    allSongs.forEach((s) => {
-      if (s.theme && s.theme.trim()) set.add(s.theme.trim());
-    });
-    allProjects.forEach((p) => {
-      if (p.theme && p.theme.trim()) set.add(p.theme.trim());
-    });
+    if (Array.isArray(allSongs)) {
+      allSongs.forEach((s) => {
+        if (s.theme && s.theme.trim()) set.add(s.theme.trim());
+      });
+    }
+    if (Array.isArray(allProjects)) {
+      allProjects.forEach((p) => {
+        if (p.theme && p.theme.trim()) set.add(p.theme.trim());
+      });
+    }
     return Array.from(set);
   }, [allSongs, allProjects]);
 
@@ -195,14 +198,13 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
             </div>
           </div>
 
-          {/* TEMA EP / ALBUM */}
+          {/* SECTION: TEMA ALBUM / EP */}
           <ThemeSelector
-            id={project.id}
-            theme={project.theme || ''}
-            existingThemes={existingThemes}
-            onChange={(val) => onUpdateProject({ theme: val })}
             label={`Tema ${project.type === 'ep' ? 'EP' : 'Album'}`}
-            placeholder="Contoh: Cinta Pertama, Pencarian Jati Diri, Musim Panas..."
+            theme={project.theme}
+            existingThemes={existingThemes}
+            placeholder={`Tulis tema ${project.type === 'ep' ? 'EP' : 'album'}...`}
+            onChange={(newTheme) => onUpdateProject({ theme: newTheme || '' })}
           />
 
           {/* SECTION: PROGRES PROYEK (Hanya jika belum ready/released) */}

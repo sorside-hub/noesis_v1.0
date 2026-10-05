@@ -3,13 +3,56 @@ import { supabase, getSupabaseConfig } from '../../../lib/supabase';
 import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord } from '../types/studioDatabase';
 
 // ==========================================
+// PERSISTENT DELETION TRACKING (Tombstones)
+// Prevents deleted projects/songs from resurrecting on cloud sync
+// ==========================================
+
+const DELETED_PROJECTS_KEY = 'noesis_deleted_studio_projects';
+const DELETED_SONGS_KEY = 'noesis_deleted_studio_songs';
+
+export function getDeletedStudioProjectIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_PROJECTS_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+export function getDeletedStudioSongIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_SONGS_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+export function markStudioProjectAsDeleted(id: string) {
+  const set = getDeletedStudioProjectIds();
+  set.add(id);
+  try {
+    localStorage.setItem(DELETED_PROJECTS_KEY, JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
+export function markStudioSongAsDeleted(id: string) {
+  const set = getDeletedStudioSongIds();
+  set.add(id);
+  try {
+    localStorage.setItem(DELETED_SONGS_KEY, JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
+// ==========================================
 // 1. STUDIO PROJECTS CRUD (Offline First + Sync)
 // ==========================================
 
 export async function getAllStudioProjects(): Promise<StudioProjectRecord[]> {
   try {
+    const deletedIds = getDeletedStudioProjectIds();
     const projects = await db.studio_projects
-      .filter((p) => !p.deletedAt)
+      .filter((p) => !p.deletedAt && !deletedIds.has(p.id))
       .toArray();
     return projects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   } catch (err) {
@@ -19,7 +62,23 @@ export async function getAllStudioProjects(): Promise<StudioProjectRecord[]> {
 }
 
 export async function saveStudioProject(project: StudioProjectRecord): Promise<void> {
-  await db.studio_projects.put(project);
+  // Clear any tombstone if re-created
+  const deletedSet = getDeletedStudioProjectIds();
+  if (deletedSet.has(project.id)) {
+    deletedSet.delete(project.id);
+    try {
+      localStorage.setItem(DELETED_PROJECTS_KEY, JSON.stringify(Array.from(deletedSet)));
+    } catch {}
+  }
+
+  const record = { ...project };
+  if (!record.theme || !record.theme.trim()) {
+    delete record.theme;
+  } else {
+    record.theme = record.theme.trim();
+  }
+
+  await db.studio_projects.put(record);
 
   // Background non-blocking sync to Supabase if configured & logged in
   const config = getSupabaseConfig();
@@ -28,20 +87,26 @@ export async function saveStudioProject(project: StudioProjectRecord): Promise<v
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          await supabase.from('studio_projects').upsert({
-            id: project.id,
-            title: project.title,
-            type: project.type,
-            status: project.status || 'idea',
-            theme: project.theme || null,
-            target_release_date: project.targetReleaseDate || null,
-            cover_url: project.coverUrl || null,
-            description: project.description || null,
-            progress_note: project.progressNote || null,
+          const payload: any = {
+            id: record.id,
+            title: record.title,
+            type: record.type,
+            status: record.status || 'idea',
+            theme: record.theme || null,
+            genre: record.genre || null,
+            target_release_date: record.targetReleaseDate || null,
+            cover_url: record.coverUrl || null,
+            description: record.description || null,
+            progress_note: record.progressNote || null,
             user_id: user.id,
-            created_at: project.createdAt,
-            updated_at: project.updatedAt,
-          });
+            created_at: record.createdAt,
+            updated_at: record.updatedAt,
+          };
+          const { error } = await supabase.from('studio_projects').upsert(payload);
+          if (error && (error.message?.includes('theme') || error.code === 'PGRST204')) {
+            delete payload.theme;
+            await supabase.from('studio_projects').upsert(payload);
+          }
         }
       } catch (err) {
         console.warn('[MusicStudio] Remote project sync failed, saved locally:', err);
@@ -51,15 +116,17 @@ export async function saveStudioProject(project: StudioProjectRecord): Promise<v
 }
 
 export async function deleteStudioProject(id: string): Promise<void> {
-  const now = Date.now();
-  // 1. Soft delete the project in Dexie
-  await db.studio_projects.update(id, { deletedAt: now });
+  markStudioProjectAsDeleted(id);
+
+  // 1. Delete project from Dexie permanently
+  await db.studio_projects.delete(id);
 
   // 2. Cascade delete all child tracks and their lyric versions
   try {
     const childSongs = await db.studio_songs.where('projectId').equals(id).toArray();
     for (const song of childSongs) {
-      await db.studio_songs.update(song.id, { deletedAt: now });
+      markStudioSongAsDeleted(song.id);
+      await db.studio_songs.delete(song.id);
       try {
         await db.studio_lyric_versions.where('songId').equals(song.id).delete();
       } catch (verErr) {
@@ -88,9 +155,12 @@ export async function deleteStudioProject(id: string): Promise<void> {
 
 export async function getAllStudioSongs(): Promise<StudioSongRecord[]> {
   try {
+    const deletedSongIds = getDeletedStudioSongIds();
+    const deletedProjIds = getDeletedStudioProjectIds();
+
     const [allSongs, allProjects] = await Promise.all([
-      db.studio_songs.filter((s) => !s.deletedAt).toArray(),
-      db.studio_projects.filter((p) => !p.deletedAt).toArray(),
+      db.studio_songs.filter((s) => !s.deletedAt && !deletedSongIds.has(s.id)).toArray(),
+      db.studio_projects.filter((p) => !p.deletedAt && !deletedProjIds.has(p.id)).toArray(),
     ]);
 
     const activeProjectIds = new Set(allProjects.map((p) => p.id));
@@ -113,8 +183,10 @@ export async function getAllStudioSongs(): Promise<StudioSongRecord[]> {
 
     // Auto-cleanup orphaned songs in the background so they never leak
     if (orphanedSongIds.length > 0) {
-      const now = Date.now();
-      Promise.all(orphanedSongIds.map((id) => db.studio_songs.update(id, { deletedAt: now }))).catch((err) => {
+      Promise.all(orphanedSongIds.map((id) => {
+        markStudioSongAsDeleted(id);
+        return db.studio_songs.delete(id);
+      })).catch((err) => {
         console.warn('[MusicStudio] Auto-cleanup of orphaned songs failed:', err);
       });
     }
@@ -127,11 +199,29 @@ export async function getAllStudioSongs(): Promise<StudioSongRecord[]> {
 }
 
 export async function getStudioSongById(id: string): Promise<StudioSongRecord | undefined> {
+  const deletedSongIds = getDeletedStudioSongIds();
+  if (deletedSongIds.has(id)) return undefined;
   return await db.studio_songs.get(id);
 }
 
 export async function saveStudioSong(song: StudioSongRecord): Promise<void> {
-  await db.studio_songs.put(song);
+  // Clear any tombstone if re-created
+  const deletedSet = getDeletedStudioSongIds();
+  if (deletedSet.has(song.id)) {
+    deletedSet.delete(song.id);
+    try {
+      localStorage.setItem(DELETED_SONGS_KEY, JSON.stringify(Array.from(deletedSet)));
+    } catch {}
+  }
+
+  const record = { ...song };
+  if (!record.theme || !record.theme.trim()) {
+    delete record.theme;
+  } else {
+    record.theme = record.theme.trim();
+  }
+
+  await db.studio_songs.put(record);
 
   // Background non-blocking sync to Supabase if configured & logged in
   const config = getSupabaseConfig();
@@ -140,32 +230,38 @@ export async function saveStudioSong(song: StudioSongRecord): Promise<void> {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          await supabase.from('studio_songs').upsert({
-            id: song.id,
-            project_id: song.projectId || null,
-            release_type: song.releaseType || 'single',
-            track_number: song.trackNumber || null,
-            title: song.title,
-            premise: song.premise || '',
-            scratchpad: song.scratchpad || '',
-            content_lyrics: song.contentLyrics,
-            status: song.status,
-            progress: typeof song.progress === 'number' ? song.progress : 0,
-            progress_note: song.progressNote || null,
-            musical_key: song.musicalKey,
-            bpm: song.bpm,
-            capo: song.capo,
-            time_signature: song.timeSignature,
-            tuning: song.tuning,
-            theme: song.theme || null,
-            target_release_date: song.targetReleaseDate || null,
-            reference_link: song.referenceLink || null,
-            audio_url: song.audioUrl || null,
-            cover_url: song.coverUrl || null,
+          const payload: any = {
+            id: record.id,
+            project_id: record.projectId || null,
+            release_type: record.releaseType || 'single',
+            track_number: record.trackNumber || null,
+            title: record.title,
+            premise: record.premise || '',
+            scratchpad: record.scratchpad || '',
+            content_lyrics: record.contentLyrics,
+            status: record.status,
+            progress: typeof record.progress === 'number' ? record.progress : 0,
+            progress_note: record.progressNote || null,
+            musical_key: record.musicalKey,
+            bpm: record.bpm,
+            capo: record.capo,
+            time_signature: record.timeSignature,
+            tuning: record.tuning,
+            theme: record.theme || null,
+            genre: record.genre || null,
+            target_release_date: record.targetReleaseDate || null,
+            reference_link: record.referenceLink || null,
+            audio_url: record.audioUrl || null,
+            cover_url: record.coverUrl || null,
             user_id: user.id,
-            created_at: song.createdAt,
-            updated_at: song.updatedAt,
-          });
+            created_at: record.createdAt,
+            updated_at: record.updatedAt,
+          };
+          const { error } = await supabase.from('studio_songs').upsert(payload);
+          if (error && (error.message?.includes('theme') || error.code === 'PGRST204')) {
+            delete payload.theme;
+            await supabase.from('studio_songs').upsert(payload);
+          }
         }
       } catch (err) {
         console.warn('[MusicStudio] Remote song sync failed, saved locally:', err);
@@ -175,17 +271,24 @@ export async function saveStudioSong(song: StudioSongRecord): Promise<void> {
 }
 
 export async function deleteStudioSong(id: string): Promise<void> {
-  await db.studio_songs.update(id, { deletedAt: Date.now() });
+  markStudioSongAsDeleted(id);
+
+  // 1. Delete song from Dexie permanently
+  await db.studio_songs.delete(id);
+
+  try {
+    await db.studio_lyric_versions.where('songId').equals(id).delete();
+  } catch (err) {
+    console.warn('[MusicStudio] Failed deleting lyric versions:', err);
+  }
 
   const config = getSupabaseConfig();
   if (config.isConfigured && supabase) {
-    (async () => {
-      try {
-        await supabase.from('studio_songs').delete().eq('id', id);
-      } catch (err) {
-        console.warn('[MusicStudio] Remote song delete failed:', err);
-      }
-    })();
+    try {
+      await supabase.from('studio_songs').delete().eq('id', id);
+    } catch (err) {
+      console.warn('[MusicStudio] Remote song delete failed:', err);
+    }
   }
 }
 
@@ -276,6 +379,9 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    const deletedProjIds = getDeletedStudioProjectIds();
+    const deletedSongIds = getDeletedStudioSongIds();
+
     // 1. Fetch projects
     const { data: remoteProjects, error: projErr } = await supabase
       .from('studio_projects')
@@ -283,17 +389,36 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
       .eq('user_id', user.id);
 
     if (!projErr && remoteProjects) {
-      const allLocalProjects = await db.studio_projects.toArray();
-      const allLocalProjectsMap = new Map(allLocalProjects.map((p) => [p.id, p]));
+      // Filter out any projects that were deleted locally
+      const activeRemoteProjects = remoteProjects.filter((p: any) => !deletedProjIds.has(p.id));
 
-      const mergedProjects: StudioProjectRecord[] = remoteProjects.map((p: any) => {
-        const local = allLocalProjectsMap.get(p.id);
+      // Clean up remotely any projects that were marked deleted locally
+      if (deletedProjIds.size > 0) {
+        try {
+          await supabase.from('studio_projects').delete().in('id', Array.from(deletedProjIds));
+        } catch {}
+      }
+
+      const allLocalProjects = await db.studio_projects.toArray();
+      const localProjectMap = new Map(allLocalProjects.map((p) => [p.id, p]));
+
+      const localProjects: StudioProjectRecord[] = activeRemoteProjects.map((p: any) => {
+        const local = localProjectMap.get(p.id);
+        const remoteUpdated = new Date(p.updated_at).getTime() || 0;
+        const localUpdated = local ? (new Date(local.updatedAt).getTime() || 0) : 0;
+
+        // If local record exists and is newer than cloud, preserve local changes (including deleted theme)
+        if (local && localUpdated >= remoteUpdated) {
+          return local;
+        }
+
         return {
           id: p.id,
           title: p.title,
           type: p.type,
           status: p.status || 'idea',
-          theme: p.theme || p.genre || local?.theme || undefined,
+          theme: p.theme ? p.theme.trim() : undefined,
+          genre: p.genre || undefined,
           targetReleaseDate: p.target_release_date || undefined,
           coverUrl: p.cover_url || undefined,
           description: p.description || undefined,
@@ -303,16 +428,18 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
         };
       });
 
-      // Reconcile: Purge local projects that were explicitly deleted on cloud
-      const remoteProjIds = new Set(mergedProjects.map((p) => p.id));
-      const deletedProjIds = allLocalProjects
-        .filter((p) => !remoteProjIds.has(p.id) && p.deletedAt)
+      // Reconcile: Purge local projects that were deleted on cloud
+      const remoteProjIds = new Set(activeRemoteProjects.map((p: any) => p.id));
+      const purgeProjIds = allLocalProjects
+        .filter((p) => !remoteProjIds.has(p.id) || deletedProjIds.has(p.id))
         .map((p) => p.id);
-      if (deletedProjIds.length > 0) {
-        await db.studio_projects.bulkDelete(deletedProjIds);
+      if (purgeProjIds.length > 0) {
+        await db.studio_projects.bulkDelete(purgeProjIds);
       }
 
-      await db.studio_projects.bulkPut(mergedProjects);
+      if (localProjects.length > 0) {
+        await db.studio_projects.bulkPut(localProjects);
+      }
     }
 
     // 2. Fetch songs
@@ -322,30 +449,48 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
       .eq('user_id', user.id);
 
     if (!songErr && remoteSongs) {
-      const allLocalSongs = await db.studio_songs.toArray();
-      const allLocalSongsMap = new Map(allLocalSongs.map((s) => [s.id, s]));
+      // Filter out any songs that were deleted locally
+      const activeRemoteSongs = remoteSongs.filter((s: any) => !deletedSongIds.has(s.id));
 
-      const mergedSongs: StudioSongRecord[] = remoteSongs.map((s: any) => {
-        const local = allLocalSongsMap.get(s.id);
+      if (deletedSongIds.size > 0) {
+        try {
+          await supabase.from('studio_songs').delete().in('id', Array.from(deletedSongIds));
+        } catch {}
+      }
+
+      const allLocalSongs = await db.studio_songs.toArray();
+      const localSongMap = new Map(allLocalSongs.map((s) => [s.id, s]));
+
+      const localSongs: StudioSongRecord[] = activeRemoteSongs.map((s: any) => {
+        const local = localSongMap.get(s.id);
+        const remoteUpdated = new Date(s.updated_at).getTime() || 0;
+        const localUpdated = local ? (new Date(local.updatedAt).getTime() || 0) : 0;
+
+        // If local record exists and is newer than cloud, preserve local changes (including deleted theme)
+        if (local && localUpdated >= remoteUpdated) {
+          return local;
+        }
+
         return {
           id: s.id,
           projectId: s.project_id || undefined,
           releaseType: s.release_type || 'single',
           trackNumber: s.track_number ? Number(s.track_number) : undefined,
           title: s.title,
-          premise: s.premise || local?.premise || '',
-          contentLyrics: s.content_lyrics || local?.contentLyrics || '',
+          premise: s.premise || '',
+          contentLyrics: s.content_lyrics || '',
           status: s.status || 'idea',
-          progress: typeof s.progress === 'number' ? s.progress : (local?.progress || 0),
-          progressNote: s.progress_note || local?.progressNote || undefined,
+          progress: typeof s.progress === 'number' ? s.progress : 0,
+          progressNote: s.progress_note || undefined,
           musicalKey: s.musical_key || 'C',
           bpm: s.bpm || 120,
           capo: s.capo || 0,
           timeSignature: s.time_signature || '4/4',
           tuning: s.tuning || 'Standard (E A D G B E)',
-          theme: s.theme || s.genre || local?.theme || undefined,
+          theme: s.theme ? s.theme.trim() : undefined,
+          genre: s.genre || undefined,
           targetReleaseDate: s.target_release_date || undefined,
-          scratchpad: s.scratchpad || local?.scratchpad || '',
+          scratchpad: s.scratchpad || '',
           referenceLink: s.reference_link || undefined,
           audioUrl: s.audio_url || undefined,
           coverUrl: s.cover_url || undefined,
@@ -354,16 +499,18 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
         };
       });
 
-      // Reconcile: Purge local songs that were explicitly deleted on cloud
-      const remoteSongIds = new Set(mergedSongs.map((s) => s.id));
-      const deletedSongIds = allLocalSongs
-        .filter((s) => !remoteSongIds.has(s.id) && s.deletedAt)
+      // Reconcile: Purge local songs that were deleted on cloud
+      const remoteSongIds = new Set(activeRemoteSongs.map((s: any) => s.id));
+      const purgeSongIds = allLocalSongs
+        .filter((s) => !remoteSongIds.has(s.id) || deletedSongIds.has(s.id))
         .map((s) => s.id);
-      if (deletedSongIds.length > 0) {
-        await db.studio_songs.bulkDelete(deletedSongIds);
+      if (purgeSongIds.length > 0) {
+        await db.studio_songs.bulkDelete(purgeSongIds);
       }
 
-      await db.studio_songs.bulkPut(mergedSongs);
+      if (localSongs.length > 0) {
+        await db.studio_songs.bulkPut(localSongs);
+      }
     }
 
     // 3. Fetch lyric versions
@@ -373,7 +520,8 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
       .eq('user_id', user.id);
 
     if (!verErr && remoteVersions) {
-      const localVersions: StudioLyricVersionRecord[] = remoteVersions.map((v: any) => ({
+      const activeRemoteVersions = remoteVersions.filter((v: any) => !deletedSongIds.has(v.song_id));
+      const localVersions: StudioLyricVersionRecord[] = activeRemoteVersions.map((v: any) => ({
         id: v.id,
         songId: v.song_id,
         versionName: v.version_name,
@@ -384,16 +532,18 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
       }));
 
       // Reconcile: Purge local versions that were deleted on cloud
-      const remoteVersionIds = new Set(localVersions.map((v) => v.id));
+      const remoteVersionIds = new Set(activeRemoteVersions.map((v: any) => v.id));
       const allLocalVersions = await db.studio_lyric_versions.toArray();
       const deletedVersionIds = allLocalVersions
-        .filter((v) => !remoteVersionIds.has(v.id))
+        .filter((v) => !remoteVersionIds.has(v.id) || deletedSongIds.has(v.songId))
         .map((v) => v.id);
       if (deletedVersionIds.length > 0) {
         await db.studio_lyric_versions.bulkDelete(deletedVersionIds);
       }
 
-      await db.studio_lyric_versions.bulkPut(localVersions);
+      if (localVersions.length > 0) {
+        await db.studio_lyric_versions.bulkPut(localVersions);
+      }
     }
 
     window.dispatchEvent(new Event('music-studio-updated'));
@@ -401,3 +551,4 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
     console.warn('[MusicStudio] Cloud pull error:', err);
   }
 }
+

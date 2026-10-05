@@ -383,6 +383,7 @@ export const syncPushAllToCloud = async (): Promise<SyncSummary> => {
           title: p.title,
           type: p.type,
           status: p.status || 'idea',
+          theme: p.theme || null,
           genre: p.genre || null,
           target_release_date: p.targetReleaseDate || null,
           cover_url: p.coverUrl || null,
@@ -392,7 +393,12 @@ export const syncPushAllToCloud = async (): Promise<SyncSummary> => {
           created_at: p.createdAt,
           updated_at: p.updatedAt,
         }));
-        const { error: projErr } = await supabase.from('studio_projects').upsert(cloudProjects);
+        let { error: projErr } = await supabase.from('studio_projects').upsert(cloudProjects);
+        if (projErr && (projErr.message?.includes('theme') || projErr.code === 'PGRST204')) {
+          const fallbackProjects = cloudProjects.map(({ theme, ...rest }: any) => rest);
+          const res = await supabase.from('studio_projects').upsert(fallbackProjects);
+          projErr = res.error;
+        }
         if (projErr && projErr.code !== 'PGRST205') {
           console.warn('Failed to push studio projects to cloud:', projErr);
         }
@@ -418,6 +424,7 @@ export const syncPushAllToCloud = async (): Promise<SyncSummary> => {
           capo: s.capo,
           time_signature: s.timeSignature,
           tuning: s.tuning,
+          theme: s.theme || null,
           genre: s.genre || null,
           target_release_date: s.targetReleaseDate || null,
           reference_link: s.referenceLink || null,
@@ -427,7 +434,12 @@ export const syncPushAllToCloud = async (): Promise<SyncSummary> => {
           created_at: s.createdAt,
           updated_at: s.updatedAt,
         }));
-        const { error: songErr } = await supabase.from('studio_songs').upsert(cloudSongs);
+        let { error: songErr } = await supabase.from('studio_songs').upsert(cloudSongs);
+        if (songErr && (songErr.message?.includes('theme') || songErr.code === 'PGRST204')) {
+          const fallbackSongs = cloudSongs.map(({ theme, ...rest }: any) => rest);
+          const res = await supabase.from('studio_songs').upsert(fallbackSongs);
+          songErr = res.error;
+        }
         if (songErr && songErr.code !== 'PGRST205') {
           console.warn('Failed to push studio songs to cloud:', songErr);
         }

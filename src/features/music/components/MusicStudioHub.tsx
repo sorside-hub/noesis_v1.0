@@ -181,6 +181,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         coverUrl: proj.coverUrl,
         progress: projProgress,
         progressNote: proj.progressNote,
+        trackCount: projectSongs.length,
         updatedAt: new Date(proj.updatedAt).getTime() || Date.now(),
         createdAt: new Date(proj.createdAt).getTime() || Date.now(),
       });

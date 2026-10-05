@@ -112,56 +112,48 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
         Note Type
       </label>
       <div className="w-full h-9 relative">
-        {!isSuggestionsOpen ? (
-          <div className="w-full h-9 bg-bg-primary rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-accent-primary/50 transition-all">
-            <input
-              ref={inputRef}
-              type="text"
-              value={localNoteType}
-              onChange={(e) => handleInputChange(e.target.value)}
-              onBlur={handleInputBlur}
-              onFocus={() => {
-                setShowNoteTypeSuggestions(true);
-                scrollElementIntoViewAboveKeyboard(noteTypeContainerRef.current);
-              }}
-              placeholder="e.g. Daily, Project, Concept"
-              className="w-full h-full px-3 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
-            />
-          </div>
-        ) : (
-          /* Single Seamless Floating Card starting at top-0 */
-          <div
-            ref={expandedCardRef}
-            className="absolute top-0 left-0 right-0 z-50 bg-bg-primary rounded-2xl shadow-2xl ring-1 ring-accent-primary/60 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
-          >
-            <input
-              ref={inputRef}
-              type="text"
-              value={localNoteType}
-              onChange={(e) => handleInputChange(e.target.value)}
-              onBlur={handleInputBlur}
-              onFocus={() => setShowNoteTypeSuggestions(true)}
-              placeholder="e.g. Daily, Project, Concept"
-              className="w-full h-9 px-3 text-xs font-semibold text-text-primary placeholder:text-text-muted/60 focus:outline-none"
-            />
-            <div className="mx-2.5 h-px bg-border-default/30" />
-            <div className="max-h-48 overflow-y-auto custom-scrollbar p-1 space-y-0.5">
-              {filteredNoteTypes.map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleSelectSuggestion(type);
-                  }}
-                  className="w-full text-left px-2.5 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer font-medium"
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <div
+          ref={expandedCardRef}
+          className={`w-full bg-bg-primary transition-all duration-100 ${
+            isSuggestionsOpen
+              ? 'absolute top-0 left-0 right-0 z-50 rounded-2xl shadow-2xl ring-1 ring-accent-primary/60 overflow-hidden animate-in fade-in zoom-in-95'
+              : 'h-9 rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-accent-primary/50'
+          }`}
+        >
+          <input
+            ref={inputRef}
+            type="text"
+            value={localNoteType}
+            onChange={(e) => handleInputChange(e.target.value)}
+            onBlur={handleInputBlur}
+            onFocus={() => {
+              setShowNoteTypeSuggestions(true);
+              scrollElementIntoViewAboveKeyboard(noteTypeContainerRef.current);
+            }}
+            placeholder="e.g. Daily, Project, Concept"
+            className="w-full h-9 px-3 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"
+          />
+          {isSuggestionsOpen && (
+            <>
+              <div className="mx-2.5 h-px bg-border-default/30" />
+              <div className="max-h-48 overflow-y-auto custom-scrollbar p-1 space-y-0.5">
+                {filteredNoteTypes.map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleSelectSuggestion(type);
+                    }}
+                    className="w-full text-left px-2.5 py-1.5 text-xs text-text-muted hover:text-text-primary hover:bg-bg-hover rounded-lg transition-colors cursor-pointer font-medium"
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

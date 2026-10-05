@@ -15,6 +15,7 @@ export interface SongMetadata {
   tuning?: string;
   capo?: number;
   project?: string; // Album or EP name/id
+  theme?: string;
   genre?: string;
   targetReleaseDate?: string;
   hasAudioMemo?: boolean;
@@ -31,6 +32,7 @@ export interface SongItem {
   tuning?: string;
   capo?: number;
   project?: string;
+  theme?: string;
   genre?: string;
   tags?: string[];
   snippet?: string;
@@ -45,6 +47,7 @@ export interface MusicProject {
   type: MusicProjectType;
   status: MusicProductionStatus;
   releaseDate?: string;
+  theme?: string;
   genre?: string;
   coverUrl?: string;
   description?: string;
