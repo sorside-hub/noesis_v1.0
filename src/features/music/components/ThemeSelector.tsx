@@ -152,6 +152,16 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
                 setShowSuggestions(true);
                 scrollElementIntoViewAboveKeyboard(containerRef.current);
               }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  setShowSuggestions(false);
+                  inputRef.current?.blur();
+                }
+                if (e.key === 'Escape') {
+                  setShowSuggestions(false);
+                }
+              }}
               placeholder={placeholder}
               className="w-full h-full px-3 text-xs font-semibold text-text-primary placeholder:text-text-muted/60 focus:outline-none"
             />

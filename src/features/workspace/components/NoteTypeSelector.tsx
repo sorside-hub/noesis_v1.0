@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
 import { scrollElementIntoViewAboveKeyboard } from '../../../utils/scrollUtils';
 
 interface NoteTypeSelectorProps {
@@ -21,18 +20,6 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
   const expandedCardRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const { isKeyboardOpen } = useVirtualKeyboard();
-  const wasKeyboardOpenRef = useRef(false);
-
-  // When mobile virtual keyboard closes, immediately remove cursor focus & hide suggestions
-  useEffect(() => {
-    if (wasKeyboardOpenRef.current && !isKeyboardOpen) {
-      inputRef.current?.blur();
-      setShowNoteTypeSuggestions(false);
-    }
-    wasKeyboardOpenRef.current = isKeyboardOpen;
-  }, [isKeyboardOpen]);
 
   // Keep local noteType in sync with prop changes
   useEffect(() => {
@@ -129,6 +116,16 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
             onFocus={() => {
               setShowNoteTypeSuggestions(true);
               scrollElementIntoViewAboveKeyboard(noteTypeContainerRef.current);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                setShowNoteTypeSuggestions(false);
+                inputRef.current?.blur();
+              }
+              if (e.key === 'Escape') {
+                setShowNoteTypeSuggestions(false);
+              }
             }}
             placeholder="e.g. Daily, Project, Concept"
             className="w-full h-9 px-3 text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none"

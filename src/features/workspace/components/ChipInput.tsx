@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Plus } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
-import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
 import { scrollElementIntoViewAboveKeyboard } from '../../../utils/scrollUtils';
 
 interface ChipInputProps {
@@ -35,18 +34,6 @@ export const ChipInput: React.FC<ChipInputProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const expandedCardRef = useRef<HTMLDivElement>(null);
-
-  const { isKeyboardOpen } = useVirtualKeyboard();
-  const wasKeyboardOpenRef = useRef(false);
-
-  // Automatically blur cursor & hide dropdown when mobile virtual keyboard closes
-  useEffect(() => {
-    if (wasKeyboardOpenRef.current && !isKeyboardOpen) {
-      inputRef.current?.blur();
-      setShowSuggestions(false);
-    }
-    wasKeyboardOpenRef.current = isKeyboardOpen;
-  }, [isKeyboardOpen]);
 
   const normalizedItems = forceLowerCase ? items.map((i) => i.toLowerCase()) : items;
   const filteredSuggestions = suggestions.filter(
