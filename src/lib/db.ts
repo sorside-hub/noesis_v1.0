@@ -97,6 +97,11 @@ export class NoesisDB extends Dexie {
       studio_songs: 'id, projectId, status, musicalKey, bpm, genre, updatedAt, createdAt, deletedAt',
       studio_lyric_versions: 'id, songId, createdAt'
     });
+
+    // V9: Include updatedAt on studio_lyric_versions
+    this.version(9).stores({
+      studio_lyric_versions: 'id, songId, updatedAt, createdAt'
+    });
   }
 }
 

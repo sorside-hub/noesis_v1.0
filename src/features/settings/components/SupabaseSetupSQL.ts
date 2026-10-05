@@ -400,14 +400,26 @@ CREATE TABLE IF NOT EXISTS studio_lyric_versions (
   content TEXT NOT NULL,
   is_focused BOOLEAN DEFAULT FALSE, -- Penanda versi aktif / sedang dikerjakan
   is_final BOOLEAN DEFAULT FALSE, -- Penanda versi master release
+  musical_key TEXT DEFAULT 'C',
+  bpm INTEGER DEFAULT 120,
+  capo INTEGER DEFAULT 0,
+  time_signature TEXT DEFAULT '4/4',
+  tuning TEXT DEFAULT 'Standard (E A D G B E)',
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Pastikan kolom baru tetap ada jika tabel sudah dibuat sebelumnya (Auto-migration)
 ALTER TABLE studio_lyric_versions 
   ADD COLUMN IF NOT EXISTS is_focused BOOLEAN DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS is_final BOOLEAN DEFAULT FALSE;
+  ADD COLUMN IF NOT EXISTS is_final BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS musical_key TEXT DEFAULT 'C',
+  ADD COLUMN IF NOT EXISTS bpm INTEGER DEFAULT 120,
+  ADD COLUMN IF NOT EXISTS capo INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS time_signature TEXT DEFAULT '4/4',
+  ADD COLUMN IF NOT EXISTS tuning TEXT DEFAULT 'Standard (E A D G B E)',
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
 ALTER TABLE studio_lyric_versions ENABLE ROW LEVEL SECURITY;
 

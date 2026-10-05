@@ -241,11 +241,14 @@ export const ProjectMetadataSidebar: React.FC<ProjectMetadataSidebarProps> = ({
                 {/* Progress Comment / Note Field */}
                 <input
                   type="text"
+                  enterKeyHint="done"
                   placeholder="Catatan progres proyek (misal: '3/6 track beres')..."
                   value={project.progressNote || ''}
                   onChange={(e) => onUpdateProject({ progressNote: e.target.value })}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
+                      e.preventDefault();
+                      e.stopPropagation();
                       e.currentTarget.blur();
                     }
                   }}

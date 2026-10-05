@@ -22,13 +22,13 @@ export interface StudioSongRecord {
   releaseType?: MusicProjectType;
   trackNumber?: number;
   title: string;
-  contentLyrics: string;
+  contentLyrics?: string;
   status: MusicProductionStatus;
-  musicalKey: string;
-  bpm: number;
-  capo: number;
-  timeSignature: string;
-  tuning: string;
+  musicalKey?: string;
+  bpm?: number;
+  capo?: number;
+  timeSignature?: string;
+  tuning?: string;
   theme?: string; // Tema lagu
   genre?: string;
   targetReleaseDate?: string;
@@ -51,5 +51,11 @@ export interface StudioLyricVersionRecord {
   content: string;
   isFocused?: boolean; // Penanda versi aktif / sedang dikerjakan
   isFinal?: boolean; // Penanda versi final / master
+  musicalKey?: string;
+  bpm?: number;
+  capo?: number;
+  timeSignature?: string;
+  tuning?: string;
   createdAt: string;
+  updatedAt?: string;
 }

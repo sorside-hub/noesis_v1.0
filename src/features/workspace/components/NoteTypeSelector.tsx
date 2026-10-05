@@ -110,6 +110,7 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
           <input
             ref={inputRef}
             type="text"
+            enterKeyHint="done"
             value={localNoteType}
             onChange={(e) => handleInputChange(e.target.value)}
             onBlur={handleInputBlur}
@@ -118,8 +119,9 @@ export const NoteTypeSelector: React.FC<NoteTypeSelectorProps> = ({
               scrollElementIntoViewAboveKeyboard(noteTypeContainerRef.current);
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
                 e.preventDefault();
+                e.stopPropagation();
                 setShowNoteTypeSuggestions(false);
                 inputRef.current?.blur();
               }

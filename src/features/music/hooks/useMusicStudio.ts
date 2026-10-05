@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { supabase } from '../../../lib/supabase';
 import { SongItem, MusicProject, MusicProductionStatus } from '../types';
 import { StudioProjectRecord, StudioSongRecord } from '../types/studioDatabase';
 import {
@@ -76,8 +77,41 @@ export function useMusicStudio() {
     };
 
     window.addEventListener('music-studio-updated', handleStudioUpdate);
+
+    // Subscribe to Supabase Realtime changes across studio tables
+    let channel: any = null;
+    if (supabase) {
+      channel = supabase
+        .channel('music-studio-realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'studio_projects' },
+          () => {
+            syncMusicStudioFromCloud().then(() => reloadData());
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'studio_songs' },
+          () => {
+            syncMusicStudioFromCloud().then(() => reloadData());
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'studio_lyric_versions' },
+          () => {
+            syncMusicStudioFromCloud().then(() => reloadData());
+          }
+        )
+        .subscribe();
+    }
+
     return () => {
       window.removeEventListener('music-studio-updated', handleStudioUpdate);
+      if (channel && supabase) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [reloadData]);
 
@@ -334,7 +368,11 @@ export function useMusicStudio() {
       return next;
     });
 
-    const isTextTyping = patch.contentLyrics !== undefined || patch.scratchpad !== undefined || patch.premise !== undefined;
+    const isTextTyping =
+      patch.contentLyrics !== undefined ||
+      patch.scratchpad !== undefined ||
+      patch.premise !== undefined ||
+      patch.progressNote !== undefined;
 
     // For metadata changes (e.g. theme, status, bpm, musicalKey, capo, clear), save immediately to Dexie & Supabase!
     if (!isTextTyping) {

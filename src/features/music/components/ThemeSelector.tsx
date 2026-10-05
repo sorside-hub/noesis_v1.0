@@ -145,6 +145,7 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
             <input
               ref={inputRef}
               type="text"
+              enterKeyHint="done"
               value={localTheme}
               onChange={(e) => handleInputChange(e.target.value)}
               onBlur={handleInputBlur}
@@ -153,8 +154,9 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
                 scrollElementIntoViewAboveKeyboard(containerRef.current);
               }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
                   e.preventDefault();
+                  e.stopPropagation();
                   setShowSuggestions(false);
                   inputRef.current?.blur();
                 }

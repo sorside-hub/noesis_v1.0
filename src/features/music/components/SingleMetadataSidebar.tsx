@@ -437,11 +437,14 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                 {/* Progress Comment / Note Field */}
                 <input
                   type="text"
+                  enterKeyHint="done"
                   placeholder="Catatan progres (misal: 'Chorus kurang mantab')..."
                   value={song.progressNote || ''}
                   onChange={(e) => onUpdateSong({ progressNote: e.target.value })}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
+                      e.preventDefault();
+                      e.stopPropagation();
                       e.currentTarget.blur();
                     }
                   }}

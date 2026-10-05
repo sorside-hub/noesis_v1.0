@@ -93,7 +93,6 @@ export async function saveStudioProject(project: StudioProjectRecord): Promise<v
             type: record.type,
             status: record.status || 'idea',
             theme: record.theme || null,
-            genre: record.genre || null,
             target_release_date: record.targetReleaseDate || null,
             cover_url: record.coverUrl || null,
             description: record.description || null,
@@ -103,9 +102,8 @@ export async function saveStudioProject(project: StudioProjectRecord): Promise<v
             updated_at: record.updatedAt,
           };
           const { error } = await supabase.from('studio_projects').upsert(payload);
-          if (error && (error.message?.includes('theme') || error.code === 'PGRST204')) {
-            delete payload.theme;
-            await supabase.from('studio_projects').upsert(payload);
+          if (error) {
+            console.warn('[MusicStudio] studio_projects upsert warning:', error.message);
           }
         }
       } catch (err) {
@@ -238,19 +236,17 @@ export async function saveStudioSong(song: StudioSongRecord): Promise<void> {
             title: record.title,
             premise: record.premise || '',
             scratchpad: record.scratchpad || '',
-            content_lyrics: record.contentLyrics,
+            content_lyrics: record.contentLyrics || '',
             status: record.status,
             progress: typeof record.progress === 'number' ? record.progress : 0,
             progress_note: record.progressNote || null,
-            musical_key: record.musicalKey,
-            bpm: record.bpm,
-            capo: record.capo,
-            time_signature: record.timeSignature,
-            tuning: record.tuning,
+            musical_key: record.musicalKey || 'C',
+            bpm: record.bpm || 120,
+            capo: record.capo || 0,
+            time_signature: record.timeSignature || '4/4',
+            tuning: record.tuning || 'Standard (E A D G B E)',
             theme: record.theme || null,
-            genre: record.genre || null,
             target_release_date: record.targetReleaseDate || null,
-            reference_link: record.referenceLink || null,
             audio_url: record.audioUrl || null,
             cover_url: record.coverUrl || null,
             user_id: user.id,
@@ -258,9 +254,8 @@ export async function saveStudioSong(song: StudioSongRecord): Promise<void> {
             updated_at: record.updatedAt,
           };
           const { error } = await supabase.from('studio_songs').upsert(payload);
-          if (error && (error.message?.includes('theme') || error.code === 'PGRST204')) {
-            delete payload.theme;
-            await supabase.from('studio_songs').upsert(payload);
+          if (error) {
+            console.warn('[MusicStudio] studio_songs upsert warning:', error.message);
           }
         }
       } catch (err) {
@@ -328,7 +323,11 @@ export async function getLyricVersionsBySongId(songId: string): Promise<StudioLy
 }
 
 export async function saveLyricVersion(version: StudioLyricVersionRecord): Promise<void> {
-  await db.studio_lyric_versions.put(version);
+  const updatedVersion = {
+    ...version,
+    updatedAt: version.updatedAt || new Date().toISOString(),
+  };
+  await db.studio_lyric_versions.put(updatedVersion);
 
   const config = getSupabaseConfig();
   if (config.isConfigured && supabase) {
@@ -337,14 +336,20 @@ export async function saveLyricVersion(version: StudioLyricVersionRecord): Promi
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await supabase.from('studio_lyric_versions').upsert({
-            id: version.id,
-            song_id: version.songId,
-            version_name: version.versionName,
-            content: version.content,
-            is_focused: !!version.isFocused,
-            is_final: !!version.isFinal,
+            id: updatedVersion.id,
+            song_id: updatedVersion.songId,
+            version_name: updatedVersion.versionName,
+            content: updatedVersion.content,
+            is_focused: !!updatedVersion.isFocused,
+            is_final: !!updatedVersion.isFinal,
+            musical_key: updatedVersion.musicalKey || 'C',
+            bpm: updatedVersion.bpm || 120,
+            capo: updatedVersion.capo || 0,
+            time_signature: updatedVersion.timeSignature || '4/4',
+            tuning: updatedVersion.tuning || 'Standard (E A D G B E)',
             user_id: user.id,
-            created_at: version.createdAt,
+            created_at: updatedVersion.createdAt,
+            updated_at: updatedVersion.updatedAt,
           });
         }
       } catch (err) {
@@ -528,7 +533,13 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
         content: v.content,
         isFocused: !!v.is_focused,
         isFinal: !!v.is_final,
+        musicalKey: v.musical_key || 'C',
+        bpm: v.bpm || 120,
+        capo: v.capo || 0,
+        timeSignature: v.time_signature || '4/4',
+        tuning: v.tuning || 'Standard (E A D G B E)',
         createdAt: v.created_at,
+        updatedAt: v.updated_at || v.created_at,
       }));
 
       // Reconcile: Purge local versions that were deleted on cloud
