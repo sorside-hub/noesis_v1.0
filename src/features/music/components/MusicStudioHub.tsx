@@ -15,6 +15,7 @@ import {
   X,
   ArrowDownWideNarrow,
   ArrowUpNarrowWide,
+  Tag,
 } from 'lucide-react';
 import { useMusicStudio } from '../hooks/useMusicStudio';
 import { MusicKanbanPipeline } from './MusicKanbanPipeline';
@@ -78,6 +79,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
   const [activeTab, setActiveTab] = useState<StudioViewTab>('pipeline');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string | null>(null);
+  const [selectedThemeFilter, setSelectedThemeFilter] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'updated' | 'created' | 'title' | 'progress'>('updated');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
@@ -88,6 +90,10 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
   // Custom Sort Menu Popover state
   const [showSortMenu, setShowSortMenu] = useState(false);
   const sortMenuRef = useRef<HTMLDivElement>(null);
+
+  // Custom Theme Menu Popover state
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const themeMenuRef = useRef<HTMLDivElement>(null);
 
   // Modals state
   const [isNewSongModalOpen, setIsNewSongModalOpen] = useState(false);
@@ -137,6 +143,34 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
       document.removeEventListener('pointerdown', handlePointerDown);
     };
   }, [showSortMenu]);
+
+  // Close theme menu popover on outside click
+  useEffect(() => {
+    if (!showThemeMenu) return;
+
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
+        setShowThemeMenu(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [showThemeMenu]);
+
+  // Extract all unique available themes across songs & projects
+  const availableThemes = useMemo(() => {
+    const set = new Set<string>();
+    rawSongs.forEach((s) => {
+      if (s.theme && s.theme.trim()) set.add(s.theme.trim());
+    });
+    rawProjects.forEach((p) => {
+      if (p.theme && p.theme.trim()) set.add(p.theme.trim());
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [rawSongs, rawProjects]);
 
   // Combine Singles, EPs, and Albums into unified release items for Pipeline & Daftar
   const releaseItems: MusicReleaseItem[] = useMemo(() => {
@@ -205,6 +239,12 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         if (item.status !== selectedStatusFilter) return false;
       }
 
+      if (selectedThemeFilter) {
+        if (!item.theme || item.theme.trim().toLowerCase() !== selectedThemeFilter.trim().toLowerCase()) {
+          return false;
+        }
+      }
+
       return true;
     });
 
@@ -226,18 +266,25 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
       }
       return sortOrder === 'desc' ? -cmp : cmp;
     });
-  }, [releaseItems, searchQuery, selectedStatusFilter, sortBy, sortOrder]);
+  }, [releaseItems, searchQuery, selectedStatusFilter, selectedThemeFilter, sortBy, sortOrder]);
 
   // Filtered projects for Discography Tab
   const filteredProjects = useMemo(() => {
-    if (!searchQuery.trim()) return projects;
-    const q = searchQuery.toLowerCase();
-    return projects.filter(p => 
-      p.title.toLowerCase().includes(q) || 
-      p.genre?.toLowerCase().includes(q) ||
-      p.songs.some(s => s.title.toLowerCase().includes(q))
-    );
-  }, [projects, searchQuery]);
+    return projects.filter(p => {
+      if (selectedThemeFilter) {
+        const projThemeMatches = p.theme && p.theme.trim().toLowerCase() === selectedThemeFilter.trim().toLowerCase();
+        const songThemeMatches = p.songs.some(s => s.theme && s.theme.trim().toLowerCase() === selectedThemeFilter.trim().toLowerCase());
+        if (!projThemeMatches && !songThemeMatches) return false;
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return p.title.toLowerCase().includes(q) || 
+          p.genre?.toLowerCase().includes(q) ||
+          p.songs.some(s => s.title.toLowerCase().includes(q));
+      }
+      return true;
+    });
+  }, [projects, searchQuery, selectedThemeFilter]);
 
   const handleSelectItem = (item: MusicReleaseItem) => {
     if (item.kind === 'song') {
@@ -577,7 +624,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
               placeholder="Cari lagu, album, single..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-bg-secondary border border-border-default/20 hover:border-accent-primary/40 focus:border-accent-primary/60 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary/20 transition-all"
+              className="w-full h-9 pl-9 pr-8 text-xs rounded-2xl bg-bg-secondary border border-border-default/20 hover:border-accent-primary/40 focus:border-accent-primary/60 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary/20 transition-all"
             />
             {searchQuery && (
               <button
@@ -591,12 +638,107 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
             )}
           </div>
 
-          {/* 2. Custom Popover Sort Menu */}
+          {/* 2. Theme Filter Popover Icon Button */}
+          <div className="relative shrink-0" ref={themeMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowThemeMenu(!showThemeMenu)}
+              className={`w-9 h-9 rounded-2xl bg-bg-secondary hover:bg-bg-hover border border-border-default/20 hover:border-accent-primary/40 text-text-primary cursor-pointer transition-all active:scale-95 flex items-center justify-center relative shrink-0 ${
+                showThemeMenu ? 'border-accent-primary/60 bg-bg-hover ring-1 ring-accent-primary/20' : ''
+              }`}
+              title={selectedThemeFilter ? `Filter Tema: ${selectedThemeFilter}` : 'Filter berdasarkan Tema'}
+            >
+              <Tag size={14} className={selectedThemeFilter ? 'text-accent-primary' : 'text-text-muted'} />
+              {selectedThemeFilter && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-accent-primary rounded-full ring-2 ring-bg-primary" />
+              )}
+            </button>
+
+            {/* Floating Custom Theme Dropdown Popover */}
+            {showThemeMenu && (
+              <div className="absolute right-0 sm:right-auto sm:left-0 top-full mt-1.5 w-52 bg-bg-secondary rounded-2xl shadow-2xl z-50 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 border border-border-default/20">
+                <div className="px-2.5 py-1 text-[10px] font-bold text-text-muted uppercase tracking-wider flex items-center justify-between">
+                  <span>Filter Tema</span>
+                  {selectedThemeFilter && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedThemeFilter(null);
+                        setShowThemeMenu(false);
+                      }}
+                      className="text-[10px] text-accent-primary hover:underline cursor-pointer lowercase"
+                    >
+                      reset
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-56 overflow-y-auto custom-scrollbar space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedThemeFilter(null);
+                      setShowThemeMenu(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left font-medium ${
+                      !selectedThemeFilter
+                        ? 'bg-bg-primary text-text-primary font-bold'
+                        : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
+                    }`}
+                  >
+                    <span>Semua Tema</span>
+                    {!selectedThemeFilter && <Check size={13} className="text-accent-primary shrink-0" />}
+                  </button>
+
+                  <div className="mx-2 h-px bg-border-default/20 my-1" />
+
+                  {availableThemes.length === 0 ? (
+                    <div className="px-2.5 py-2 text-center text-xs text-text-muted italic">
+                      Belum ada tema lagu/album
+                    </div>
+                  ) : (
+                    availableThemes.map((t) => {
+                      const isSelected = selectedThemeFilter === t;
+                      const matchCount = releaseItems.filter(
+                        (item) => item.theme && item.theme.trim().toLowerCase() === t.trim().toLowerCase()
+                      ).length;
+
+                      return (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => {
+                            setSelectedThemeFilter(isSelected ? null : t);
+                            setShowThemeMenu(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors text-left font-medium ${
+                            isSelected
+                              ? 'bg-bg-primary text-text-primary font-bold'
+                              : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
+                          }`}
+                        >
+                          <span className="truncate pr-2">{t}</span>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-bg-hover text-text-muted">
+                              {matchCount}
+                            </span>
+                            {isSelected && <Check size={13} className="text-accent-primary shrink-0" />}
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Custom Popover Sort Menu */}
           <div className="relative shrink-0" ref={sortMenuRef}>
             <button
               type="button"
               onClick={() => setShowSortMenu(!showSortMenu)}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-bg-secondary hover:bg-bg-hover border border-border-default/20 hover:border-accent-primary/40 text-text-primary cursor-pointer transition-all active:scale-95 ${
+              className={`h-9 px-3 rounded-2xl bg-bg-secondary hover:bg-bg-hover border border-border-default/20 hover:border-accent-primary/40 text-text-primary cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 text-xs font-semibold shrink-0 ${
                 showSortMenu ? 'border-accent-primary/60 bg-bg-hover ring-1 ring-accent-primary/20' : ''
               }`}
             >
@@ -605,7 +747,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
                 const Icon = currentOpt.icon;
                 return (
                   <>
-                    <Icon size={13} className="text-text-muted shrink-0" />
+                    <Icon size={14} className="text-text-muted shrink-0" />
                     <span className="hidden sm:inline">{currentOpt.label}</span>
                   </>
                 );
@@ -648,11 +790,11 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
             )}
           </div>
 
-          {/* 3. Sort Direction Toggle Button (Opsi 1: Atas ke Bawah / Bawah ke Atas) */}
+          {/* 4. Sort Direction Toggle Button (Menaik / Menurun) */}
           <button
             type="button"
             onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
-            className="flex items-center justify-center w-8 h-8 rounded-xl bg-bg-secondary hover:bg-bg-hover border border-border-default/20 hover:border-accent-primary/40 text-text-primary cursor-pointer transition-all active:scale-95 shrink-0 group"
+            className="w-9 h-9 rounded-2xl bg-bg-secondary hover:bg-bg-hover border border-border-default/20 hover:border-accent-primary/40 text-text-primary cursor-pointer transition-all active:scale-95 flex items-center justify-center shrink-0 group"
             title={
               sortOrder === 'desc'
                 ? 'Urutan: Menurun / Atas ke Bawah (Klik untuk ganti Menaik)'
@@ -704,6 +846,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
                 onSelectSong={(songId) => navigateToMusicSubView(songId, 'reader')}
                 onSelectProject={(projId) => navigateToMusicProject(projId)}
                 searchQuery={searchQuery}
+                selectedTheme={selectedThemeFilter}
               />
             )}
           </div>

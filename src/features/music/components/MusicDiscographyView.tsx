@@ -18,6 +18,7 @@ interface MusicDiscographyViewProps {
   onSelectSong: (songId: string) => void;
   onSelectProject: (projectId: string) => void;
   searchQuery?: string;
+  selectedTheme?: string | null;
 }
 
 type UnifiedDiscographyItem = 
@@ -26,7 +27,6 @@ type UnifiedDiscographyItem =
       id: string;
       title: string;
       type: MusicProjectType;
-      theme?: string;
       genre?: string;
       releaseDate?: string;
       coverUrl?: string;
@@ -40,7 +40,6 @@ type UnifiedDiscographyItem =
       id: string;
       title: string;
       type: 'single';
-      theme?: string;
       genre?: string;
       releaseDate?: string;
       coverUrl?: string;
@@ -57,6 +56,7 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
   songs,
   onSelectSong,
   searchQuery = '',
+  selectedTheme,
 }) => {
   const [filterType, setFilterType] = useState<'all' | 'albums' | 'singles'>('all');
   const [expandedProjectIds, setExpandedProjectIds] = useState<Record<string, boolean>>({});
@@ -124,7 +124,6 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
           id: proj.id,
           title: proj.title,
           type: proj.type,
-          theme: proj.theme,
           genre: proj.genre,
           releaseDate: proj.targetReleaseDate,
           coverUrl: proj.coverUrl,
@@ -147,7 +146,6 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
           id: song.id,
           title: song.title,
           type: 'single',
-          theme: song.theme,
           genre: song.genre,
           releaseDate: song.targetReleaseDate,
           coverUrl: song.coverUrl,
@@ -207,7 +205,7 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
     return queue;
   }, [unifiedItems]);
 
-  // Filter based on selected tab and search query
+  // Filter based on selected tab, theme, and search query
   const filteredItems = useMemo(() => {
     return unifiedItems.filter((item) => {
       // Tab Filter
@@ -218,17 +216,31 @@ export const MusicDiscographyView: React.FC<MusicDiscographyViewProps> = ({
         return false;
       }
 
+      // Theme Filter
+      if (selectedTheme) {
+        if (item.kind === 'project') {
+          const projThemeMatches = item.rawProject.theme && item.rawProject.theme.trim().toLowerCase() === selectedTheme.trim().toLowerCase();
+          const trackThemeMatches = item.tracks.some((t) => t.theme && t.theme.trim().toLowerCase() === selectedTheme.trim().toLowerCase());
+          if (!projThemeMatches && !trackThemeMatches) return false;
+        } else {
+          const songThemeMatches = item.rawSong.theme && item.rawSong.theme.trim().toLowerCase() === selectedTheme.trim().toLowerCase();
+          if (!songThemeMatches) return false;
+        }
+      }
+
       // Search Query
       if (query) {
         const matchTitle = item.title.toLowerCase().includes(query);
-        const matchTheme = item.theme?.toLowerCase().includes(query);
         const matchGenre = item.genre?.toLowerCase().includes(query);
-        return matchTitle || matchTheme || matchGenre;
+        const matchTheme = item.kind === 'project'
+          ? (item.rawProject.theme?.toLowerCase().includes(query) || item.tracks.some(t => t.theme?.toLowerCase().includes(query)))
+          : item.rawSong.theme?.toLowerCase().includes(query);
+        return matchTitle || matchGenre || matchTheme;
       }
 
       return true;
     });
-  }, [unifiedItems, filterType, query]);
+  }, [unifiedItems, filterType, query, selectedTheme]);
 
   return (
     <div className="flex-1 min-h-0 flex flex-col select-none overflow-hidden">
