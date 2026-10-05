@@ -105,57 +105,50 @@ export const MusicKanbanCard: React.FC<MusicKanbanCardProps> = ({
         </div>
       ) : null}
 
-      {/* LEFT CONTENT: BARIS 1 (JUDUL) + BARIS 2 (INFO TYPE • % • CATATAN) */}
+      {/* LEFT CONTENT: BARIS 1 (JUDUL) + BARIS 2 (INFO TYPE • TEMA • %) + BARIS 3 (CATATAN PROGRES) */}
       <div className="flex-1 flex flex-col justify-center gap-1 min-w-0">
         {/* BARIS 1: JUDUL */}
-        <h4 className="text-xs font-bold text-text-heading truncate group-hover:text-accent-primary transition-colors">
+        <h4 className="text-xs font-bold text-text-heading truncate group-hover:text-accent-primary transition-colors leading-tight">
           {item.title || 'Tanpa Judul'}
         </h4>
 
-        {/* BARIS 2: INFO TYPE (teks kecil tanpa box) • TEMA • % (3 tingkat warna) • CATATAN */}
-        {(item.status === 'ready' || item.status === 'released') ? (
-          <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
-            <span className="shrink-0">{typeText}</span>
-            {item.theme && item.theme.trim() && (
-              <>
-                <span className="shrink-0 opacity-40">•</span>
-                <span className="truncate text-text-secondary font-medium">
-                  {item.theme.trim()}
-                </span>
-              </>
-            )}
-            {item.trackCount ? (
-              <>
-                <span className="shrink-0 opacity-40">•</span>
-                <span className="shrink-0">{item.trackCount} Lagu</span>
-              </>
-            ) : null}
+        {/* BARIS 2: METADATA & PROGRES (Type • Tema • %) */}
+        <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
+          <span className="shrink-0">{typeText}</span>
+
+          {item.theme && item.theme.trim() ? (
+            <>
+              <span className="shrink-0 opacity-40">•</span>
+              <span className="truncate text-text-secondary font-medium">
+                {item.theme.trim()}
+              </span>
+            </>
+          ) : null}
+
+          {item.status !== 'ready' && item.status !== 'released' && (
+            <>
+              <span className="shrink-0 opacity-40">•</span>
+              <span className={`font-mono font-bold shrink-0 ${progressColorClass}`}>
+                {prog}%
+              </span>
+            </>
+          )}
+
+          {item.trackCount ? (
+            <>
+              <span className="shrink-0 opacity-40">•</span>
+              <span className="shrink-0">{item.trackCount} Lagu</span>
+            </>
+          ) : null}
+        </div>
+
+        {/* BARIS 3: CATATAN PROGRES (Jika Ada) */}
+        {item.progressNote && item.progressNote.trim() ? (
+          <div className="text-[10.5px] italic text-text-muted/80 truncate pt-0.5 flex items-center gap-1 min-w-0">
+            <span className="shrink-0 text-[10px] opacity-70">💬</span>
+            <span className="truncate">{item.progressNote.trim()}</span>
           </div>
-        ) : (
-          <div className="flex items-center gap-1.5 text-[11px] text-text-muted min-w-0 w-full truncate font-medium">
-            <span className="shrink-0">{typeText}</span>
-            {item.theme && item.theme.trim() && (
-              <>
-                <span className="shrink-0 opacity-40">•</span>
-                <span className="truncate text-text-secondary font-medium">
-                  {item.theme.trim()}
-                </span>
-              </>
-            )}
-            <span className="shrink-0 opacity-40">•</span>
-            <span className={`font-mono font-bold shrink-0 ${progressColorClass}`}>
-              {prog}%
-            </span>
-            {item.progressNote && item.progressNote.trim() && (
-              <>
-                <span className="shrink-0 opacity-40">•</span>
-                <span className="truncate italic text-text-muted/80">
-                  {item.progressNote}
-                </span>
-              </>
-            )}
-          </div>
-        )}
+        ) : null}
       </div>
 
       {/* RIGHT CONTENT: TITIK 3 MENU (VERTICALLY CENTERED) */}
