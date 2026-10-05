@@ -127,6 +127,7 @@ const PropertyKeyInput: React.FC<PropertyKeyInputProps> = ({
       <input
         ref={inputRef}
         type="text"
+        enterKeyHint="done"
         value={value}
         onChange={(e) => {
           onChangeKey(e.target.value);
@@ -134,7 +135,9 @@ const PropertyKeyInput: React.FC<PropertyKeyInputProps> = ({
         }}
         onFocus={() => setShowSuggestions(true)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
+          if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
+            e.preventDefault();
+            e.stopPropagation();
             e.currentTarget.blur();
             setShowSuggestions(false);
           }
@@ -240,8 +243,16 @@ const PropertyValueInput: React.FC<PropertyValueInputProps> = ({
     return (
       <input
         type="date"
+        enterKeyHint="done"
         value={value || ''}
         onChange={(e) => onChangeValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.blur();
+          }
+        }}
         className="bg-bg-secondary text-xs text-text-primary rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-primary w-full font-mono cursor-pointer"
       />
     );
@@ -252,6 +263,7 @@ const PropertyValueInput: React.FC<PropertyValueInputProps> = ({
       <input
         ref={inputRef}
         type={type === 'number' ? 'number' : 'text'}
+        enterKeyHint="done"
         value={value || ''}
         onChange={(e) => {
           onChangeValue(e.target.value);
@@ -259,7 +271,9 @@ const PropertyValueInput: React.FC<PropertyValueInputProps> = ({
         }}
         onFocus={() => setShowSuggestions(true)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
+          if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
+            e.preventDefault();
+            e.stopPropagation();
             e.currentTarget.blur();
             setShowSuggestions(false);
           }

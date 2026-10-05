@@ -20,6 +20,50 @@ import { InsertAudioModal } from '../../editor/components/InsertAudioModal';
 import { InsertImageModal } from '../../editor/components/InsertImageModal';
 import { ThemeSelector } from './ThemeSelector';
 
+const BufferedProgressNoteInput: React.FC<{
+  value?: string;
+  placeholder: string;
+  onChange: (val: string) => void;
+}> = ({ value = '', placeholder, onChange }) => {
+  const [localVal, setLocalVal] = useState(value);
+  const isFocusedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isFocusedRef.current) {
+      setLocalVal(value || '');
+    }
+  }, [value]);
+
+  return (
+    <input
+      type="text"
+      enterKeyHint="done"
+      placeholder={placeholder}
+      value={localVal}
+      onFocus={() => {
+        isFocusedRef.current = true;
+      }}
+      onBlur={() => {
+        isFocusedRef.current = false;
+        onChange(localVal);
+      }}
+      onChange={(e) => {
+        const newVal = e.target.value;
+        setLocalVal(newVal);
+        onChange(newVal);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.currentTarget.blur();
+        }
+      }}
+      className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-bg-secondary border border-border-default/20 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
+    />
+  );
+};
+
 interface SingleMetadataSidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -435,20 +479,10 @@ export const SingleMetadataSidebar: React.FC<SingleMetadataSidebarProps> = ({
                 </div>
 
                 {/* Progress Comment / Note Field */}
-                <input
-                  type="text"
-                  enterKeyHint="done"
+                <BufferedProgressNoteInput
                   placeholder="Catatan progres (misal: 'Chorus kurang mantab')..."
                   value={song.progressNote || ''}
-                  onChange={(e) => onUpdateSong({ progressNote: e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-bg-secondary border border-border-default/20 text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-1 focus:ring-accent-primary"
+                  onChange={(val) => onUpdateSong({ progressNote: val })}
                 />
               </div>
             </div>

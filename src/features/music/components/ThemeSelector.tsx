@@ -26,9 +26,11 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync with prop when external selection/song changes
+  // Sync with prop when external selection/song changes (only if not currently focused)
   useEffect(() => {
-    setLocalTheme(theme || '');
+    if (document.activeElement !== inputRef.current) {
+      setLocalTheme(theme || '');
+    }
   }, [theme]);
 
   // Clean up debounce timer
@@ -47,8 +49,8 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
       clearTimeout(debounceTimerRef.current);
     }
     debounceTimerRef.current = setTimeout(() => {
-      onChange(val.trim() || undefined);
-    }, 200);
+      onChange(val || undefined);
+    }, 300);
   };
 
   const handleSelectSuggestion = (val: string) => {

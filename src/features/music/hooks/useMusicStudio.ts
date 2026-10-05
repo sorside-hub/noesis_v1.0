@@ -81,28 +81,35 @@ export function useMusicStudio() {
     // Subscribe to Supabase Realtime changes across studio tables
     let channel: any = null;
     if (supabase) {
+      const handleRealtimeCloudUpdate = () => {
+        const activeEl = document.activeElement;
+        const isTyping =
+          activeEl &&
+          (activeEl.tagName === 'INPUT' ||
+            activeEl.tagName === 'TEXTAREA' ||
+            (activeEl as HTMLElement).isContentEditable);
+
+        if (!isTyping) {
+          syncMusicStudioFromCloud().then(() => reloadData());
+        }
+      };
+
       channel = supabase
         .channel('music-studio-realtime')
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'studio_projects' },
-          () => {
-            syncMusicStudioFromCloud().then(() => reloadData());
-          }
+          handleRealtimeCloudUpdate
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'studio_songs' },
-          () => {
-            syncMusicStudioFromCloud().then(() => reloadData());
-          }
+          handleRealtimeCloudUpdate
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'studio_lyric_versions' },
-          () => {
-            syncMusicStudioFromCloud().then(() => reloadData());
-          }
+          handleRealtimeCloudUpdate
         )
         .subscribe();
     }
