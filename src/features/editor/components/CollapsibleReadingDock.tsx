@@ -9,6 +9,7 @@ import {
   RotateCcw,
   Activity,
   ChevronDown,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { transposeNoteName } from '../lib/transposeUtils';
 
@@ -41,6 +42,7 @@ interface CollapsibleReadingDockProps {
   onOpenBpmModal?: () => void;
   capo?: number;
   onUpdateCapo?: (capo: number) => void;
+  onAutoLock?: () => void;
 }
 
 export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
@@ -54,33 +56,27 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
   onOpenBpmModal,
   capo = 0,
   onUpdateCapo,
+  onAutoLock,
 }) => {
-  const [isOpen, setIsOpen] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(DOCK_OPEN_KEY);
-      return saved === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   // Auto-scroll playing state
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Speed state
+  // Speed state (calibrated for live singing: 0.5x to 3.0x with 0.25x steps, base 18px/s)
   const [speed, setSpeed] = useState<number>(() => {
     try {
       const saved = localStorage.getItem(SPEED_STORAGE_KEY);
       if (saved !== null) {
         const val = parseFloat(saved);
-        if (!isNaN(val) && val >= 0.5 && val <= 8) {
-          return val;
+        if (!isNaN(val) && val >= 0.5 && val <= 3.0) {
+          return Math.round(val * 100) / 100;
         }
       }
     } catch {
       // ignore
     }
-    return 1.5;
+    return 1.0;
   });
 
   // Popups state inside dock
@@ -92,19 +88,12 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
   const [lockedTop, setLockedTop] = useState<number | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
+  const accumulatedPxRef = useRef<number>(0);
   const dockRef = useRef<HTMLDivElement>(null);
 
-  // Save dock state to localStorage
+  // Toggle dock state
   const toggleDock = (openState?: boolean) => {
-    setIsOpen((prev) => {
-      const next = typeof openState === 'boolean' ? openState : !prev;
-      try {
-        localStorage.setItem(DOCK_OPEN_KEY, String(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
+    setIsOpen((prev) => (typeof openState === 'boolean' ? openState : !prev));
   };
 
   // Save speed changes to localStorage
@@ -172,7 +161,30 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
     };
   }, [lockedTop]);
 
-  // Auto-scroll loop using requestAnimationFrame
+  // Helper to find the active scrollable editor container
+  const findScrollableContainer = (): HTMLElement | null => {
+    // 1. Direct local lookup from dock's parent canvas (prevents selecting background hidden containers)
+    if (dockRef.current) {
+      const parentContainer = dockRef.current.parentElement;
+      const localEditor = parentContainer?.querySelector('.editor-scroll-container');
+      if (localEditor instanceof HTMLElement) return localEditor;
+    }
+
+    // 2. ProseMirror closest overflow container
+    const pm = document.querySelector('.ProseMirror');
+    if (pm) {
+      const scrollable = pm.closest('.overflow-y-auto, .overflow-auto');
+      if (scrollable instanceof HTMLElement) return scrollable;
+    }
+
+    // 3. Fallback to active editor-scroll-container in document
+    const editorScroll = document.querySelector('.editor-scroll-container');
+    if (editorScroll instanceof HTMLElement) return editorScroll;
+
+    return null;
+  };
+
+  // Auto-scroll loop using requestAnimationFrame (Integer-threshold sub-pixel accumulation)
   useEffect(() => {
     if (!isPlaying) {
       if (animFrameRef.current) {
@@ -180,18 +192,9 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         animFrameRef.current = null;
       }
       lastTimeRef.current = null;
+      accumulatedPxRef.current = 0;
       return;
     }
-
-    const findScrollableContainer = (): HTMLElement | null => {
-      const editorCanvas = document.querySelector('.prose')?.closest('.overflow-y-auto');
-      if (editorCanvas instanceof HTMLElement) return editorCanvas;
-
-      const anyScrollable = document.querySelector('main .overflow-y-auto');
-      if (anyScrollable instanceof HTMLElement) return anyScrollable;
-
-      return document.documentElement;
-    };
 
     const step = (time: DOMHighResTimeStamp) => {
       if (lastTimeRef.current === null) {
@@ -202,10 +205,22 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
 
       const container = findScrollableContainer();
       if (container) {
-        const pxToScroll = speed * 25 * deltaTime;
-        container.scrollTop += pxToScroll;
+        // Natural fluid scrolling (base 18px/sec: 0.5x = 9px/s, 1.0x = 18px/s, 2.0x = 36px/s)
+        const deltaPx = speed * 18 * deltaTime;
+        accumulatedPxRef.current += deltaPx;
 
-        if (container.scrollTop + container.clientHeight >= container.scrollHeight - 2) {
+        // When accumulated fraction reaches >= 1 full pixel, scroll the integer amount
+        if (accumulatedPxRef.current >= 1) {
+          const integerPx = Math.floor(accumulatedPxRef.current);
+          container.scrollTop += integerPx;
+          accumulatedPxRef.current -= integerPx;
+        }
+
+        // Auto-stop when reached bottom with 5px threshold
+        if (
+          container.scrollHeight > container.clientHeight &&
+          container.scrollTop + container.clientHeight >= container.scrollHeight - 5
+        ) {
           setIsPlaying(false);
           return;
         }
@@ -224,9 +239,10 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
   }, [isPlaying, speed]);
 
   const handleScrollToTop = () => {
-    const editorCanvas = document.querySelector('.prose')?.closest('.overflow-y-auto');
-    if (editorCanvas instanceof HTMLElement) {
-      editorCanvas.scrollTo({ top: 0, behavior: 'smooth' });
+    const container = findScrollableContainer();
+    if (container) {
+      accumulatedPxRef.current = 0;
+      container.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -247,67 +263,38 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
       }`}
     >
       {/* 
-        TRIGGER TAB (Trapesium Siku-siku Vertikal)
+        TRIGGER TAB (Trapesium Siku-siku Vertikal menempel di tepi kiri dock - 58px)
         Menempel di sisi kiri panel dock. Saat dock terlipat (translate-x-[56px]),
         dock tersembunyi dan tab ini persis menempel di tepi kanan layar.
       */}
       <button
         type="button"
         onClick={() => toggleDock()}
-        className="relative w-[32px] h-[92px] flex items-center justify-center cursor-pointer group focus:outline-hidden transition-all duration-300 active:scale-95"
-        title={isOpen ? 'Lipat panel dock' : 'Buka Live Performance Dock (Scroll, Key, Transpose, BPM, Capo)'}
+        className="relative w-[32px] h-[58px] flex items-center justify-center cursor-pointer group focus:outline-hidden transition-all active:scale-95 shrink-0"
+        title={isOpen ? 'Lipat panel dock' : isPlaying ? 'Auto-Scroll Aktif (Sedang Berjalan)' : 'Buka Live Performance Dock (Scroll, Key, Transpose, BPM, Capo)'}
         aria-label="Toggle Reading Tools Dock"
       >
-        {/* SVG Symmetrical Flat-Face Trapezoid Handle */}
+        {/* SVG Symmetrical Flat-Face Trapezoid Handle - Exactly matching Studio main dock */}
         <svg
-          viewBox="0 0 32 92"
+          viewBox="0 0 32 58"
           className="absolute inset-0 w-full h-full overflow-visible transition-all drop-shadow-md"
         >
           <path
-            d="M 32,0 C 32,6 24,9 12,12 C 4,13 0,15 0,18 L 0,74 C 0,77 4,79 12,80 C 24,83 32,86 32,92 Z"
+            d="M 32,0 C 32,5 24,8 12,11 C 4,12 0,15 0,19 L 0,39 C 0,43 4,46 12,47 C 24,50 32,53 32,58 Z"
             style={{
               fill: 'var(--bg-quaternary)',
             }}
-            className="group-hover:opacity-90 transition-opacity"
+            className="group-hover:opacity-95 transition-opacity"
           />
         </svg>
 
-        {/* Icons inside flat outer face */}
-        <div className="relative z-10 flex flex-col items-center justify-between h-[56px] py-1 pl-1 text-text-primary group-hover:text-accent-primary transition-colors">
-          {/* Icon 1: Auto-Scroll */}
-          <div
-            className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${
-              isPlaying
-                ? 'text-accent-primary animate-pulse'
-                : 'text-text-primary group-hover:text-accent-primary'
-            }`}
-            title={isPlaying ? 'Auto-Scroll Aktif (Sedang Berjalan)' : 'Auto-Scroll'}
-          >
-            {isPlaying ? (
-              <Pause size={12} />
-            ) : (
-              <Play size={12} className="translate-x-[0.5px]" />
-            )}
-          </div>
-
-          {/* Separator Titik Halus */}
-          <div className="w-1 h-1 rounded-full bg-border-default group-hover:bg-accent-primary/60 transition-colors" />
-
-          {/* Icon 2: Key / Music */}
-          <div
-            className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${
-              semitones !== 0
-                ? 'text-accent-primary font-bold'
-                : 'text-text-primary group-hover:text-accent-primary'
-            }`}
-            title={
-              semitones !== 0
-                ? `Key: ${currentSoundingKey} (${displaySemitones})`
-                : `Key: ${musicalKey}`
-            }
-          >
-            <Music size={12} />
-          </div>
+        {/* Single Icon inside flat face */}
+        <div className="relative z-10 flex items-center justify-center w-full h-full pl-1 text-text-primary group-hover:text-accent-primary transition-colors">
+          {isPlaying ? (
+            <Pause size={15} strokeWidth={2} />
+          ) : (
+            <SlidersHorizontal size={15} strokeWidth={2} />
+          )}
         </div>
       </button>
 
@@ -327,7 +314,14 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
         {/* Play / Pause Toggle Button */}
         <button
           type="button"
-          onClick={() => setIsPlaying(!isPlaying)}
+          onClick={() => {
+            const nextPlaying = !isPlaying;
+            setIsPlaying(nextPlaying);
+            if (nextPlaying) {
+              setIsOpen(false);
+              onAutoLock?.();
+            }
+          }}
           className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all cursor-pointer ${
             isPlaying
               ? 'bg-accent-primary text-accent-contrast'
@@ -343,13 +337,13 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
           )}
         </button>
 
-        {/* Speed Up (+0.5x) */}
+        {/* Speed Up (+0.25x) */}
         <button
           type="button"
-          onClick={() => setSpeed((s) => Math.min(8, Math.round((s + 0.5) * 10) / 10))}
-          disabled={speed >= 8}
+          onClick={() => setSpeed((s) => Math.min(3, Math.round((s + 0.25) * 100) / 100))}
+          disabled={speed >= 3}
           className="w-7 h-6 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
-          title="Percepat Auto-Scroll (+0.5x)"
+          title="Percepat Auto-Scroll (+0.25x)"
           aria-label="Speed Up"
         >
           <Plus size={12} />
@@ -363,13 +357,13 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
           {speed}x
         </div>
 
-        {/* Speed Down (-0.5x) */}
+        {/* Speed Down (-0.25x) */}
         <button
           type="button"
-          onClick={() => setSpeed((s) => Math.max(0.5, Math.round((s - 0.5) * 10) / 10))}
+          onClick={() => setSpeed((s) => Math.max(0.5, Math.round((s - 0.25) * 100) / 100))}
           disabled={speed <= 0.5}
           className="w-7 h-6 flex items-center justify-center text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-colors"
-          title="Perlambat Auto-Scroll (-0.5x)"
+          title="Perlambat Auto-Scroll (-0.25x)"
           aria-label="Speed Down"
         >
           <Minus size={12} />

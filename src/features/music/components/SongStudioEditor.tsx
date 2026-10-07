@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Editor } from '@tiptap/react';
-import { ArrowLeft, SlidersVertical, FileText, Wand2 } from 'lucide-react';
+import { ArrowLeft, SlidersVertical, FileText, Wand2, Lock, Unlock } from 'lucide-react';
 import { SongStudioToolbar } from './SongStudioToolbar';
 import { SongStudioSidebar } from './SongStudioSidebar';
 import { BpmTapModal } from './BpmTapModal';
@@ -13,6 +13,7 @@ import { getLyricVersionById } from '../lib/musicStudioStorage';
 import { ErrorBoundary } from '../../../components/common/ErrorBoundary';
 import { useNavigation } from '../../../context/NavigationContext';
 import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
+import { useVirtualKeyboard } from '../../../hooks/useVirtualKeyboard';
 
 interface SongStudioEditorProps {
   song: StudioSongRecord;
@@ -39,6 +40,12 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
   } = useNavigation();
 
   const [versionName, setVersionName] = useState<string | null>(null);
+  const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState<boolean>(false);
+  const { isKeyboardOpen } = useVirtualKeyboard();
+
+  const isSidebarOpen = isDesktopSidebarOpen || isMobileRightSidebarOpen;
+  const shouldShowMobileLock = !isKeyboardOpen && !isSidebarOpen;
 
   useEffect(() => {
     if (!activeVersionId) {
@@ -59,9 +66,6 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
 
   // Transpose state for CollapsibleReadingDock
   const [transposeOffset, setTransposeOffset] = useState<number>(0);
-
-  // Desktop sidebar state
-  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(false);
 
   // Handle Transposition
   const handleTranspose = useCallback((delta: number) => {
@@ -87,7 +91,6 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
     }
   };
 
-  const isSidebarOpen = isDesktopSidebarOpen || isMobileRightSidebarOpen;
   const handleCloseSidebar = () => {
     setIsDesktopSidebarOpen(false);
     closeMobileRightSidebar();
@@ -161,7 +164,21 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Lock / Reading Mode Toggle (Desktop only, hidden on mobile) */}
+          <button
+            type="button"
+            onClick={() => setIsLocked((prev) => !prev)}
+            title={isLocked ? 'Buka Kunci (Mode Edit)' : 'Kunci Catatan (Mode Membaca)'}
+            className={`hidden sm:flex w-8 h-8 items-center justify-center rounded-xl transition-all cursor-pointer shrink-0 ${
+              isLocked
+                ? 'bg-accent-primary/10 text-accent-primary border border-accent-primary/20 font-medium'
+                : 'bg-bg-primary hover:bg-bg-hover text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
+          </button>
+
           {/* Toggle Parameter Musikal Sidebar (Far Right, Matching Height & Shape) */}
           <button
             type="button"
@@ -199,9 +216,29 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
                   onAiMenuStateChange={setIsAiMenuOpen}
                   onEditorReady={setTiptapEditor}
                   enableChords={true}
+                  isReadOnly={isLocked}
                 />
               </ErrorBoundary>
             </div>
+
+            {/* Mobile Floating Reading Lock Button - Fixed position at bottom right */}
+            <button
+              type="button"
+              onClick={() => setIsLocked((prev) => !prev)}
+              className={`sm:hidden fixed right-3 sm:right-4 bottom-3 sm:bottom-3.5 z-40 flex items-center justify-center w-9 h-9 rounded-full bg-bg-quaternary border border-border-default/20 shadow-md transition-all duration-150 ease-out active:scale-95 cursor-pointer ${
+                shouldShowMobileLock
+                  ? 'translate-y-0 opacity-100'
+                  : 'translate-y-20 opacity-0 pointer-events-none'
+              } ${
+                isLocked
+                  ? 'text-accent-primary font-semibold'
+                  : 'text-text-primary hover:text-accent-primary'
+              }`}
+              title={isLocked ? 'Buka Kunci (Mode Edit)' : 'Kunci Catatan (Mode Membaca)'}
+              aria-label={isLocked ? 'Buka Kunci (Mode Edit)' : 'Kunci Catatan (Mode Membaca)'}
+            >
+              {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
+            </button>
 
             {/* Floating AI Actions Button - Mobile & Desktop when text is selected */}
             {hasSelection && !isAiMenuOpen && (
@@ -229,6 +266,7 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
               onOpenBpmModal={() => openModal('song-bpm-modal')}
               capo={song.capo || 0}
               onUpdateCapo={(c) => onUpdateSong({ capo: c })}
+              onAutoLock={() => setIsLocked(true)}
             />
           </div>
 
