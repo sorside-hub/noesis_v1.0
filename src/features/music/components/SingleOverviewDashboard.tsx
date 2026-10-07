@@ -468,14 +468,9 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               <div className="w-7 h-7 rounded-lg bg-bg-primary text-amber-400 flex items-center justify-center shrink-0 shadow-xs">
                 <Lightbulb size={14} />
               </div>
-              <div className="min-w-0">
-                <h2 className="text-xs sm:text-sm font-bold text-text-heading truncate">
-                  {song.title}
-                </h2>
-                <p className="text-[10px] text-text-muted truncate">
-                  Konsep
-                </p>
-              </div>
+              <h2 className="text-sm sm:text-base font-bold text-text-heading truncate">
+                {song.title}
+              </h2>
             </div>
           </div>
         </header>
@@ -538,14 +533,9 @@ export const SingleOverviewDashboard: React.FC<SingleOverviewDashboardProps> = (
               <div className="w-7 h-7 rounded-lg bg-bg-primary text-cyan-400 flex items-center justify-center shrink-0 shadow-xs">
                 <Compass size={14} />
               </div>
-              <div className="min-w-0">
-                <h2 className="text-xs sm:text-sm font-bold text-text-heading truncate">
-                  {song.title}
-                </h2>
-                <p className="text-[10px] text-text-muted truncate">
-                  Referensi
-                </p>
-              </div>
+              <h2 className="text-sm sm:text-base font-bold text-text-heading truncate">
+                {song.title}
+              </h2>
             </div>
           </div>
         </header>

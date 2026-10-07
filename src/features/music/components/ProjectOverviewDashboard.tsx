@@ -448,14 +448,9 @@ export const ProjectOverviewDashboard: React.FC<ProjectOverviewDashboardProps> =
               <div className="w-7 h-7 rounded-lg bg-bg-primary text-amber-400 flex items-center justify-center shrink-0 shadow-xs">
                 <Lightbulb size={14} />
               </div>
-              <div className="min-w-0">
-                <h2 className="text-xs sm:text-sm font-bold text-text-heading truncate">
-                  {project.title}
-                </h2>
-                <p className="text-[10px] text-text-muted truncate">
-                  Konsep (Otomatis Tersimpan)
-                </p>
-              </div>
+              <h2 className="text-sm sm:text-base font-bold text-text-heading truncate">
+                {project.title}
+              </h2>
             </div>
           </div>
         </header>

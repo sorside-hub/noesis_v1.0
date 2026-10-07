@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Editor } from '@tiptap/react';
-import { ArrowLeft, SlidersVertical, Music2, Wand2 } from 'lucide-react';
+import { ArrowLeft, SlidersVertical, FileText, Wand2 } from 'lucide-react';
 import { SongStudioToolbar } from './SongStudioToolbar';
 import { SongStudioSidebar } from './SongStudioSidebar';
 import { BpmTapModal } from './BpmTapModal';
@@ -148,16 +148,16 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
           </button>
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-bg-primary text-accent-primary flex items-center justify-center shrink-0 shadow-xs">
-              <Music2 size={14} />
+              <FileText size={14} />
             </div>
-            <div className="min-w-0">
-              <h2 className="text-xs sm:text-sm font-bold text-text-heading truncate">
-                {song.title}
-              </h2>
-              <p className="text-[10px] text-text-muted truncate">
-                Lirik & Chord{versionName ? ` • ${versionName}` : ''}
-              </p>
-            </div>
+            <h2 className="text-sm sm:text-base font-bold text-text-heading truncate">
+              {song.title}
+            </h2>
+            {versionName && (
+              <span className="shrink-0 px-2 py-0.5 rounded-md bg-bg-primary text-text-muted font-mono text-[10.5px] font-medium tracking-wide shadow-2xs">
+                {versionName}
+              </span>
+            )}
           </div>
         </div>
 
