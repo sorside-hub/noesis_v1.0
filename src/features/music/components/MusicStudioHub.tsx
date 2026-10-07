@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Music2, 
   Disc3, 
+  Mic2,
   Search, 
   Plus, 
   Loader2,
@@ -500,7 +501,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
         <header className="flex items-center justify-between gap-2.5 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-bg-secondary text-accent-primary flex items-center justify-center shrink-0 shadow-xs">
-              <Music2 size={16} />
+              <Mic2 size={16} />
             </div>
             <h1 className="text-base sm:text-lg font-bold text-text-heading tracking-tight truncate">
               Studio Musik

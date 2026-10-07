@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { transposeNoteName } from '../lib/transposeUtils';
+import { useNavigation } from '../../../context/NavigationContext';
 
 const SPEED_STORAGE_KEY = 'noesis_autoscroll_speed';
 const DOCK_OPEN_KEY = 'noesis_reading_dock_open';
@@ -58,6 +59,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
   onUpdateCapo,
   onAutoLock,
 }) => {
+  const { view } = useNavigation();
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   // Auto-scroll playing state
@@ -184,6 +186,26 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
     return null;
   };
 
+  // Auto-pause when user switches tabs or navigates away
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isPlaying) {
+        setIsPlaying(false);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isPlaying]);
+
+  // Auto-stop scrolling when user switches away from the music studio tab
+  useEffect(() => {
+    if (view !== 'music' && isPlaying) {
+      setIsPlaying(false);
+    }
+  }, [view, isPlaying]);
+
   // Auto-scroll loop using requestAnimationFrame (Integer-threshold sub-pixel accumulation)
   useEffect(() => {
     if (!isPlaying) {
@@ -234,7 +256,10 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
     return () => {
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
       }
+      lastTimeRef.current = null;
+      accumulatedPxRef.current = 0;
     };
   }, [isPlaying, speed]);
 

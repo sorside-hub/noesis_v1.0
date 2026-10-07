@@ -1,5 +1,5 @@
 import React from 'react';
-import { Folder, LayoutGrid, Settings, MessageSquare, HardDrive, Plus, AudioLines, Music2 } from 'lucide-react';
+import { Folder, LayoutGrid, Settings, MessageSquare, HardDrive, Plus, AudioLines, Disc3 } from 'lucide-react';
 import { ActiveTab } from './BottomNavPill';
 import { useNavigation } from '../../context/NavigationContext';
 import { useMusicianMode } from '../../features/music/hooks/useMusicianMode';
@@ -98,7 +98,7 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({ activeTab, onTabChange
                 : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
             }`}
           >
-            <Music2 size={18} strokeWidth={activeTab === 'music' ? 2.2 : 1.8} />
+            <Disc3 size={18} strokeWidth={activeTab === 'music' ? 2.2 : 1.8} />
           </button>
         )}
 

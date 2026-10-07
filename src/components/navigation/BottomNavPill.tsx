@@ -1,5 +1,5 @@
 import React from 'react';
-import { Folder, LayoutGrid, MessageSquare, HardDrive, Settings, Music2 } from 'lucide-react';
+import { Folder, LayoutGrid, MessageSquare, HardDrive, Settings, Disc3 } from 'lucide-react';
 import { useVirtualKeyboard } from '../../hooks/useVirtualKeyboard';
 import { useNavigation } from '../../context/NavigationContext';
 import { useMusicianMode } from '../../features/music/hooks/useMusicianMode';
@@ -101,7 +101,7 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
                   : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
               }`}
             >
-              <Music2 size={14} />
+              <Disc3 size={14} />
             </button>
           )}
 
