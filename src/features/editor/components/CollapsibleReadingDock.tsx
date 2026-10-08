@@ -11,7 +11,7 @@ import {
   ChevronDown,
   SlidersHorizontal,
 } from 'lucide-react';
-import { transposeNoteName } from '../lib/transposeUtils';
+import { transposeChord } from '../lib/transposeUtils';
 import { useNavigation } from '../../../context/NavigationContext';
 
 const SPEED_STORAGE_KEY = 'noesis_autoscroll_speed';
@@ -273,8 +273,8 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
 
   const displaySemitones = semitones > 0 ? `+${semitones}` : `${semitones}`;
   
-  // Real-time current transposed key calculation
-  const currentSoundingKey = musicalKey ? transposeNoteName(musicalKey, semitones) : 'C';
+  // Real-time current transposed key calculation (Harmonic-aware for Major and Minor)
+  const currentSoundingKey = musicalKey ? transposeChord(musicalKey, semitones) : 'C';
 
   return (
     <div
@@ -497,7 +497,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
                   const isActive = musicalKey === displayKey;
                   return (
                     <button
-                      key={item.major}
+                      key={displayKey}
                       type="button"
                       onClick={() => {
                         onUpdateKey(displayKey);

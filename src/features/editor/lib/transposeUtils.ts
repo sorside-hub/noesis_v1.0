@@ -8,6 +8,14 @@ import { isValidChordName, STRICT_CHORD_REGEX } from './chordUtils';
 const CHROMATIC_SHARPS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const CHROMATIC_FLATS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
+/**
+ * Standard Western Key Signatures (Harmonic-aware enharmonic standards):
+ * - For Major keys/chords: Pitch 1 is Db, Pitch 3 is Eb, Pitch 6 is F#, Pitch 8 is Ab, Pitch 10 is Bb
+ * - For Minor keys/chords: Pitch 1 is C#m, Pitch 3 is Ebm, Pitch 6 is F#m, Pitch 8 is G#m, Pitch 10 is Bbm
+ */
+export const STANDARD_MAJOR_SCALE = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+export const STANDARD_MINOR_SCALE = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B'];
+
 // Map note names to chromatic pitch indices (0 to 11)
 const NOTE_TO_PITCH: Record<string, number> = {
   'C': 0, 'B#': 0, 'Dbb': 0,
@@ -35,28 +43,46 @@ export function normalizeRootNote(note: string): string {
 }
 
 /**
- * Transposes a single note name (e.g. "C", "F#", "Bb") by a given number of semitones.
+ * Transposes a single note name (e.g. "C", "F#", "Bb", "Db") by a given number of semitones.
+ * Harmonic-aware: respects whether the musical context is Minor or Major.
  */
-export function transposeNoteName(note: string, semitones: number, preferFlats = false): string {
+export function transposeNoteName(
+  note: string, 
+  semitones: number, 
+  isMinor = false, 
+  preferFlats?: boolean
+): string {
   const norm = normalizeRootNote(note);
   if (NOTE_TO_PITCH[norm] === undefined) return note;
+
+  // Never alter the note if semitones is 0
+  if (semitones === 0) {
+    return norm;
+  }
+
   const currentPitch = NOTE_TO_PITCH[norm];
   let newPitch = (currentPitch + semitones) % 12;
   if (newPitch < 0) newPitch += 12;
 
-  const scale = preferFlats ? CHROMATIC_FLATS : CHROMATIC_SHARPS;
-  return scale[newPitch];
+  if (preferFlats !== undefined) {
+    return preferFlats ? CHROMATIC_FLATS[newPitch] : CHROMATIC_SHARPS[newPitch];
+  }
+
+  // Use harmonic-aware standard:
+  // Major: pitch 1 is Db, pitch 8 is Ab, pitch 3 is Eb, pitch 10 is Bb
+  // Minor: pitch 1 is C#m, pitch 8 is G#m, pitch 6 is F#m, pitch 3 is Ebm
+  return isMinor ? STANDARD_MINOR_SCALE[newPitch] : STANDARD_MAJOR_SCALE[newPitch];
 }
 
 /**
- * Transposes a full chord string (e.g. "Am7", "G/B", "F#m7", "C", "Bbmaj7").
+ * Transposes a full chord string (e.g. "Am7", "G/B", "F#m7", "C", "Bbmaj7", "Db", "C#m").
  */
 export function transposeChord(chordStr: string, semitones: number): string {
   if (!chordStr || semitones === 0) return chordStr;
   const trimmed = chordStr.trim();
   if (!trimmed) return chordStr;
 
-  // Handle slash chords (e.g. "G/B", "c/g")
+  // Handle slash chords (e.g. "G/B", "Db/F", "C#m/A")
   if (trimmed.includes('/')) {
     const parts = trimmed.split('/');
     const transposedRoot = transposeChord(parts[0], semitones);
@@ -71,10 +97,10 @@ export function transposeChord(chordStr: string, semitones: number): string {
   const rootNote = normalizeRootNote(match[1]);
   const suffix = match[2] || '';
 
-  // Use flats if original note was flat (e.g., Bb, Eb, Ab)
-  const isFlat = rootNote.includes('b');
-  const transposedRoot = transposeNoteName(rootNote, semitones, isFlat);
+  // Determine if chord is minor: starts with 'm' or 'min' but NOT 'maj'
+  const isMinor = /^(m|min)(?![a-zA-Z])/i.test(suffix) && !/^maj/i.test(suffix);
 
+  const transposedRoot = transposeNoteName(rootNote, semitones, isMinor);
   return `${transposedRoot}${suffix}`;
 }
 
