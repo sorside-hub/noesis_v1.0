@@ -115,7 +115,10 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
           type="button"
           title="Opsi"
           onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             handleOpenMenu(node, e);
           }}

@@ -360,7 +360,7 @@ export const useNavigationActions = ({
         const nextEntry: NavigationHistoryEntry = {
           view,
           activeTabId,
-          isMobileSidebarOpen: false,
+          isMobileSidebarOpen,
           isMobileRightSidebarOpen: false,
           activeModal: modalId,
           mediaCategory,
@@ -373,10 +373,8 @@ export const useNavigationActions = ({
       }
 
       setActiveModal(modalId);
-      setIsMobileSidebarOpen(false);
-      setIsMobileRightSidebarOpen(false);
     },
-    [activeModal, view, activeTabId, mediaCategory, musicProjectId, musicSongId, musicSubView, setActiveModal, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, isPopStateNavigatingRef, currentSeqRef]
+    [activeModal, view, activeTabId, isMobileSidebarOpen, mediaCategory, musicProjectId, musicSongId, musicSubView, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
   );
 
   // Close Modal

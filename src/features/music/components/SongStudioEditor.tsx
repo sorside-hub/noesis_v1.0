@@ -270,11 +270,13 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
             />
           </div>
 
-          {/* Bottom Toolbar for Rich Text, Chords, Audio, and Lyrics formatting */}
-          <SongStudioToolbar
-            editor={tiptapEditor}
-            onOpenAudioModal={() => openModal('song-audio-modal')}
-          />
+          {/* Bottom Toolbar for Rich Text, Chords, Audio, and Lyrics formatting (Hidden in reading/locked mode) */}
+          {!isLocked && (
+            <SongStudioToolbar
+              editor={tiptapEditor}
+              onOpenAudioModal={() => openModal('song-audio-modal')}
+            />
+          )}
         </div>
 
         {/* Slide-over Right Musical Parameter Sidebar (Vault Style Touch Gesture Physics & Borderless) */}

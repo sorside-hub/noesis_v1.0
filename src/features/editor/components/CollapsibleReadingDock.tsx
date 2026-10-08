@@ -59,7 +59,7 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
   onUpdateCapo,
   onAutoLock,
 }) => {
-  const { view } = useNavigation();
+  const { view, musicSongId, musicSubView } = useNavigation();
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   // Auto-scroll playing state
@@ -186,11 +186,25 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
     return null;
   };
 
-  // Auto-pause when user switches tabs or navigates away
+  // Clear any legacy localStorage dock open state on mount
+  useEffect(() => {
+    try {
+      localStorage.removeItem(DOCK_OPEN_KEY);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Auto-pause and collapse dock when user switches browser tabs or hides window
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && isPlaying) {
-        setIsPlaying(false);
+      if (document.hidden) {
+        setIsOpen(false);
+        setShowKeyPicker(false);
+        setShowCapoPicker(false);
+        if (isPlaying) {
+          setIsPlaying(false);
+        }
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -199,12 +213,28 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
     };
   }, [isPlaying]);
 
-  // Auto-stop scrolling when user switches away from the music studio tab
+  // Auto-close dock and stop scrolling when user navigates away, changes studio view/subView, or changes song
   useEffect(() => {
-    if (view !== 'music' && isPlaying) {
+    setIsOpen(false);
+    setShowKeyPicker(false);
+    setShowCapoPicker(false);
+    if (isPlaying) {
       setIsPlaying(false);
     }
-  }, [view, isPlaying]);
+  }, [view, musicSongId, musicSubView]);
+
+  // Clean up on component unmount
+  useEffect(() => {
+    return () => {
+      setIsOpen(false);
+      setShowKeyPicker(false);
+      setShowCapoPicker(false);
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
+    };
+  }, []);
 
   // Auto-scroll loop using requestAnimationFrame (Integer-threshold sub-pixel accumulation)
   useEffect(() => {
@@ -344,6 +374,8 @@ export const CollapsibleReadingDock: React.FC<CollapsibleReadingDockProps> = ({
             setIsPlaying(nextPlaying);
             if (nextPlaying) {
               setIsOpen(false);
+              setShowKeyPicker(false);
+              setShowCapoPicker(false);
               onAutoLock?.();
             }
           }}

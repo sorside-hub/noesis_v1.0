@@ -42,8 +42,8 @@ export function useTreeDnd({ vault, onMoveNode, setExpandedFolders }: UseTreeDnd
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250, // Hold 250ms to lift & drag
-        tolerance: 8, // Tolerates finger jitter so natural vertical swipe immediately triggers scroll
+        delay: 350, // Hold 350ms to lift & drag (iOS/Android native long-press standard)
+        tolerance: 10, // Tolerates finger jitter so natural vertical swipe immediately triggers scroll
       },
     })
   );
