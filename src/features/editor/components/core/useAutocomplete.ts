@@ -309,6 +309,19 @@ export const useAutocomplete = (
       } else if (cmd.id === 'image') {
         editor.chain().focus().deleteRange({ from, to }).run();
         window.dispatchEvent(new CustomEvent('noesis:open-modal', { detail: 'image' }));
+      } else if (cmd.id.startsWith('section-')) {
+        const rawTitle = cmd.title.trim();
+        editor.chain().focus().deleteRange({ from, to }).insertContent(`\n<p><strong>${rawTitle}</strong></p>\n<p></p>`).run();
+      } else if (cmd.id === 'chord') {
+        editor.chain().focus().deleteRange({ from, to }).command(({ tr, dispatch }) => {
+          if (dispatch) {
+            tr.insertText('[]');
+            dispatch(tr);
+          }
+          return true;
+        }).run();
+        const insertPos = editor.state.selection.from;
+        editor.chain().focus().setTextSelection(insertPos - 1).run();
       } else if (cmd.id === 'audio') {
         editor.chain().focus().deleteRange({ from, to }).run();
         window.dispatchEvent(new CustomEvent('noesis:open-modal', { detail: 'audio' }));

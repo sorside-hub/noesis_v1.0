@@ -10,6 +10,7 @@ interface SlashCommandMenuProps {
   position: { top: number; left: number };
   onSelect: (command: SlashCommand) => void;
   onClose: () => void;
+  commands?: SlashCommand[];
 }
 
 export const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
@@ -17,6 +18,7 @@ export const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
   position,
   onSelect,
   onClose,
+  commands = SLASH_COMMANDS,
 }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -28,14 +30,14 @@ export const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
   // Filter commands by query
   const filteredCommands = useMemo(() => {
     const q = query.toLowerCase().trim();
-    if (!q) return SLASH_COMMANDS;
-    return SLASH_COMMANDS.filter((cmd) => {
+    if (!q) return commands;
+    return commands.filter((cmd) => {
       const titleMatch = cmd.title.toLowerCase().includes(q);
       const descMatch = cmd.description.toLowerCase().includes(q);
       const keywordMatch = cmd.keywords.some((k) => k.toLowerCase().includes(q));
       return titleMatch || descMatch || keywordMatch;
     });
-  }, [query]);
+  }, [query, commands]);
 
   // Reset selected index when query changes
   useEffect(() => {

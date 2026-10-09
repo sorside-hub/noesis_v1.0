@@ -8,6 +8,7 @@ import { WikilinkAutocompletePopup } from './WikilinkAutocompletePopup';
 import { TagAutocompletePopup } from './TagAutocompletePopup';
 import { SlashCommandMenu } from './SlashCommandMenu';
 import { ChordPopoverModal } from './ChordPopoverModal';
+import { MUSIC_SLASH_COMMANDS } from '../data/musicSlashCommands';
 
 // Extracted configurations and hooks
 import { getEditorExtensions, getEditorProps } from './core/editorConfig';
@@ -409,6 +410,7 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
           position={slashPopupState.position}
           onSelect={handleSlashSelect}
           onClose={() => setSlashPopupState(prev => ({ ...prev, isOpen: false }))}
+          commands={enableChords ? MUSIC_SLASH_COMMANDS : undefined}
         />
       )}
 

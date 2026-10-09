@@ -54,6 +54,19 @@ export const BarStudioEditor: React.FC<BarStudioEditorProps> = ({
 
   const isSidebarOpen = isDesktopSidebarOpen || isMobileRightSidebarOpen;
 
+  // Listen for audio modal trigger from slash command
+  useEffect(() => {
+    const handleOpenModal = (e: CustomEvent) => {
+      if (e.detail === 'audio') {
+        setIsAudioModalOpen(true);
+      }
+    };
+    window.addEventListener('noesis:open-modal' as any, handleOpenModal as EventListener);
+    return () => {
+      window.removeEventListener('noesis:open-modal' as any, handleOpenModal as EventListener);
+    };
+  }, []);
+
   // Calculate bar count dynamically (ignoring empty lines, standalone chords, and section headers)
   const calculatedBarCount = useMemo(() => {
     const count = calculateBarCount(bar.content);

@@ -47,6 +47,19 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
   const isSidebarOpen = isDesktopSidebarOpen || isMobileRightSidebarOpen;
   const shouldShowMobileLock = !isKeyboardOpen && !isSidebarOpen;
 
+  // Listen for audio modal trigger from slash command
+  useEffect(() => {
+    const handleOpenModal = (e: CustomEvent) => {
+      if (e.detail === 'audio') {
+        openModal('song-audio-modal');
+      }
+    };
+    window.addEventListener('noesis:open-modal' as any, handleOpenModal as EventListener);
+    return () => {
+      window.removeEventListener('noesis:open-modal' as any, handleOpenModal as EventListener);
+    };
+  }, [openModal]);
+
   useEffect(() => {
     if (!activeVersionId) {
       setVersionName(null);
