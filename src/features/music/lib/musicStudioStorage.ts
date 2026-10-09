@@ -69,9 +69,34 @@ export function markStudioBarAsDeleted(id: string) {
 export async function getAllStudioBars(): Promise<StudioBarRecord[]> {
   const deletedIds = getDeletedStudioBarIds();
   const allBars = await db.studio_bars.toArray();
-  return allBars
-    .filter((b) => !b.deletedAt && !deletedIds.has(b.id))
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  const activeBars = allBars.filter((b) => !b.deletedAt && !deletedIds.has(b.id));
+
+  // Self-healing check: check if any 'used' bars point to a song that no longer exists
+  try {
+    const deletedSongIds = getDeletedStudioSongIds();
+    const existingSongs = await db.studio_songs.toArray();
+    const activeSongIdSet = new Set(
+      existingSongs.filter((s) => !s.deletedAt && !deletedSongIds.has(s.id)).map((s) => s.id)
+    );
+
+    const orphanedBars = activeBars.filter(
+      (b) => b.status === 'used' && b.usedInSongId && !activeSongIdSet.has(b.usedInSongId)
+    );
+
+    if (orphanedBars.length > 0) {
+      const now = new Date().toISOString();
+      for (const b of orphanedBars) {
+        b.status = 'available';
+        b.usedInSongId = null;
+        b.updatedAt = now;
+        await db.studio_bars.put(b);
+      }
+    }
+  } catch (err) {
+    console.warn('[MusicStudio] Orphaned bar check skipped:', err);
+  }
+
+  return activeBars.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 }
 
 export async function getStudioBarById(id: string): Promise<StudioBarRecord | undefined> {
@@ -131,6 +156,44 @@ export async function saveStudioBar(bar: StudioBarRecord): Promise<void> {
         console.warn('[MusicStudio] Remote studio_bars sync failed, saved locally:', err);
       }
     })();
+  }
+}
+
+export async function releaseStudioBarsLinkedToSong(songId: string): Promise<void> {
+  try {
+    const linkedBars = await db.studio_bars.where('usedInSongId').equals(songId).toArray();
+    if (linkedBars.length === 0) return;
+
+    const now = new Date().toISOString();
+    for (const bar of linkedBars) {
+      const updated: StudioBarRecord = {
+        ...bar,
+        status: 'available',
+        usedInSongId: null,
+        updatedAt: now,
+      };
+      await db.studio_bars.put(updated);
+      
+      // Update in Supabase if configured
+      const config = getSupabaseConfig();
+      if (config.isConfigured && supabase) {
+        supabase
+          .from('studio_bars')
+          .update({
+            status: 'available',
+            used_in_song_id: null,
+            updated_at: now,
+          })
+          .eq('id', bar.id)
+          .then(({ error }) => {
+            if (error) console.warn('[MusicStudio] Failed releasing bar remotely:', error.message);
+          })
+          .catch((err) => console.warn('[MusicStudio] Failed releasing bar remotely:', err));
+      }
+    }
+    window.dispatchEvent(new Event('music-studio-updated'));
+  } catch (err) {
+    console.warn('[MusicStudio] Failed to release bars linked to song:', songId, err);
   }
 }
 
@@ -229,6 +292,7 @@ export async function deleteStudioProject(id: string): Promise<void> {
     const childSongs = await db.studio_songs.where('projectId').equals(id).toArray();
     for (const song of childSongs) {
       markStudioSongAsDeleted(song.id);
+      await releaseStudioBarsLinkedToSong(song.id);
       await db.studio_songs.delete(song.id);
       try {
         await db.studio_lyric_versions.where('songId').equals(song.id).delete();
@@ -373,7 +437,10 @@ export async function saveStudioSong(song: StudioSongRecord): Promise<void> {
 export async function deleteStudioSong(id: string): Promise<void> {
   markStudioSongAsDeleted(id);
 
-  // 1. Delete song from Dexie permanently
+  // 1. Release any studio bars that were inserted/used in this song back to 'available' (Fresh)
+  await releaseStudioBarsLinkedToSong(id);
+
+  // 2. Delete song from Dexie permanently
   await db.studio_songs.delete(id);
 
   try {
