@@ -1,6 +1,6 @@
 import { db } from '../../../lib/db';
 import { supabase, getSupabaseConfig } from '../../../lib/supabase';
-import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord } from '../types/studioDatabase';
+import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord, StudioBarRecord } from '../types/studioDatabase';
 
 // ==========================================
 // PERSISTENT DELETION TRACKING (Tombstones)
@@ -9,6 +9,7 @@ import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord } from 
 
 const DELETED_PROJECTS_KEY = 'noesis_deleted_studio_projects';
 const DELETED_SONGS_KEY = 'noesis_deleted_studio_songs';
+const DELETED_BARS_KEY = 'noesis_deleted_studio_bars';
 
 export function getDeletedStudioProjectIds(): Set<string> {
   try {
@@ -42,6 +43,110 @@ export function markStudioSongAsDeleted(id: string) {
   try {
     localStorage.setItem(DELETED_SONGS_KEY, JSON.stringify(Array.from(set)));
   } catch {}
+}
+
+export function getDeletedStudioBarIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_BARS_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+export function markStudioBarAsDeleted(id: string) {
+  const set = getDeletedStudioBarIds();
+  set.add(id);
+  try {
+    localStorage.setItem(DELETED_BARS_KEY, JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
+// ==========================================
+// 0. STUDIO BARS CRUD (Idea Bank - Offline First)
+// ==========================================
+
+export async function getAllStudioBars(): Promise<StudioBarRecord[]> {
+  const deletedIds = getDeletedStudioBarIds();
+  const allBars = await db.studio_bars.toArray();
+  return allBars
+    .filter((b) => !b.deletedAt && !deletedIds.has(b.id))
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+}
+
+export async function getStudioBarById(id: string): Promise<StudioBarRecord | undefined> {
+  const deletedIds = getDeletedStudioBarIds();
+  if (deletedIds.has(id)) return undefined;
+  const bar = await db.studio_bars.get(id);
+  if (bar && !bar.deletedAt) return bar;
+  return undefined;
+}
+
+export async function saveStudioBar(bar: StudioBarRecord): Promise<void> {
+  // Clear any tombstone if re-created or updated
+  const deletedSet = getDeletedStudioBarIds();
+  if (deletedSet.has(bar.id)) {
+    deletedSet.delete(bar.id);
+    try {
+      localStorage.setItem(DELETED_BARS_KEY, JSON.stringify(Array.from(deletedSet)));
+    } catch {}
+  }
+
+  const updatedBar: StudioBarRecord = {
+    ...bar,
+    updatedAt: new Date().toISOString(),
+  };
+  await db.studio_bars.put(updatedBar);
+  window.dispatchEvent(new Event('music-studio-updated'));
+
+  // Background non-blocking sync to Supabase if configured & logged in
+  const config = getSupabaseConfig();
+  if (config.isConfigured && supabase) {
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const payload: any = {
+            id: updatedBar.id,
+            title: updatedBar.title,
+            content: updatedBar.content || '',
+            theme: updatedBar.theme || 'Bebas',
+            topic: updatedBar.topic || '',
+            rhyme_scheme: updatedBar.rhymeScheme || 'Bebas',
+            bar_count: typeof updatedBar.barCount === 'number' ? updatedBar.barCount : 4,
+            status: updatedBar.status || 'available',
+            used_in_song_id: updatedBar.usedInSongId || null,
+            tags: updatedBar.tags || [],
+            notes: updatedBar.notes || '',
+            user_id: user.id,
+            created_at: updatedBar.createdAt,
+            updated_at: updatedBar.updatedAt,
+          };
+          const { error } = await supabase.from('studio_bars').upsert(payload);
+          if (error && error.code !== 'PGRST205') {
+            console.warn('[MusicStudio] studio_bars upsert warning:', error.message);
+          }
+        }
+      } catch (err) {
+        console.warn('[MusicStudio] Remote studio_bars sync failed, saved locally:', err);
+      }
+    })();
+  }
+}
+
+export async function deleteStudioBar(id: string): Promise<void> {
+  markStudioBarAsDeleted(id);
+  await db.studio_bars.delete(id);
+  window.dispatchEvent(new Event('music-studio-updated'));
+
+  const config = getSupabaseConfig();
+  if (config.isConfigured && supabase) {
+    try {
+      await supabase.from('studio_bars').delete().eq('id', id);
+    } catch (err) {
+      console.warn('[MusicStudio] Remote studio_bars delete failed:', err);
+    }
+  }
 }
 
 // ==========================================
@@ -554,6 +659,46 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
 
       if (localVersions.length > 0) {
         await db.studio_lyric_versions.bulkPut(localVersions);
+      }
+    }
+
+    // 4. Fetch Idea Bank Bars (studio_bars)
+    const deletedBarIds = getDeletedStudioBarIds();
+    const { data: remoteBars, error: barErr } = await supabase
+      .from('studio_bars')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (!barErr && remoteBars) {
+      const activeRemoteBars = remoteBars.filter((b: any) => !deletedBarIds.has(b.id));
+      const localBars: StudioBarRecord[] = activeRemoteBars.map((b: any) => ({
+        id: b.id,
+        title: b.title || 'Bar Baru',
+        content: b.content || '',
+        theme: b.theme || 'Bebas',
+        topic: b.topic || '',
+        rhymeScheme: b.rhyme_scheme || 'Bebas',
+        barCount: typeof b.bar_count === 'number' ? b.bar_count : 4,
+        status: b.status || 'available',
+        usedInSongId: b.used_in_song_id || null,
+        tags: Array.isArray(b.tags) ? b.tags : [],
+        notes: b.notes || '',
+        createdAt: b.created_at,
+        updatedAt: b.updated_at || b.created_at,
+      }));
+
+      // Reconcile: Purge local bars that were deleted on cloud
+      const remoteBarIds = new Set(activeRemoteBars.map((b: any) => b.id));
+      const allLocalBars = await db.studio_bars.toArray();
+      const purgeBarIds = allLocalBars
+        .filter((b) => !remoteBarIds.has(b.id) || deletedBarIds.has(b.id))
+        .map((b) => b.id);
+      if (purgeBarIds.length > 0) {
+        await db.studio_bars.bulkDelete(purgeBarIds);
+      }
+
+      if (localBars.length > 0) {
+        await db.studio_bars.bulkPut(localBars);
       }
     }
 

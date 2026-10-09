@@ -3,6 +3,7 @@ import {
   Music2, 
   Disc3, 
   Mic2,
+  Layers,
   Search, 
   Plus, 
   Loader2,
@@ -19,8 +20,11 @@ import {
   Tag,
 } from 'lucide-react';
 import { useMusicStudio } from '../hooks/useMusicStudio';
+import { useStudioBars } from '../hooks/useStudioBars';
 import { MusicKanbanPipeline } from './MusicKanbanPipeline';
 import { MusicDiscographyView } from './MusicDiscographyView';
+import { MusicIdeaBankView } from './MusicIdeaBankView';
+import { BarStudioEditor } from './BarStudioEditor';
 import { MusicStudioDrawerDock, StudioViewTab } from './MusicStudioDrawerDock';
 import { SingleOverviewDashboard } from './SingleOverviewDashboard';
 import { ProjectOverviewDashboard } from './ProjectOverviewDashboard';
@@ -29,6 +33,8 @@ import { SongDiscographyReader } from './SongDiscographyReader';
 import { MoveSongProjectModal } from './MoveSongProjectModal';
 import { NewSongModal } from './NewSongModal';
 import { NewProjectModal } from './NewProjectModal';
+import { getStudioBarById } from '../lib/musicStudioStorage';
+import { StudioBarRecord } from '../types/studioDatabase';
 import { useNavigation } from '../../../context/NavigationContext';
 import { MusicProductionStatus, MusicProjectType, MusicReleaseItem } from '../types';
 
@@ -66,9 +72,11 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
   const { 
     musicProjectId,
     musicSongId, 
+    musicBarId,
     musicSubView,
     navigateToMusicProject,
     navigateToMusicSong, 
+    navigateToMusicBar,
     navigateToMusicSubView,
     goBack,
   } = useNavigation();
@@ -78,6 +86,33 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
 
   // Active view tab managed via Drawer Dock
   const [activeTab, setActiveTab] = useState<StudioViewTab>('pipeline');
+
+  // Studio Idea Bank (Bars)
+  const {
+    bars,
+    createNewBar,
+    updateBar,
+    removeBar,
+    duplicateBar,
+  } = useStudioBars();
+  const [activeEditingBar, setActiveEditingBar] = useState<StudioBarRecord | null>(null);
+
+  // Sync activeEditingBar with musicBarId from browser/phone navigation history
+  useEffect(() => {
+    if (musicBarId) {
+      const found = bars.find((b) => b.id === musicBarId);
+      if (found) {
+        setActiveEditingBar(found);
+      } else {
+        getStudioBarById(musicBarId).then((b) => {
+          if (b) setActiveEditingBar(b);
+        });
+      }
+    } else {
+      setActiveEditingBar(null);
+    }
+  }, [musicBarId, bars]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string | null>(null);
   const [selectedThemeFilter, setSelectedThemeFilter] = useState<string | null>(null);
@@ -493,6 +528,28 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     );
   }
 
+  // ----------------------------------------------------
+  // SUB-VIEW: BAR STUDIO EDITOR (Bank Ide - Modul Bar)
+  // ----------------------------------------------------
+  if (activeEditingBar) {
+    return (
+      <BarStudioEditor
+        bar={activeEditingBar}
+        songs={rawSongs}
+        allBars={bars}
+        onBack={() => goBack()}
+        onUpdateBar={(patch, debounceMs) => {
+          setActiveEditingBar((prev) => (prev ? { ...prev, ...patch } : null));
+          updateBar(activeEditingBar.id, patch, debounceMs);
+        }}
+        onDeleteBar={(id) => {
+          removeBar(id);
+          goBack();
+        }}
+      />
+    );
+  }
+
   return (
     <div className="relative w-full h-full bg-bg-primary text-text-primary select-none flex flex-col overflow-hidden">
       <div className="max-w-7xl w-full mx-auto px-3 sm:px-6 pt-3 pb-2 space-y-2.5 flex-1 flex flex-col min-h-0">
@@ -610,12 +667,43 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
                   </div>
                 </button>
 
+                <div className="h-px bg-border-default/20 my-1" />
+
+                {/* 4. BAR (BANK IDE) */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsCreationMenuOpen(false);
+                    const newId = await createNewBar({
+                      title: 'Bar Baru',
+                      content: '',
+                    });
+                    if (newId) {
+                      navigateToMusicBar(newId);
+                    }
+                  }}
+                  className="w-full flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-bg-hover text-left transition-colors cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-accent-primary/15 text-accent-primary flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-accent-primary group-hover:text-accent-contrast transition-colors">
+                    <Layers size={15} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-text-heading group-hover:text-accent-primary transition-colors">
+                      Ide Bar (Lirik)
+                    </div>
+                    <p className="text-[10px] text-text-muted leading-tight mt-0.5">
+                      Tulis potongan rima, hook, atau birama lirik
+                    </p>
+                  </div>
+                </button>
+
               </div>
             )}
           </div>
         </header>
 
-        {/* Search & Sort Bar (BARIS 2 - 1 Baris Elegan, Dipisah Seperti di Halaman Media) */}
+        {/* Search & Sort Bar (Hanya tampil untuk Kanban & Diskografi) */}
+        {activeTab !== 'bank' && (
         <div className="flex items-center gap-2 shrink-0">
           {/* 1. Search Bar */}
           <div className="relative flex-1">
@@ -810,6 +898,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
             )}
           </button>
         </div>
+        )}
 
         {/* Loading indicator */}
         {isLoading && (
@@ -848,6 +937,23 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
                 onSelectProject={(projId) => navigateToMusicProject(projId)}
                 searchQuery={searchQuery}
                 selectedTheme={selectedThemeFilter}
+              />
+            )}
+
+            {/* TAB 3: IDEA BANK (BARS, CHORDS, MELODIES) */}
+            {activeTab === 'bank' && (
+              <MusicIdeaBankView
+                bars={bars}
+                songs={rawSongs}
+                onOpenBarEditor={(bar) => navigateToMusicBar(bar.id)}
+                onCreateNewBar={async () => {
+                  const newId = await createNewBar({ title: 'Bar Baru', content: '' });
+                  if (newId) {
+                    navigateToMusicBar(newId);
+                  }
+                }}
+                onDuplicateBar={duplicateBar}
+                onDeleteBar={removeBar}
               />
             )}
           </div>

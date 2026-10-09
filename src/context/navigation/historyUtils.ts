@@ -11,6 +11,7 @@ export interface NavigationHistoryEntry {
   mediaCategory?: string | null;
   musicProjectId?: string | null;
   musicSongId?: string | null;
+  musicBarId?: string | null;
   musicSubView?: MusicSubView | null;
   seq: number;
 }

@@ -28,9 +28,12 @@ interface NavigationContextType {
   // Music Studio Song Detail Navigation
   musicSongId: string | null;
   setMusicSongId: (songId: string | null) => void;
+  musicBarId: string | null;
+  setMusicBarId: (barId: string | null) => void;
   musicSubView: MusicSubView | null;
   setMusicSubView: (subView: MusicSubView | null) => void;
   navigateToMusicSong: (songId: string | null) => void;
+  navigateToMusicBar: (barId: string | null) => void;
   navigateToMusicSubView: (songId: string, subView: MusicSubView) => void;
 
   // Desktop Sidebars
@@ -77,6 +80,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
   const [mediaCategory, setMediaCategory] = useState<string | null>(null);
   const [musicProjectId, setMusicProjectId] = useState<string | null>(null);
   const [musicSongId, setMusicSongId] = useState<string | null>(null);
+  const [musicBarId, setMusicBarId] = useState<string | null>(null);
   const [musicSubView, setMusicSubView] = useState<MusicSubView | null>(null);
 
   // Default desktop left sidebar is open
@@ -106,6 +110,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
       mediaCategory: null,
       musicProjectId: null,
       musicSongId: null,
+      musicBarId: null,
       musicSubView: null,
       seq: 1,
     };
@@ -126,6 +131,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
         currentState.mediaCategory !== mediaCategory ||
         currentState.musicProjectId !== musicProjectId ||
         currentState.musicSongId !== musicSongId ||
+        currentState.musicBarId !== musicBarId ||
         currentState.musicSubView !== musicSubView
       ) {
         safeReplaceState({
@@ -135,11 +141,12 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
           mediaCategory,
           musicProjectId,
           musicSongId,
+          musicBarId,
           musicSubView,
         });
       }
     }
-  }, [activeTabId, view, mediaCategory, musicProjectId, musicSongId, musicSubView]);
+  }, [activeTabId, view, mediaCategory, musicProjectId, musicSongId, musicBarId, musicSubView]);
 
   // Listen for browser/phone Back & Forward popstate events
   useEffect(() => {
@@ -170,9 +177,10 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
       // 5. Sync Media Category
       setMediaCategory(state.mediaCategory || null);
 
-      // 6. Sync Music Project & Song Detail & SubView
+      // 6. Sync Music Project, Song, Bar & SubView
       setMusicProjectId(state.musicProjectId || null);
       setMusicSongId(state.musicSongId || null);
+      setMusicBarId(state.musicBarId || null);
       setMusicSubView(state.musicSubView || null);
 
       // Reset flag after state batching completes
@@ -216,6 +224,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
     setMusicProjectId,
     musicSongId,
     setMusicSongId,
+    musicBarId,
+    setMusicBarId,
     musicSubView,
     setMusicSubView,
     setIsDesktopSidebarOpen,
@@ -235,6 +245,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
         setMusicProjectId,
         musicSongId,
         setMusicSongId,
+        musicBarId,
+        setMusicBarId,
         musicSubView,
         setMusicSubView,
         isDesktopSidebarOpen,

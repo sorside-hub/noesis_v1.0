@@ -452,5 +452,65 @@ BEGIN
 END $$;
 `;
 
+export const SUPABASE_STUDIO_BARS_SQL = `-- ========================================================
+-- NOESIS MUSIC STUDIO - BANK IDE (BARS) SCHEMA SETUP
+-- Jalankan skrip ini di SQL Editor dashboard Supabase Anda.
+-- Skrip ini terpisah khusus untuk modul Bank Ide Bar & Rima.
+-- ========================================================
+
+-- 1. TABEL BANK IDE BAR (studio_bars)
+CREATE TABLE IF NOT EXISTS studio_bars (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL DEFAULT '', -- Teks baris lirik & chord
+  theme TEXT DEFAULT 'Bebas', -- Tema / vibe (Cinta, Melankolis, Kritik, dll)
+  topic TEXT DEFAULT '', -- Topik / subjek cerita spesifik
+  rhyme_scheme TEXT DEFAULT 'Bebas', -- Skema rima (AABB, ABAB, Bebas, dll)
+  bar_count INTEGER DEFAULT 4, -- Jumlah bar (misal 4, 8, 16)
+  status TEXT NOT NULL DEFAULT 'available', -- 'available' | 'used'
+  used_in_song_id TEXT REFERENCES studio_songs(id) ON DELETE SET NULL, -- Relasi opsional ke lagu jika sudah dipakai
+  tags TEXT[] DEFAULT '{}',
+  notes TEXT DEFAULT '',
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Pastikan kolom baru tetap ada jika tabel sudah dibuat sebelumnya (Auto-migration)
+ALTER TABLE studio_bars 
+  ADD COLUMN IF NOT EXISTS topic TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS rhyme_scheme TEXT DEFAULT 'Bebas',
+  ADD COLUMN IF NOT EXISTS bar_count INTEGER DEFAULT 4,
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'available',
+  ADD COLUMN IF NOT EXISTS used_in_song_id TEXT,
+  ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+
+-- 2. ROW LEVEL SECURITY (RLS)
+ALTER TABLE studio_bars ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Users can manage their own studio bars" ON studio_bars;
+  CREATE POLICY "Users can manage their own studio bars" 
+  ON studio_bars FOR ALL 
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+END $$;
+
+-- 3. INDEKS PERFORMA QUERY
+CREATE INDEX IF NOT EXISTS idx_studio_bars_user_id ON studio_bars(user_id);
+CREATE INDEX IF NOT EXISTS idx_studio_bars_status ON studio_bars(status);
+CREATE INDEX IF NOT EXISTS idx_studio_bars_theme ON studio_bars(theme);
+CREATE INDEX IF NOT EXISTS idx_studio_bars_used_song ON studio_bars(used_in_song_id);
+
+-- 4. AKTIFKAN SUPABASE REALTIME UNTUK STUDIO BARS
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'studio_bars') THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE studio_bars';
+  END IF;
+END $$;
+`;
+
 export const SUPABASE_SETUP_SQL = SUPABASE_NOESIS_SQL;
 

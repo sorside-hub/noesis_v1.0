@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Kanban, Disc3 } from 'lucide-react';
+import { Kanban, Disc3, Archive } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
-export type StudioViewTab = 'pipeline' | 'discography';
+export type StudioViewTab = 'pipeline' | 'discography' | 'bank';
 
 interface MusicStudioDrawerDockProps {
   activeTab: StudioViewTab;
@@ -34,6 +34,11 @@ export const MusicStudioDrawerDock: React.FC<MusicStudioDrawerDockProps> = ({
       id: 'discography',
       label: 'Diskografi',
       icon: Disc3,
+    },
+    {
+      id: 'bank',
+      label: 'Bank Ide',
+      icon: Archive,
     },
   ];
 

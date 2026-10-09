@@ -19,6 +19,8 @@ interface UseNavigationActionsProps {
   setMusicProjectId: React.Dispatch<React.SetStateAction<string | null>>;
   musicSongId: string | null;
   setMusicSongId: React.Dispatch<React.SetStateAction<string | null>>;
+  musicBarId: string | null;
+  setMusicBarId: React.Dispatch<React.SetStateAction<string | null>>;
   musicSubView: MusicSubView | null;
   setMusicSubView: React.Dispatch<React.SetStateAction<MusicSubView | null>>;
   setIsDesktopSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -43,6 +45,8 @@ export const useNavigationActions = ({
   setMusicProjectId,
   musicSongId,
   setMusicSongId,
+  musicBarId,
+  setMusicBarId,
   musicSubView,
   setMusicSubView,
   setIsDesktopSidebarOpen,
@@ -59,6 +63,7 @@ export const useNavigationActions = ({
         if (newView === 'music') {
           setMusicProjectId(null);
           setMusicSongId(null);
+          setMusicBarId(null);
           setMusicSubView(null);
         }
 
@@ -79,6 +84,7 @@ export const useNavigationActions = ({
           mediaCategory: newView === 'media' ? mediaCategory : null,
           musicProjectId: newView === 'music' ? musicProjectId : null,
           musicSongId: newView === 'music' ? musicSongId : null,
+          musicBarId: newView === 'music' ? musicBarId : null,
           musicSubView: newView === 'music' ? musicSubView : null,
           seq: currentSeqRef.current,
         };
@@ -90,7 +96,7 @@ export const useNavigationActions = ({
       setIsMobileRightSidebarOpen(false);
       setActiveModal(null);
     },
-    [view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, mediaCategory, musicProjectId, musicSongId, musicSubView, setView, setMediaCategory, setMusicProjectId, setMusicSongId, setMusicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
+    [view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, mediaCategory, musicProjectId, musicSongId, musicBarId, musicSubView, setView, setMediaCategory, setMusicProjectId, setMusicSongId, setMusicBarId, setMusicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
   );
 
   // Navigate to a specific media category
@@ -228,6 +234,41 @@ export const useNavigationActions = ({
       setActiveModal(null);
     },
     [activeTabId, musicProjectId, setView, setMusicSongId, setMusicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
+  );
+
+  // Navigate to a specific bar in Idea Bank
+  const navigateToMusicBar = useCallback(
+    (barId: string | null) => {
+      const isSameBar = barId === musicBarId && view === 'music';
+      if (isSameBar && !isMobileSidebarOpen && !isMobileRightSidebarOpen && !activeModal) {
+        return;
+      }
+
+      if (!isPopStateNavigatingRef.current) {
+        currentSeqRef.current += 1;
+        const nextEntry: NavigationHistoryEntry = {
+          view: 'music',
+          activeTabId,
+          isMobileSidebarOpen: false,
+          isMobileRightSidebarOpen: false,
+          activeModal: null,
+          mediaCategory: null,
+          musicProjectId: null,
+          musicSongId: null,
+          musicBarId: barId,
+          musicSubView: null,
+          seq: currentSeqRef.current,
+        };
+        safePushState(nextEntry);
+      }
+
+      setView('music');
+      setMusicBarId(barId);
+      setIsMobileSidebarOpen(false);
+      setIsMobileRightSidebarOpen(false);
+      setActiveModal(null);
+    },
+    [musicBarId, view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, setView, setMusicBarId, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
   );
 
   // Navigate to a specific note
@@ -397,6 +438,7 @@ export const useNavigationActions = ({
     navigateToMediaCategory,
     navigateToMusicProject,
     navigateToMusicSong,
+    navigateToMusicBar,
     navigateToMusicSubView,
     navigateToNote,
     openMobileSidebar,

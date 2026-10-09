@@ -59,3 +59,20 @@ export interface StudioLyricVersionRecord {
   createdAt: string;
   updatedAt?: string;
 }
+
+export interface StudioBarRecord {
+  id: string;
+  title: string;
+  content: string; // Teks baris lirik & chord
+  theme?: string; // Tema / vibe (Cinta, Melankolis, Kritik, dll)
+  topic?: string; // Topik / subjek cerita spesifik (Ditinggal nikah, LDR, dll)
+  rhymeScheme?: string; // Skema rima (AABB, ABAB, Bebas, dll)
+  barCount?: number; // Jumlah bar (misal 4, 8, 16)
+  status: 'available' | 'used'; // Status penggunaan
+  usedInSongId?: string | null; // Id lagu jika sudah terpakai
+  tags?: string[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: number;
+}

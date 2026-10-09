@@ -463,6 +463,36 @@ export const syncPushAllToCloud = async (): Promise<SyncSummary> => {
           console.warn('Failed to push lyric versions to cloud:', verErr);
         }
       }
+
+      // Push Music Studio Idea Bank (studio_bars)
+      const allBars = await db.studio_bars.toArray();
+      if (allBars.length > 0) {
+        const cloudBars = allBars
+          .filter((b) => !b.deletedAt)
+          .map((b) => ({
+            id: b.id,
+            title: b.title || 'Bar Baru',
+            content: b.content || '',
+            theme: b.theme || 'Bebas',
+            topic: b.topic || '',
+            rhyme_scheme: b.rhymeScheme || 'Bebas',
+            bar_count: typeof b.barCount === 'number' ? b.barCount : 4,
+            status: b.status || 'available',
+            used_in_song_id: b.usedInSongId || null,
+            tags: Array.isArray(b.tags) ? b.tags : [],
+            notes: b.notes || '',
+            user_id: userId,
+            created_at: b.createdAt,
+            updated_at: b.updatedAt,
+          }));
+
+        if (cloudBars.length > 0) {
+          const { error: barErr } = await supabase.from('studio_bars').upsert(cloudBars);
+          if (barErr && barErr.code !== 'PGRST205') {
+            console.warn('Failed to push studio bars to cloud:', barErr);
+          }
+        }
+      }
     } catch (studioPushErr) {
       console.warn('Failed to push studio data to cloud:', studioPushErr);
     }
