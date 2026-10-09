@@ -67,7 +67,7 @@ export function useStudioBars() {
         id,
         title: initial?.title || 'Bar Baru',
         content: initial?.content || '',
-        theme: initial?.theme || 'Bebas',
+        theme: initial?.theme || '',
         topic: initial?.topic || '',
         rhymeScheme: initial?.rhymeScheme || 'Bebas',
         barCount: initial?.barCount || 4,

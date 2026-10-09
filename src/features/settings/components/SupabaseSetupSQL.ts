@@ -463,7 +463,7 @@ CREATE TABLE IF NOT EXISTS studio_bars (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   content TEXT NOT NULL DEFAULT '', -- Teks baris lirik & chord
-  theme TEXT DEFAULT 'Bebas', -- Tema / vibe (Cinta, Melankolis, Kritik, dll)
+  theme TEXT DEFAULT '', -- Tema / vibe (Cinta, Melankolis, Kritik, dll)
   topic TEXT DEFAULT '', -- Topik / subjek cerita spesifik
   rhyme_scheme TEXT DEFAULT 'Bebas', -- Skema rima (AABB, ABAB, Bebas, dll)
   bar_count INTEGER DEFAULT 4, -- Jumlah bar (misal 4, 8, 16)
@@ -485,6 +485,9 @@ ALTER TABLE studio_bars
   ADD COLUMN IF NOT EXISTS used_in_song_id TEXT,
   ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+
+-- Lepas default 'Bebas' pada theme jika tabel dibuat dengan skrip lama
+ALTER TABLE studio_bars ALTER COLUMN theme SET DEFAULT '';
 
 -- 2. ROW LEVEL SECURITY (RLS)
 ALTER TABLE studio_bars ENABLE ROW LEVEL SECURITY;
