@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { 
   X, 
   Search, 
@@ -21,40 +20,27 @@ interface InsertBarModalProps {
 
 /**
  * Normalizes HTML/Rich text content from editor into clean lines
- * without double empty line gaps.
+ * Strips all <p>, </p>, <div>, </div>, <br> so every line of verse
+ * is tightly grouped with no artificial blank rows.
  */
 function normalizeBarContentToLines(htmlOrText?: string): string[] {
   if (!htmlOrText) return [];
 
-  // Convert HTML line breaks and paragraphs to single newline
   const clean = htmlOrText
     .replace(/&nbsp;/g, ' ')
     .replace(/[\u200B\u00A0]/g, ' ')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/p>/gi, '\n')
+    .replace(/<p[^>]*>/gi, '')
     .replace(/<\/div>/gi, '\n')
+    .replace(/<div[^>]*>/gi, '')
     .replace(/<[^>]*>/g, ''); // strip remaining tags
 
-  // Split into lines, trim each, and preserve only non-consecutive empty lines
-  const rawLines = clean.split('\n').map((l) => l.trim());
-  const lines: string[] = [];
-
-  for (let i = 0; i < rawLines.length; i++) {
-    const line = rawLines[i];
-    if (line.length > 0) {
-      lines.push(line);
-    } else if (lines.length > 0 && lines[lines.length - 1] !== '') {
-      // allow at most single blank line separation if user intentionally spaced it
-      lines.push('');
-    }
-  }
-
-  // Trim trailing empty lines
-  while (lines.length > 0 && lines[lines.length - 1] === '') {
-    lines.pop();
-  }
-
-  return lines;
+  // Split into lines, trim each, and ignore empty lines completely
+  return clean
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
 }
 
 export const InsertBarModal: React.FC<InsertBarModalProps> = ({
@@ -101,116 +87,107 @@ export const InsertBarModal: React.FC<InsertBarModalProps> = ({
     });
   };
 
-  if (!isOpen || typeof document === 'undefined') return null;
+  if (!isOpen) return null;
 
-  return createPortal(
+  return (
     <div 
-      className="fixed inset-0 z-[999] bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-hidden"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      className="fixed inset-0 z-70 flex justify-center items-start pt-3 sm:pt-0 sm:items-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+      onClick={onClose}
     >
       <div 
-        className="w-full max-w-2xl bg-bg-secondary rounded-2xl shadow-2xl border border-border-default/40 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-        style={{
-          height: 'min(86vh, 760px)',
-          minHeight: 'min(86vh, 500px)',
-        }}
+        className="w-full max-w-xl bg-bg-primary border-0 rounded-2xl shadow-2xl p-4 sm:p-5 flex flex-col gap-3.5 animate-in zoom-in-95 duration-150 shrink-0 mt-1 sm:my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-border-default/30 flex items-center justify-between shrink-0 bg-bg-secondary">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-accent-primary/15 text-accent-primary flex items-center justify-center shadow-xs shrink-0">
-              <Layers size={18} />
+        {/* Header - Identical structure to Kanban Inbox Triage Move to Folder Modal */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-accent-primary/10 text-accent-primary flex items-center justify-center">
+              <Layers size={17} />
             </div>
-            <div>
-              <h2 className="text-sm sm:text-base font-bold text-text-heading">
-                Sisipkan Bar ke Lirik
-              </h2>
-              <p className="text-[11px] text-text-muted">
-                Pilih ide bar untuk ditempel ke lirik & otomatis tercatat di lagu ini
-              </p>
-            </div>
+            <h3 className="text-sm sm:text-base font-bold text-text-heading">
+              Sisipkan Bar
+            </h3>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-xl hover:bg-bg-hover text-text-muted hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer shrink-0"
+            className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
             title="Tutup"
           >
             <X size={16} />
           </button>
         </div>
 
-        {/* Search & Clean 2 Tabs (Fresh vs Terpakai) */}
-        <div className="p-4 bg-bg-secondary/70 border-b border-border-default/20 space-y-3 shrink-0">
-          <div className="relative">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari judul bar, cuplikan lirik, tema, topik..."
-              className="w-full pl-9 pr-8 py-2 bg-bg-primary rounded-xl text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-hidden focus:ring-1 focus:ring-accent-primary border border-border-default/20 transition-all"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary cursor-pointer"
-              >
-                <X size={13} />
-              </button>
-            )}
-          </div>
-
-          {/* 2 Clean Tabs: Fresh vs Terpakai */}
-          <div className="grid grid-cols-2 gap-2 bg-bg-primary p-1 rounded-xl">
+        {/* Search Input - text-base on mobile prevents iOS/Android auto-zoom shift */}
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari judul bar, cuplikan lirik, tema, topik..."
+            className="w-full pl-8.5 pr-8 py-2 text-base sm:text-xs bg-bg-secondary text-text-primary placeholder:text-text-muted rounded-xl border-0 focus:outline-hidden focus:ring-1.5 focus:ring-accent-primary/40 transition-all"
+          />
+          {searchQuery && (
             <button
               type="button"
-              onClick={() => setFilterMode('fresh')}
-              className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                filterMode === 'fresh'
-                  ? 'bg-emerald-500/20 text-emerald-400 shadow-xs'
-                  : 'text-text-muted hover:text-text-primary'
-              }`}
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-[10px] cursor-pointer"
             >
-              <Sparkles size={13} />
-              <span>Fresh (Bebas)</span>
-              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                filterMode === 'fresh' ? 'bg-emerald-500/30 text-emerald-300' : 'bg-bg-secondary text-text-muted'
-              }`}>
-                {freshCount}
-              </span>
+              <X size={12} />
             </button>
+          )}
+        </div>
 
-            <button
-              type="button"
-              onClick={() => setFilterMode('used')}
-              className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                filterMode === 'used'
-                  ? 'bg-amber-500/20 text-amber-400 shadow-xs'
-                  : 'text-text-muted hover:text-text-primary'
-              }`}
-            >
-              <Lock size={12} />
-              <span>Terpakai</span>
-              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                filterMode === 'used' ? 'bg-amber-500/30 text-amber-300' : 'bg-bg-secondary text-text-muted'
-              }`}>
-                {usedCount}
-              </span>
-            </button>
-          </div>
+        {/* 2 Clean Tabs: Fresh vs Terpakai with High Contrast Badges */}
+        <div className="grid grid-cols-2 gap-2 bg-bg-secondary p-1 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setFilterMode('fresh')}
+            className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              filterMode === 'fresh'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+            }`}
+          >
+            <Sparkles size={13} />
+            <span>Fresh</span>
+            <span className={`text-[10.5px] font-mono font-bold px-2 py-0.5 rounded-full ${
+              filterMode === 'fresh'
+                ? 'bg-white/25 text-white'
+                : 'bg-bg-primary text-text-primary border border-border-default/40'
+            }`}>
+              {freshCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterMode('used')}
+            className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              filterMode === 'used'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+            }`}
+          >
+            <Lock size={12} />
+            <span>Terpakai</span>
+            <span className={`text-[10.5px] font-mono font-bold px-2 py-0.5 rounded-full ${
+              filterMode === 'used'
+                ? 'bg-white/25 text-white'
+                : 'bg-bg-primary text-text-primary border border-border-default/40'
+            }`}>
+              {usedCount}
+            </span>
+          </button>
         </div>
 
         {/* Bar List (Scrollable Area) */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+        <div className="max-h-72 sm:max-h-80 overflow-y-auto space-y-2.5 custom-scrollbar py-0.5">
           {filteredBars.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center text-text-muted py-16 space-y-2">
-              <Layers size={36} className="text-text-disabled opacity-50" />
+            <div className="py-8 flex flex-col items-center justify-center text-center text-text-muted space-y-2">
+              <Layers size={32} className="text-text-disabled opacity-40" />
               <p className="text-xs font-medium">
                 {filterMode === 'fresh' 
                   ? 'Tidak ada ide bar fresh yang ditemukan' 
@@ -228,7 +205,7 @@ export const InsertBarModal: React.FC<InsertBarModalProps> = ({
               return (
                 <div
                   key={b.id}
-                  className="p-3.5 rounded-xl bg-bg-primary hover:bg-bg-hover/80 border border-border-default/30 transition-all flex flex-col gap-3 group"
+                  className="p-3 rounded-xl bg-bg-secondary hover:bg-bg-hover/80 text-left transition-all border-0 flex flex-col gap-2.5 group"
                 >
                   {/* Top Row: Title, Badges, and Action Button */}
                   <div className="flex items-start justify-between gap-3">
@@ -237,23 +214,42 @@ export const InsertBarModal: React.FC<InsertBarModalProps> = ({
                         <span className="font-bold text-xs sm:text-sm text-text-heading truncate">
                           {b.title || 'Bar Tanpa Judul'}
                         </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-bg-secondary text-text-secondary font-mono font-medium">
-                          {b.barCount || 4} Bars
+                        {/* Bar count badge */}
+                        <span 
+                          title={`${b.barCount || 4} Bars`}
+                          className="text-[10px] px-1.5 py-0.5 rounded-md bg-bg-primary text-text-secondary font-mono font-medium flex items-center gap-1 shrink-0"
+                        >
+                          <Layers size={11} className="text-text-muted" />
+                          <span className="hidden sm:inline">{b.barCount || 4} Bars</span>
+                          <span className="sm:hidden">{b.barCount || 4}</span>
                         </span>
-                        {b.rhymeScheme && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-secondary text-text-muted font-mono">
+
+                        {/* Rhyme scheme badge (only if non-default) */}
+                        {b.rhymeScheme && b.rhymeScheme !== 'Bebas' && (
+                          <span 
+                            title={`Skema rima: ${b.rhymeScheme}`}
+                            className="text-[10px] px-1.5 py-0.5 rounded-md bg-bg-primary text-text-muted font-mono shrink-0"
+                          >
                             {b.rhymeScheme}
                           </span>
                         )}
+
+                        {/* Status badge: Clean & compact icon on mobile, with text on desktop */}
                         {isUsed ? (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-semibold flex items-center gap-1">
-                            <Lock size={10} />
-                            Terpakai
+                          <span 
+                            title="Status: Terpakai"
+                            className="p-1 sm:px-2 sm:py-0.5 rounded-full bg-amber-500/15 text-amber-500 font-semibold flex items-center gap-1 border border-amber-500/30 shrink-0"
+                          >
+                            <Lock size={11} />
+                            <span className="hidden sm:inline text-[10px]">Terpakai</span>
                           </span>
                         ) : (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold flex items-center gap-1">
-                            <Sparkles size={10} />
-                            Fresh
+                          <span 
+                            title="Status: Fresh"
+                            className="p-1 sm:px-2 sm:py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 border border-emerald-500/30 shrink-0"
+                          >
+                            <Sparkles size={11} />
+                            <span className="hidden sm:inline text-[10px]">Fresh</span>
                           </span>
                         )}
                       </div>
@@ -278,15 +274,15 @@ export const InsertBarModal: React.FC<InsertBarModalProps> = ({
                     </button>
                   </div>
 
-                  {/* Preview Container: Clean lines without arbitrary blank space */}
-                  <div className="p-2.5 rounded-xl bg-bg-secondary/70 border border-border-default/20 text-xs font-mono text-text-secondary">
+                  {/* Preview Container: Clean lines with ZERO arbitrary blank gap */}
+                  <div className="p-2.5 rounded-xl bg-bg-primary/80 text-xs font-mono text-text-secondary">
                     {displayLines.length === 0 ? (
                       <p className="text-text-muted italic">(Konten bar masih kosong)</p>
                     ) : (
                       <div className="space-y-0.5">
                         {displayLines.map((line, idx) => (
-                          <p key={idx} className="leading-normal break-words">
-                            {line || '\u00A0'}
+                          <p key={idx} className="leading-snug break-words">
+                            {line}
                           </p>
                         ))}
                       </div>
@@ -294,7 +290,7 @@ export const InsertBarModal: React.FC<InsertBarModalProps> = ({
 
                     {/* Toggle if lines exceed 4 */}
                     {totalLines > 4 && (
-                      <div className="mt-2.5 pt-1.5 border-t border-border-default/20 flex items-center justify-between">
+                      <div className="mt-2 pt-1.5 border-t border-border-default/20 flex items-center justify-between">
                         <button
                           type="button"
                           onClick={(e) => toggleExpand(b.id, e)}
@@ -303,7 +299,7 @@ export const InsertBarModal: React.FC<InsertBarModalProps> = ({
                           {isExpanded ? (
                             <>
                               <ChevronUp size={12} />
-                              <span>Sembunyikan Cuplikan Penuh</span>
+                              <span>Sembunyikan Cuplikan</span>
                             </>
                           ) : (
                             <>
@@ -324,7 +320,6 @@ export const InsertBarModal: React.FC<InsertBarModalProps> = ({
           )}
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 };
