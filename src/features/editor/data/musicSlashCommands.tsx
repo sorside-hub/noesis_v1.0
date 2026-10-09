@@ -137,6 +137,15 @@ export const MUSIC_SLASH_COMMANDS: SlashCommand[] = [
 
   // --- Music Tools ---
   {
+    id: 'bar',
+    title: 'Sisipkan Bar',
+    description: 'Pilih ide bar dari bank bar untuk disisipkan ke lirik',
+    category: 'Inserts',
+    keywords: ['bar', 'bars', 'insertbar', 'ide bar', 'bait bar'],
+    icon: <Layers className="w-4 h-4 text-accent-primary" />,
+    action: () => ({ text: '' }),
+  },
+  {
     id: 'chord',
     title: 'Chord [ ]',
     description: 'Sisipkan chord gitar/piano [Kunci]',

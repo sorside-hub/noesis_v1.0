@@ -7,9 +7,11 @@ import {
   Plus,
   Minus,
   ChevronDown,
-  Check
+  Check,
+  Layers,
+  Sparkles
 } from 'lucide-react';
-import { StudioSongRecord } from '../types/studioDatabase';
+import { StudioSongRecord, StudioBarRecord } from '../types/studioDatabase';
 
 interface SongStudioSidebarProps {
   isOpen: boolean;
@@ -18,6 +20,9 @@ interface SongStudioSidebarProps {
   onUpdateSong: (patch: Partial<StudioSongRecord>) => void;
   drawerRef?: React.RefObject<HTMLDivElement | null>;
   backdropRef?: React.RefObject<HTMLDivElement | null>;
+  usedBars?: StudioBarRecord[];
+  onUnlinkBar?: (barId: string) => void;
+  onOpenInsertBarModal?: () => void;
 }
 
 // 12 Smart Root Keys (Circle of Fifths order with smart Enharmonic Minor spellings)
@@ -56,6 +61,9 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
   onUpdateSong,
   drawerRef,
   backdropRef,
+  usedBars = [],
+  onUnlinkBar,
+  onOpenInsertBarModal,
 }) => {
   // Key mode (Mayor vs Minor)
   const [keyMode, setKeyMode] = useState<'major' | 'minor'>(() => {
@@ -432,7 +440,82 @@ export const SongStudioSidebar: React.FC<SongStudioSidebarProps> = ({
             </div>
           </div>
 
-          {/* 5. DETAIL WAKTU (CREATED & MODIFIED DATE) */}
+          {/* 5. BAR TERPAKAI DI LAGU INI */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase block">
+                Bar Terpakai di Lagu Ini
+              </label>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-bg-primary text-text-muted">
+                {usedBars.length} Bar
+              </span>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-bg-primary space-y-2.5">
+              {usedBars.length === 0 ? (
+                <div className="py-3 text-center space-y-2">
+                  <p className="text-[11px] text-text-muted">Belum ada bar yang dikaitkan ke lagu ini.</p>
+                  {onOpenInsertBarModal && (
+                    <button
+                      type="button"
+                      onClick={onOpenInsertBarModal}
+                      className="px-3 py-1.5 rounded-xl bg-accent-primary/10 text-accent-primary hover:bg-accent-primary/20 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <Layers size={13} />
+                      <span>+ Sisipkan Bar</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {usedBars.map((b) => (
+                    <div
+                      key={b.id}
+                      className="p-2.5 rounded-xl bg-bg-secondary flex items-center justify-between gap-2 border border-border-default/20 group"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-xs text-text-heading truncate">
+                            {b.title || 'Bar Tanpa Judul'}
+                          </span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-bg-primary text-text-muted shrink-0">
+                            {b.barCount || 4}b
+                          </span>
+                        </div>
+                        <p className="text-[10.5px] text-text-muted truncate mt-0.5">
+                          {(b.content || '').replace(/<[^>]*>/g, '').trim() || '(Kosong)'}
+                        </p>
+                      </div>
+
+                      {onUnlinkBar && (
+                        <button
+                          type="button"
+                          onClick={() => onUnlinkBar(b.id)}
+                          className="p-1 rounded-lg hover:bg-bg-hover text-text-muted hover:text-rose-400 transition-colors cursor-pointer shrink-0"
+                          title="Lepas bar ini dari lagu (kembalikan jadi Fresh)"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {onOpenInsertBarModal && (
+                    <button
+                      type="button"
+                      onClick={onOpenInsertBarModal}
+                      className="w-full py-2 rounded-xl bg-bg-secondary hover:bg-bg-hover text-text-muted hover:text-text-primary text-xs font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-border-default/20 mt-1"
+                    >
+                      <Plus size={13} />
+                      <span>Tambah Bar Lain</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 6. DETAIL WAKTU (CREATED & MODIFIED DATE) */}
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-text-muted tracking-wider uppercase block">
               Detail Waktu

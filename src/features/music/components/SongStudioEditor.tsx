@@ -5,11 +5,13 @@ import { SongStudioToolbar } from './SongStudioToolbar';
 import { SongStudioSidebar } from './SongStudioSidebar';
 import { BpmTapModal } from './BpmTapModal';
 import { InsertAudioModal } from '../../editor/components/InsertAudioModal';
+import { InsertBarModal } from './InsertBarModal';
 import { EditorCore } from '../../editor/components/EditorCore';
 import { transposeEditorChords } from '../../editor/lib/transposeUtils';
 import { CollapsibleReadingDock } from '../../editor/components/CollapsibleReadingDock';
-import { StudioSongRecord, StudioProjectRecord } from '../types/studioDatabase';
+import { StudioSongRecord, StudioProjectRecord, StudioBarRecord } from '../types/studioDatabase';
 import { getLyricVersionById } from '../lib/musicStudioStorage';
+import { useStudioBars } from '../hooks/useStudioBars';
 import { ErrorBoundary } from '../../../components/common/ErrorBoundary';
 import { useNavigation } from '../../../context/NavigationContext';
 import { useDrawerGestures } from '../../editor/hooks/useDrawerGestures';
@@ -43,15 +45,22 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState<boolean>(false);
   const { isKeyboardOpen } = useVirtualKeyboard();
+  const [isInsertBarModalOpen, setIsInsertBarModalOpen] = useState<boolean>(false);
+
+  // Hook for bars and relations
+  const { bars, updateBar } = useStudioBars();
+  const usedBars = bars.filter((b) => b.usedInSongId === song.id);
 
   const isSidebarOpen = isDesktopSidebarOpen || isMobileRightSidebarOpen;
   const shouldShowMobileLock = !isKeyboardOpen && !isSidebarOpen;
 
-  // Listen for audio modal trigger from slash command
+  // Listen for audio and insert-bar modal triggers from slash command
   useEffect(() => {
     const handleOpenModal = (e: CustomEvent) => {
       if (e.detail === 'audio') {
         openModal('song-audio-modal');
+      } else if (e.detail === 'insert-bar') {
+        setIsInsertBarModalOpen(true);
       }
     };
     window.addEventListener('noesis:open-modal' as any, handleOpenModal as EventListener);
@@ -103,6 +112,39 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
       tiptapEditor.chain().focus().insertContent(`<audio controls src="${src}" title="${title}"></audio>\n\n`).run();
     }
   };
+
+  // Insert bar text into editor & mark status used in Supabase
+  const handleInsertBar = useCallback(
+    (barToInsert: StudioBarRecord) => {
+      if (!tiptapEditor || tiptapEditor.isDestroyed) return;
+
+      const rawContent = barToInsert.content || '';
+      // Ensure clean insertion at cursor
+      if (rawContent) {
+        tiptapEditor.chain().focus().insertContent(`\n${rawContent}\n`).run();
+      }
+
+      // Automatically update status to 'used' and associate with current song
+      updateBar(barToInsert.id, {
+        status: 'used',
+        usedInSongId: song.id,
+      });
+
+      setIsInsertBarModalOpen(false);
+    },
+    [tiptapEditor, updateBar, song.id]
+  );
+
+  // Unlink bar from song & restore status to 'available' (Fresh) in Supabase
+  const handleUnlinkBar = useCallback(
+    (barId: string) => {
+      updateBar(barId, {
+        status: 'available',
+        usedInSongId: null,
+      });
+    },
+    [updateBar]
+  );
 
   const handleCloseSidebar = () => {
     setIsDesktopSidebarOpen(false);
@@ -288,6 +330,7 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
             <SongStudioToolbar
               editor={tiptapEditor}
               onOpenAudioModal={() => openModal('song-audio-modal')}
+              onOpenInsertBarModal={() => setIsInsertBarModalOpen(true)}
             />
           )}
         </div>
@@ -300,6 +343,9 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
           onUpdateSong={onUpdateSong}
           drawerRef={rightDrawerRef}
           backdropRef={rightBackdropRef}
+          usedBars={usedBars}
+          onUnlinkBar={handleUnlinkBar}
+          onOpenInsertBarModal={() => setIsInsertBarModalOpen(true)}
         />
       </div>
 
@@ -316,6 +362,14 @@ export const SongStudioEditor: React.FC<SongStudioEditorProps> = ({
         isOpen={activeModal === 'song-audio-modal'}
         onClose={closeModal}
         onInsertAudio={handleInsertAudio}
+      />
+
+      {/* Insert Bar Modal */}
+      <InsertBarModal
+        isOpen={isInsertBarModalOpen}
+        onClose={() => setIsInsertBarModalOpen(false)}
+        bars={bars}
+        onSelectBar={handleInsertBar}
       />
     </div>
   );

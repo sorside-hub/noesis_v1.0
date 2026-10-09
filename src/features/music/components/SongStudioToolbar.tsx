@@ -10,12 +10,14 @@ import {
   Mic, 
   Music, 
   ListPlus,
-  ChevronDown
+  ChevronDown,
+  Layers
 } from 'lucide-react';
 
 interface SongStudioToolbarProps {
   editor: Editor | null;
   onOpenAudioModal: () => void;
+  onOpenInsertBarModal?: () => void;
 }
 
 const SONG_SECTIONS = [
@@ -32,6 +34,7 @@ const SONG_SECTIONS = [
 export const SongStudioToolbar: React.FC<SongStudioToolbarProps> = ({
   editor,
   onOpenAudioModal,
+  onOpenInsertBarModal,
 }) => {
   const [showSectionMenu, setShowSectionMenu] = useState(false);
   const sectionButtonRef = useRef<HTMLButtonElement>(null);
@@ -323,6 +326,20 @@ export const SongStudioToolbar: React.FC<SongStudioToolbarProps> = ({
         <Music size={13} />
         <span>+ Chord</span>
       </button>
+
+      {/* Insert Bar from Ide Bank (Only if onOpenInsertBarModal is available) */}
+      {onOpenInsertBarModal && (
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onOpenInsertBarModal}
+          title="Sisipkan Bar dari Bank Ide (/bar)"
+          className="px-2.5 py-1 flex items-center gap-1 rounded-lg bg-bg-primary text-text-primary hover:bg-bg-hover hover:text-accent-primary transition-colors cursor-pointer shrink-0 font-medium"
+        >
+          <Layers size={13} className="text-accent-primary" />
+          <span>+ Bar</span>
+        </button>
+      )}
 
       {/* Insert Section Dropdown */}
       <button

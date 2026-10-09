@@ -322,6 +322,9 @@ export const useAutocomplete = (
         }).run();
         const insertPos = editor.state.selection.from;
         editor.chain().focus().setTextSelection(insertPos - 1).run();
+      } else if (cmd.id === 'bar') {
+        editor.chain().focus().deleteRange({ from, to }).run();
+        window.dispatchEvent(new CustomEvent('noesis:open-modal', { detail: 'insert-bar' }));
       } else if (cmd.id === 'audio') {
         editor.chain().focus().deleteRange({ from, to }).run();
         window.dispatchEvent(new CustomEvent('noesis:open-modal', { detail: 'audio' }));
