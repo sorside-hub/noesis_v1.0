@@ -1,0 +1,6 @@
+{
+  "summary":  "Rencana implementasi Home Screen Quick Shortcuts & Dedicated Launch Pages untuk Noesis:\n- Konfigurasi Web App Manifest Shortcuts untuk menu pintasan tekan-lama (long-press) di layar utama HP\n- Sistem Dedicated Quick Launch Pages untuk memudahkan 'Tambahkan ke Layar Utama' (Add to Home Screen) secara mandiri per aksi\n- Action Handler global di aplikasi untuk mengeksekusi fitur Empty State Vault (Catatan Baru, Tulis Cepat, AI Voice Transcript, Voice Memo) serta Bar & Single Baru\n- Panduan interaktif cara memasang shortcut ke layar utama Android dan iOS",
+  "updatedAt":  "2026-10-11T06:38:55.151657367Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

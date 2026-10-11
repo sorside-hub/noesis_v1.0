@@ -2,7 +2,7 @@ import Dexie, { Table } from 'dexie';
 import { FileNode } from '../types/vault';
 import { AIAnalysisRecord, EmbeddingRecord } from '../features/rag/types/models';
 import { isNodeRecentlyDeleted } from './sync/syncHelpers';
-import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord, StudioBarRecord } from '../features/music/types/studioDatabase';
+import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord, StudioBarRecord, StudioChordProgressionRecord } from '../features/music/types/studioDatabase';
 
 export interface AppSetting {
   key: string;
@@ -50,6 +50,7 @@ export class NoesisDB extends Dexie {
   studio_songs!: Table<StudioSongRecord, string>;
   studio_lyric_versions!: Table<StudioLyricVersionRecord, string>;
   studio_bars!: Table<StudioBarRecord, string>;
+  studio_chord_progressions!: Table<StudioChordProgressionRecord, string>;
 
   constructor() {
     super('NoesisDatabase');
@@ -107,6 +108,11 @@ export class NoesisDB extends Dexie {
     // V10: Studio Idea Bank (Bars)
     this.version(10).stores({
       studio_bars: 'id, theme, status, usedInSongId, updatedAt, createdAt, deletedAt'
+    });
+
+    // V11: Studio Idea Bank (Chord Progressions)
+    this.version(11).stores({
+      studio_chord_progressions: 'id, key, scale, mood, isFavorite, updatedAt, createdAt, deletedAt'
     });
   }
 }

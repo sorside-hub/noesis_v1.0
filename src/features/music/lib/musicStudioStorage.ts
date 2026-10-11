@@ -1,6 +1,6 @@
 import { db } from '../../../lib/db';
 import { supabase, getSupabaseConfig } from '../../../lib/supabase';
-import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord, StudioBarRecord } from '../types/studioDatabase';
+import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord, StudioBarRecord, StudioChordProgressionRecord } from '../types/studioDatabase';
 
 // ==========================================
 // PERSISTENT DELETION TRACKING (Tombstones)
@@ -10,6 +10,7 @@ import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord, Studio
 const DELETED_PROJECTS_KEY = 'noesis_deleted_studio_projects';
 const DELETED_SONGS_KEY = 'noesis_deleted_studio_songs';
 const DELETED_BARS_KEY = 'noesis_deleted_studio_bars';
+const DELETED_CHORDS_KEY = 'noesis_deleted_studio_chords';
 
 export function getDeletedStudioProjectIds(): Set<string> {
   try {
@@ -59,6 +60,23 @@ export function markStudioBarAsDeleted(id: string) {
   set.add(id);
   try {
     localStorage.setItem(DELETED_BARS_KEY, JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
+export function getDeletedStudioChordProgressionIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_CHORDS_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+export function markStudioChordProgressionAsDeleted(id: string) {
+  const set = getDeletedStudioChordProgressionIds();
+  set.add(id);
+  try {
+    localStorage.setItem(DELETED_CHORDS_KEY, JSON.stringify(Array.from(set)));
   } catch {}
 }
 
@@ -177,20 +195,24 @@ export async function releaseStudioBarsLinkedToSong(songId: string): Promise<voi
       // Update in Supabase if configured
       const config = getSupabaseConfig();
       if (config.isConfigured && supabase) {
-        supabase
-          .from('studio_bars')
-          .update({
-            status: 'available',
-            used_in_song_id: null,
-            updated_at: now,
-          })
-          .eq('id', bar.id)
-          .then(({ error }) => {
+        (async () => {
+          try {
+            const { error } = await supabase
+              .from('studio_bars')
+              .update({
+                status: 'available',
+                used_in_song_id: null,
+                updated_at: now,
+              })
+              .eq('id', bar.id);
             if (error) console.warn('[MusicStudio] Failed releasing bar remotely:', error.message);
-          })
-          .catch((err) => console.warn('[MusicStudio] Failed releasing bar remotely:', err));
+          } catch (err) {
+            console.warn('[MusicStudio] Failed releasing bar remotely:', err);
+          }
+        })();
       }
     }
+
     window.dispatchEvent(new Event('music-studio-updated'));
   } catch (err) {
     console.warn('[MusicStudio] Failed to release bars linked to song:', songId, err);
@@ -213,8 +235,154 @@ export async function deleteStudioBar(id: string): Promise<void> {
 }
 
 // ==========================================
+// 0.5. STUDIO CHORD PROGRESSIONS CRUD (Idea Bank)
+// ==========================================
+
+const DEFAULT_PRESET_PROGRESSIONS: Omit<StudioChordProgressionRecord, 'id' | 'createdAt' | 'updatedAt'>[] = [
+  {
+    title: 'The Emotional Axis (Sad Pop Ballad)',
+    key: 'C',
+    scale: 'Major',
+    mood: 'Melankolis',
+    romans: ['vi', 'IV', 'I', 'V'],
+    chords: ['Am', 'F', 'C', 'G'],
+    description: 'Progresi balada menyayat hati. Membuka dengan luka lalu menemukan sedikit resolusi.',
+    bpm: 72,
+    genre: 'Pop Ballad / Indonesian Pop',
+    tags: ['Ballad', 'Emosional', 'Patah Hati'],
+    notes: 'Bagus untuk verse yang lembut lalu meledak di chorus.',
+    isFavorite: true,
+  },
+  {
+    title: 'Pop-Rock Anthem Megah',
+    key: 'C',
+    scale: 'Major',
+    mood: 'Heroik & Epik',
+    romans: ['I', 'V', 'vi', 'IV'],
+    chords: ['C', 'G', 'Am', 'F'],
+    description: 'Progresi 4-chord legendaris pembakar semangat dan pemicu chorus megah stadium rock.',
+    bpm: 120,
+    genre: 'Pop Rock / Stadium Anthem',
+    tags: ['Anthem', 'Semangat', 'Megah'],
+    notes: 'Kunci kekuatan chorus yang gampang dinyanyikan penonton.',
+    isFavorite: true,
+  },
+  {
+    title: 'Classic 50s Doo-Wop Romance',
+    key: 'G',
+    scale: 'Major',
+    mood: 'Nostalgia',
+    romans: ['I', 'vi', 'IV', 'V'],
+    chords: ['G', 'Em', 'C', 'D'],
+    description: 'Sentuhan cinta klasik nan manis. Hangat, bersahaja, dan membangkitkan senyuman kenangan masa lalu.',
+    bpm: 85,
+    genre: 'Classic Pop / Vintage Ballad',
+    tags: ['Romantis', 'Vintage', 'Masa Lalu'],
+    notes: 'Cocok dengan petikan gitar akustik nylon atau piano vintage.',
+  },
+  {
+    title: 'Sunshine Upbeat Energy',
+    key: 'D',
+    scale: 'Major',
+    mood: 'Ceria & Enerjik',
+    romans: ['I', 'IV', 'V', 'I'],
+    chords: ['D', 'G', 'A', 'D'],
+    description: 'Penuh optimisme dan keceriaan yang memicu senyum dan energi melompat riang.',
+    bpm: 126,
+    genre: 'Upbeat Pop / Folk',
+    tags: ['Gembira', 'Cerah', 'Lompat'],
+    notes: 'Cepat nyangkut di telinga.',
+  },
+  {
+    title: 'Natural Minor Sorrow',
+    key: 'A',
+    scale: 'Natural Minor',
+    mood: 'Melankolis',
+    romans: ['i', 'VI', 'III', 'VII'],
+    chords: ['Am', 'F', 'C', 'G'],
+    description: 'Duka mendalam dan kepasrahan. Sangat kuat untuk lagu akustik melankolis atau slow rock.',
+    bpm: 68,
+    genre: 'Acoustic Folk / Indie',
+    tags: ['Akustik', 'Duka', 'Hujan'],
+    notes: 'Bagus untuk intro solo gitar melankolis.',
+  },
+  {
+    title: 'Coffee Lounge Neo-Soul',
+    key: 'F',
+    scale: 'Major',
+    mood: 'Tenang & Santai',
+    romans: ['ii', 'V', 'I', 'vi'],
+    chords: ['Gm', 'C', 'F', 'Dm'],
+    description: 'Sentuhan jazz santai elegan ala coffee shop sore hari.',
+    bpm: 78,
+    genre: 'Neo-Soul / Jazz Chill',
+    tags: ['Elegan', 'Halus', 'Kafe'],
+    notes: 'Gunakan voicing 7th chord bila memungkinkan.',
+  },
+];
+
+export async function seedDefaultChordProgressionsIfEmpty(): Promise<void> {
+  try {
+    const existingCount = await db.studio_chord_progressions.count();
+    if (existingCount === 0) {
+      const now = new Date().toISOString();
+      const presets: StudioChordProgressionRecord[] = DEFAULT_PRESET_PROGRESSIONS.map((p, idx) => ({
+        ...p,
+        id: `prog_preset_${Date.now()}_${idx}`,
+        createdAt: now,
+        updatedAt: now,
+      }));
+      await db.studio_chord_progressions.bulkPut(presets);
+    }
+  } catch (err) {
+    console.warn('[MusicStudio] Failed to seed default chord progressions:', err);
+  }
+}
+
+export async function getAllStudioChordProgressions(): Promise<StudioChordProgressionRecord[]> {
+  await seedDefaultChordProgressionsIfEmpty();
+  const deletedIds = getDeletedStudioChordProgressionIds();
+  const allProgs = await db.studio_chord_progressions.toArray();
+  const activeProgs = allProgs.filter((p) => !p.deletedAt && !deletedIds.has(p.id));
+  return activeProgs.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+}
+
+export async function getStudioChordProgressionById(id: string): Promise<StudioChordProgressionRecord | undefined> {
+  const deletedIds = getDeletedStudioChordProgressionIds();
+  if (deletedIds.has(id)) return undefined;
+  const item = await db.studio_chord_progressions.get(id);
+  if (item && !item.deletedAt) return item;
+  return undefined;
+}
+
+export async function saveStudioChordProgression(prog: StudioChordProgressionRecord): Promise<void> {
+  // Clear any tombstone if re-created or updated
+  const deletedSet = getDeletedStudioChordProgressionIds();
+  if (deletedSet.has(prog.id)) {
+    deletedSet.delete(prog.id);
+    try {
+      localStorage.setItem(DELETED_CHORDS_KEY, JSON.stringify(Array.from(deletedSet)));
+    } catch {}
+  }
+
+  const updatedProg: StudioChordProgressionRecord = {
+    ...prog,
+    updatedAt: new Date().toISOString(),
+  };
+  await db.studio_chord_progressions.put(updatedProg);
+  window.dispatchEvent(new Event('music-studio-chords-updated'));
+}
+
+export async function deleteStudioChordProgression(id: string): Promise<void> {
+  markStudioChordProgressionAsDeleted(id);
+  await db.studio_chord_progressions.delete(id);
+  window.dispatchEvent(new Event('music-studio-chords-updated'));
+}
+
+// ==========================================
 // 1. STUDIO PROJECTS CRUD (Offline First + Sync)
 // ==========================================
+
 
 export async function getAllStudioProjects(): Promise<StudioProjectRecord[]> {
   try {

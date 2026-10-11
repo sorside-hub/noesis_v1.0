@@ -76,3 +76,23 @@ export interface StudioBarRecord {
   updatedAt: string;
   deletedAt?: number;
 }
+
+export interface StudioChordProgressionRecord {
+  id: string;
+  title: string;
+  key: string;              // e.g. "C", "Am", "G", "F#m"
+  scale: string;            // e.g. "Major", "Natural Minor", "Dorian", "Mixolydian"
+  mood: string;             // e.g. "Melankolis", "Heroik & Epik", "Nostalgia", "Ceria & Enerjik", "Gelap & Tegang", "Misterius", "Tenang & Santai"
+  romans: string[];         // e.g. ["I", "V", "vi", "IV"]
+  chords: string[];         // e.g. ["C", "G", "Am", "F"]
+  description?: string;     // Penjelasan harmoni & karakter emosional
+  bpm?: number;             // Rekomendasi tempo
+  genre?: string;           // Rekomendasi genre (Pop, Rock, Ballad, Indie, dll)
+  tags?: string[];
+  notes?: string;           // Catatan musisi
+  isFavorite?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: number;
+}
+

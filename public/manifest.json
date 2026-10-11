@@ -26,5 +26,72 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Catatan Baru",
+      "short_name": "Catatan",
+      "description": "Buka lembar catatan baru di Vault",
+      "url": "/?action=new-note",
+      "icons": [
+        {
+          "src": "/pwa-maskable-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Tulis Cepat",
+      "short_name": "Tulis",
+      "description": "Catat kilat ke Inbox",
+      "url": "/?action=quick-capture",
+      "icons": [
+        {
+          "src": "/pwa-maskable-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "AI Voice Transcript",
+      "short_name": "Transkrip",
+      "description": "Transkripsi suara ke teks cerdas",
+      "url": "/?action=voice-transcript",
+      "icons": [
+        {
+          "src": "/pwa-maskable-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Voice Memo",
+      "short_name": "Memo Suara",
+      "description": "Rekam audio memo instan",
+      "url": "/?action=voice-memo",
+      "icons": [
+        {
+          "src": "/pwa-maskable-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Bar Musik Baru",
+      "short_name": "Bar Baru",
+      "description": "Buka Studio dan buat Bar musik baru",
+      "url": "/?action=new-bar",
+      "icons": [
+        {
+          "src": "/pwa-maskable-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }
