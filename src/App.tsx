@@ -15,10 +15,7 @@ import { MusicPlayerProvider } from './features/music/context/MusicPlayerContext
 import { FloatingVinylPlayer } from './features/music/components/FloatingVinylPlayer';
 import { VoiceNoteModal } from './features/voice/components/VoiceNoteModal';
 import { VoiceMemoModal } from './features/voice/components/VoiceMemoModal';
-import { HomeScreenShortcutModal } from './components/navigation/HomeScreenShortcutModal';
 import { useHomeScreenShortcuts } from './hooks/useHomeScreenShortcuts';
-import { saveStudioBar } from './features/music/lib/musicStudioStorage';
-import { FileNode } from './types/vault';
 import { mediaGC } from './lib/mediaGarbageCollector';
 import { reminderService } from './lib/reminder/reminderService';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
@@ -130,80 +127,6 @@ function AppContent({ vaultState }: { vaultState: ReturnType<typeof useVault> })
       {/* Global Voice Note & Voice Memo Modals */}
       <VoiceNoteModal vaultState={vaultState} />
       <VoiceMemoModal vaultState={vaultState} />
-
-      {/* Global Home Screen Shortcuts Guide & Launchers Modal */}
-      <HomeScreenShortcutModal
-        isOpen={activeModal === 'home-screen-shortcuts'}
-        onClose={closeModal}
-        onExecuteShortcut={async (action) => {
-          switch (action) {
-            case 'new-note': {
-              navigateView('vault');
-              const newId = vaultState.createNote(null, 'Untitled');
-              if (newId) navigateToNote(newId);
-              break;
-            }
-            case 'quick-capture': {
-              navigateView('vault');
-              const allNodes = Object.values(vaultState.vault?.nodes || {}) as FileNode[];
-              let inboxFolder = allNodes.find(
-                (n) =>
-                  n.type === 'folder' &&
-                  n.parentId === null &&
-                  (n.name.toLowerCase() === '00-inbox' ||
-                    n.name.toLowerCase() === '00 - inbox' ||
-                    n.name.toLowerCase() === 'inbox')
-              );
-              let inboxFolderId: string | null = inboxFolder ? inboxFolder.id : null;
-              if (!inboxFolderId) {
-                inboxFolderId = vaultState.createFolder(null, '00-Inbox');
-              }
-              const now = new Date();
-              const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
-              const timeStr = now
-                .toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-                .replace(':', '.');
-              const captureName = `Capture ${dateStr} ${timeStr}`;
-              const newId = vaultState.createNote(inboxFolderId, captureName, { status: 'Inbox' });
-              if (newId) navigateToNote(newId);
-              break;
-            }
-            case 'voice-transcript': {
-              navigateView('vault');
-              openModal('voice-note');
-              break;
-            }
-            case 'voice-memo': {
-              navigateView('vault');
-              openModal('voice-memo');
-              break;
-            }
-            case 'new-bar': {
-              const barId = `bar_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-              const now = new Date().toISOString();
-              await saveStudioBar({
-                id: barId,
-                title: 'Bar Baru',
-                content: '',
-                theme: '',
-                topic: '',
-                rhymeScheme: 'Bebas',
-                barCount: 4,
-                status: 'available',
-                usedInSongId: null,
-                tags: [],
-                notes: '',
-                createdAt: now,
-                updatedAt: now,
-              });
-              window.dispatchEvent(new CustomEvent('music-studio-updated'));
-              navigateView('music');
-              navigateToMusicBar(barId);
-              break;
-            }
-          }
-        }}
-      />
 
       {/* Global Floating Spinning Vinyl Music Player */}
       <FloatingVinylPlayer />

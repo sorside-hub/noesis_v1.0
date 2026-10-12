@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Zap, Mic, AudioLines, Smartphone } from 'lucide-react';
+import { Plus, Zap, Mic, AudioLines } from 'lucide-react';
 import { useNavigation } from '../../../context/NavigationContext';
 
 interface EmptyStateProps {
@@ -78,18 +78,6 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onCreateNote, onQuickCap
             <span className="text-[10px] uppercase font-bold tracking-wider text-text-primary group-hover:text-text-primary transition-colors">
               Voice Memo
             </span>
-          </button>
-        </div>
-
-        {/* Home Screen Mobile Shortcut Trigger */}
-        <div className="mt-8 flex flex-col items-center">
-          <button
-            type="button"
-            onClick={() => openModal('home-screen-shortcuts')}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-bg-secondary hover:bg-bg-hover text-text-secondary hover:text-text-primary text-xs font-medium border border-border-primary/80 shadow-2xs transition-all duration-200 cursor-pointer group"
-          >
-            <Smartphone size={13} className="text-accent-primary group-hover:scale-110 transition-transform" />
-            <span>Pasang Shortcut ke Layar Utama Ponsel</span>
           </button>
         </div>
       </div>

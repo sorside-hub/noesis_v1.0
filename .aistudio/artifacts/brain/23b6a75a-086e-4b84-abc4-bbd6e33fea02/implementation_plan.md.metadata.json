@@ -1,6 +1,6 @@
 {
-  "summary":  "Rencana implementasi Home Screen Quick Shortcuts & Dedicated Launch Pages untuk Noesis:\n- Konfigurasi Web App Manifest Shortcuts untuk menu pintasan tekan-lama (long-press) di layar utama HP\n- Sistem Dedicated Quick Launch Pages untuk memudahkan 'Tambahkan ke Layar Utama' (Add to Home Screen) secara mandiri per aksi\n- Action Handler global di aplikasi untuk mengeksekusi fitur Empty State Vault (Catatan Baru, Tulis Cepat, AI Voice Transcript, Voice Memo) serta Bar & Single Baru\n- Panduan interaktif cara memasang shortcut ke layar utama Android dan iOS",
-  "updatedAt":  "2026-10-11T06:38:55.151657367Z",
+  "summary":  "Rencana pembaruan shortcut mobile dan pembersihan UI:\n- Mengubah susunan Web App Manifest menjadi 3 shortcut utama: Tulis Cepat, AI Voice Transcript, dan Bar Baru agar pas dengan limit 4 baris di Android launcher (+ Setelan situs).\n- Menghapus tombol shortcut dari Empty State Vault agar tampilan kembali bersih dan minimalis.\n- Menghapus modal panduan shortcut dari seluruh aplikasi sesuai instruksi pengguna, dengan tetap menjaga eksekusi instan saat ikon ditekan dari home screen.",
+  "updatedAt":  "2026-10-12T03:19:00.909957906Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

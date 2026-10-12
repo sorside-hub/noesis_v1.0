@@ -15,8 +15,7 @@ import {
   Check,
   Contrast,
   ClipboardList,
-  Music2,
-  Smartphone
+  Music2
 } from 'lucide-react';
 import { VaultData, FileNode } from '../../../types/vault';
 import { ApiKeyStatusSection } from './ApiKeyStatusSection';
@@ -269,34 +268,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
                 <span>{importStatus.message}</span>
               </div>
             )}
-          </div>
-        </section>
-
-        {/* 5. MOBILE HOME SCREEN SHORTCUTS (PWA WIDGET) */}
-        <section className="space-y-2.5">
-          <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider px-1 flex items-center gap-2">
-            <Smartphone size={14} className="text-accent-primary" /> 
-            PWA & Shortcut Layar Utama Ponsel
-          </h2>
-          
-          <div className="bg-bg-secondary rounded-xl p-4 shadow-2xs border border-border-primary/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-text-heading">
-                Akses Kilat Home Screen
-              </h3>
-              <p className="text-xs text-text-muted leading-relaxed max-w-md">
-                Pasang pintasan instan (Catatan Baru, Tulis Cepat, AI Transcript, Voice Memo, Bar Musik Baru) langsung ke layar utama Android & iPhone.
-              </p>
-            </div>
-            
-            <button
-              type="button"
-              onClick={() => openModal('home-screen-shortcuts')}
-              className="px-4 py-2 bg-bg-primary hover:bg-bg-hover text-text-primary border border-border-primary rounded-xl text-xs font-semibold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-2 shrink-0 self-start sm:self-auto"
-            >
-              <Smartphone size={14} className="text-accent-primary" />
-              <span>Buka Panduan & Pintasan</span>
-            </button>
           </div>
         </section>
 
