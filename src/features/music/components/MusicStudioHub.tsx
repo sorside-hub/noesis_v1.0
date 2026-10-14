@@ -21,10 +21,12 @@ import {
 } from 'lucide-react';
 import { useMusicStudio } from '../hooks/useMusicStudio';
 import { useStudioBars } from '../hooks/useStudioBars';
+import { useStudioChords } from '../hooks/useStudioChords';
 import { MusicKanbanPipeline } from './MusicKanbanPipeline';
 import { MusicDiscographyView } from './MusicDiscographyView';
 import { MusicIdeaBankView } from './MusicIdeaBankView';
 import { BarStudioEditor } from './BarStudioEditor';
+import { ProgressionStudioEditor } from './ProgressionStudioEditor';
 import { MusicStudioDrawerDock, StudioViewTab } from './MusicStudioDrawerDock';
 import { SingleOverviewDashboard } from './SingleOverviewDashboard';
 import { ProjectOverviewDashboard } from './ProjectOverviewDashboard';
@@ -34,7 +36,7 @@ import { MoveSongProjectModal } from './MoveSongProjectModal';
 import { NewSongModal } from './NewSongModal';
 import { NewProjectModal } from './NewProjectModal';
 import { getStudioBarById } from '../lib/musicStudioStorage';
-import { StudioBarRecord } from '../types/studioDatabase';
+import { StudioBarRecord, StudioChordProgressionRecord } from '../types/studioDatabase';
 import { useNavigation } from '../../../context/NavigationContext';
 import { MusicProductionStatus, MusicProjectType, MusicReleaseItem } from '../types';
 
@@ -96,6 +98,10 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     duplicateBar,
   } = useStudioBars();
   const [activeEditingBar, setActiveEditingBar] = useState<StudioBarRecord | null>(null);
+
+  // Studio Idea Bank (Chords & Fullscreen Progression Studio)
+  const { updateProgression, removeProgression } = useStudioChords();
+  const [activeEditingProgression, setActiveEditingProgression] = useState<StudioChordProgressionRecord | null>(null);
 
   // Sync activeEditingBar with musicBarId from browser/phone navigation history
   useEffect(() => {
@@ -550,6 +556,26 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
     );
   }
 
+  // ----------------------------------------------------
+  // SUB-VIEW: PROGRESSION STUDIO EDITOR (Bank Ide - Modul Progresi Layar Penuh)
+  // ----------------------------------------------------
+  if (activeEditingProgression) {
+    return (
+      <ProgressionStudioEditor
+        progression={activeEditingProgression}
+        onBack={() => setActiveEditingProgression(null)}
+        onUpdateProgression={(patch) => {
+          setActiveEditingProgression((prev) => (prev ? { ...prev, ...patch } : null));
+          updateProgression(activeEditingProgression.id, patch);
+        }}
+        onDeleteProgression={(id) => {
+          removeProgression(id);
+          setActiveEditingProgression(null);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="relative w-full h-full bg-bg-primary text-text-primary select-none flex flex-col overflow-hidden">
       <div className="max-w-7xl w-full mx-auto px-3 sm:px-6 pt-3 pb-2 space-y-2.5 flex-1 flex flex-col min-h-0">
@@ -954,6 +980,7 @@ export const MusicStudioHub: React.FC<MusicStudioHubProps> = () => {
                 }}
                 onDuplicateBar={duplicateBar}
                 onDeleteBar={removeBar}
+                onOpenProgressionEditor={(prog) => setActiveEditingProgression(prog)}
               />
             )}
           </div>

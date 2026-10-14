@@ -14,6 +14,7 @@ import { handleSummarizeChatMemory } from './src/api-core/chatMemoryHandler';
 import { handleVoiceToNote } from './src/api-core/voiceHandler';
 import { handleInboxTriage } from './src/api-core/inboxTriageHandler';
 import { handleExplainConnection } from './src/api-core/smartConnectionHandler';
+import { handleLyricBrainstorm } from './src/api-core/lyricBrainstormHandler';
 
 // Load environment variables from .env
 dotenv.config();
@@ -371,6 +372,37 @@ async function startServer() {
       res.json(result);
     } catch (error: unknown) {
       console.error('[API /api/voice-note Error]:', error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Internal Server Error',
+      });
+    }
+  });
+
+  // POST /api/music/lyric-brainstorm - AI Lyric Brainstorming Companion
+  app.post('/api/music/lyric-brainstorm', async (req, res) => {
+    try {
+      const { keyword, mode, toneStyle, contextSnippet, songTitle, genre, premise, customKeys } = req.body;
+      if (!keyword || typeof keyword !== 'string') {
+        return res.status(400).json({ error: 'keyword string is required' });
+      }
+
+      const result = await handleLyricBrainstorm(
+        {
+          keyword: keyword.trim(),
+          mode: mode || 'metaphor',
+          toneStyle: toneStyle || 'raw',
+          contextSnippet,
+          songTitle,
+          genre,
+          premise,
+        },
+        customKeys,
+        process.env
+      );
+
+      res.json(result);
+    } catch (error: unknown) {
+      console.error('[API /api/music/lyric-brainstorm Error]:', error);
       res.status(500).json({
         error: error instanceof Error ? error.message : 'Internal Server Error',
       });

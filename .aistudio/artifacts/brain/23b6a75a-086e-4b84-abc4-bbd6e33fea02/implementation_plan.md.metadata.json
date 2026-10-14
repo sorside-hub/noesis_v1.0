@@ -1,6 +1,6 @@
 {
-  "summary":  "Rencana pembaruan shortcut mobile dan pembersihan UI:\n- Mengubah susunan Web App Manifest menjadi 3 shortcut utama: Tulis Cepat, AI Voice Transcript, dan Bar Baru agar pas dengan limit 4 baris di Android launcher (+ Setelan situs).\n- Menghapus tombol shortcut dari Empty State Vault agar tampilan kembali bersih dan minimalis.\n- Menghapus modal panduan shortcut dari seluruh aplikasi sesuai instruksi pengguna, dengan tetap menjaga eksekusi instan saat ikon ditekan dari home screen.",
-  "updatedAt":  "2026-10-12T03:19:00.909957906Z",
-  "requestFeedback":  true,
-  "userFacing":  true
+  "summary": "Revisi rencana implementasi AI Lyric Brainstorming Companion:\n- Pemilihan Model Cascade: Menggunakan getGeminiFirstCascade() (Gemini 3.6 Flash -> Gemini 3.5 Flash-Lite -> Groq 120B/20B) untuk nalar sastra dan konteks lirik superior.\n- Fitur Pilihan Gaya Lirik (Lyrical Tone / Vibe Selector): Raw/Punk/Tajam, Indie Folk/Realis, Puitis Sastra, Pop Urban, dan Hip-Hop/Wordplay.\n- Instruksi AI (System Prompt Rules) Anti-Klise: Aturan ketat melarang metafor basi (senja/rembulan/air mata) dan menyesuaikan kosakata secara organik sesuai gaya yang dipilih.",
+  "updatedAt": "2026-10-13T08:44:11.197581930Z",
+  "requestFeedback": true,
+  "userFacing": true
 }

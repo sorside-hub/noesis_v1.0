@@ -1,6 +1,13 @@
 import { db } from '../../../lib/db';
 import { supabase, getSupabaseConfig } from '../../../lib/supabase';
-import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord, StudioBarRecord, StudioChordProgressionRecord } from '../types/studioDatabase';
+import { 
+  StudioProjectRecord, 
+  StudioSongRecord, 
+  StudioLyricVersionRecord, 
+  StudioBarRecord, 
+  StudioChordProgressionRecord,
+  StudioLyricBrainstormRecord 
+} from '../types/studioDatabase';
 
 // ==========================================
 // PERSISTENT DELETION TRACKING (Tombstones)
@@ -11,6 +18,7 @@ const DELETED_PROJECTS_KEY = 'noesis_deleted_studio_projects';
 const DELETED_SONGS_KEY = 'noesis_deleted_studio_songs';
 const DELETED_BARS_KEY = 'noesis_deleted_studio_bars';
 const DELETED_CHORDS_KEY = 'noesis_deleted_studio_chords';
+const DELETED_BRAINSTORMS_KEY = 'noesis_deleted_studio_brainstorms';
 
 export function getDeletedStudioProjectIds(): Set<string> {
   try {
@@ -77,6 +85,23 @@ export function markStudioChordProgressionAsDeleted(id: string) {
   set.add(id);
   try {
     localStorage.setItem(DELETED_CHORDS_KEY, JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
+export function getDeletedStudioBrainstormIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_BRAINSTORMS_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+export function markStudioBrainstormAsDeleted(id: string) {
+  const set = getDeletedStudioBrainstormIds();
+  set.add(id);
+  try {
+    localStorage.setItem(DELETED_BRAINSTORMS_KEY, JSON.stringify(Array.from(set)));
   } catch {}
 }
 
@@ -377,6 +402,87 @@ export async function deleteStudioChordProgression(id: string): Promise<void> {
   markStudioChordProgressionAsDeleted(id);
   await db.studio_chord_progressions.delete(id);
   window.dispatchEvent(new Event('music-studio-chords-updated'));
+}
+
+// ==========================================
+// 0.2 STUDIO LYRIC BRAINSTORMS CRUD (Offline First + Sync)
+// ==========================================
+
+export async function getSongLyricBrainstorms(songId: string): Promise<StudioLyricBrainstormRecord[]> {
+  try {
+    const deletedIds = getDeletedStudioBrainstormIds();
+    const allBrainstorms = await db.studio_lyric_brainstorms.where('songId').equals(songId).toArray();
+    return allBrainstorms
+      .filter((b) => !b.deletedAt && !deletedIds.has(b.id))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  } catch (err) {
+    console.warn('[MusicStudio] Failed to load lyric brainstorms:', err);
+    return [];
+  }
+}
+
+export async function saveLyricBrainstormRecord(record: StudioLyricBrainstormRecord): Promise<void> {
+  // Clear any tombstone if re-created
+  const deletedSet = getDeletedStudioBrainstormIds();
+  if (deletedSet.has(record.id)) {
+    deletedSet.delete(record.id);
+    try {
+      localStorage.setItem(DELETED_BRAINSTORMS_KEY, JSON.stringify(Array.from(deletedSet)));
+    } catch {}
+  }
+
+  const updatedRecord: StudioLyricBrainstormRecord = {
+    ...record,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await db.studio_lyric_brainstorms.put(updatedRecord);
+  window.dispatchEvent(new Event('music-studio-brainstorms-updated'));
+
+  // Background non-blocking sync to Supabase if configured & logged in
+  const config = getSupabaseConfig();
+  if (config.isConfigured && supabase) {
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const payload: any = {
+            id: updatedRecord.id,
+            song_id: updatedRecord.songId,
+            version_id: updatedRecord.versionId || null,
+            mode: updatedRecord.mode,
+            tone_style: updatedRecord.toneStyle,
+            keyword: updatedRecord.keyword,
+            context_snippet: updatedRecord.contextSnippet || null,
+            suggestions: updatedRecord.suggestions,
+            user_id: user.id,
+            created_at: updatedRecord.createdAt,
+            updated_at: updatedRecord.updatedAt,
+          };
+          await supabase.from('studio_lyric_brainstorms').upsert(payload);
+        }
+      } catch (cloudErr) {
+        console.warn('[MusicStudio] Failed to sync lyric brainstorm to Supabase:', cloudErr);
+      }
+    })();
+  }
+}
+
+export async function deleteLyricBrainstormRecord(id: string): Promise<void> {
+  markStudioBrainstormAsDeleted(id);
+  await db.studio_lyric_brainstorms.delete(id);
+  window.dispatchEvent(new Event('music-studio-brainstorms-updated'));
+
+  const config = getSupabaseConfig();
+  if (config.isConfigured && supabase) {
+    (async () => {
+      try {
+        await supabase.from('studio_lyric_brainstorms').delete().eq('id', id);
+      } catch (cloudErr) {
+        console.warn('[MusicStudio] Failed to delete lyric brainstorm from Supabase:', cloudErr);
+      }
+    })();
+  }
 }
 
 // ==========================================
@@ -937,7 +1043,45 @@ export async function syncMusicStudioFromCloud(): Promise<void> {
       }
     }
 
+    // 5. Fetch Studio Lyric Brainstorms (studio_lyric_brainstorms)
+    const deletedBrainstormIds = getDeletedStudioBrainstormIds();
+    const { data: remoteBrainstorms, error: bsErr } = await supabase
+      .from('studio_lyric_brainstorms')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (!bsErr && remoteBrainstorms) {
+      const activeRemoteBrainstorms = remoteBrainstorms.filter((b: any) => !deletedBrainstormIds.has(b.id));
+      const localBrainstorms: StudioLyricBrainstormRecord[] = activeRemoteBrainstorms.map((b: any) => ({
+        id: b.id,
+        songId: b.song_id,
+        versionId: b.version_id || undefined,
+        mode: b.mode || 'metaphor',
+        toneStyle: b.tone_style || 'raw',
+        keyword: b.keyword || '',
+        contextSnippet: b.context_snippet || undefined,
+        suggestions: Array.isArray(b.suggestions) ? b.suggestions : [],
+        createdAt: b.created_at,
+        updatedAt: b.updated_at || b.created_at,
+      }));
+
+      // Reconcile: Purge local brainstorms that were deleted on cloud
+      const remoteBsIds = new Set(activeRemoteBrainstorms.map((b: any) => b.id));
+      const allLocalBs = await db.studio_lyric_brainstorms.toArray();
+      const purgeBsIds = allLocalBs
+        .filter((b) => !remoteBsIds.has(b.id) || deletedBrainstormIds.has(b.id))
+        .map((b) => b.id);
+      if (purgeBsIds.length > 0) {
+        await db.studio_lyric_brainstorms.bulkDelete(purgeBsIds);
+      }
+
+      if (localBrainstorms.length > 0) {
+        await db.studio_lyric_brainstorms.bulkPut(localBrainstorms);
+      }
+    }
+
     window.dispatchEvent(new Event('music-studio-updated'));
+    window.dispatchEvent(new Event('music-studio-brainstorms-updated'));
   } catch (err) {
     console.warn('[MusicStudio] Cloud pull error:', err);
   }

@@ -23,6 +23,7 @@ import {
   playProgressionSequence,
 } from '../lib/chordTheory';
 import { StudioChordProgressionRecord } from '../types/studioDatabase';
+import { FamilyChordSelector } from './FamilyChordSelector';
 
 interface ChordGeneratorModalProps {
   isOpen: boolean;
@@ -85,6 +86,56 @@ export const ChordGeneratorModal: React.FC<ChordGeneratorModalProps> = ({
       runGeneration();
     }
   }, [isOpen, selectedMood, selectedKey, selectedScale, chordCount]);
+
+  // Handle click on family chord chip to append to progression
+  const handleSelectFamilyChord = (chord: string, roman: string) => {
+    setIsSaved(false);
+    setGeneratedResult((prev) => {
+      if (!prev) {
+        return {
+          title: `Progresi Harmoni ${selectedKey} ${selectedScale}`,
+          romans: [roman],
+          chords: [chord],
+          key: selectedKey,
+          scale: selectedScale,
+          mood: selectedMood,
+          bpm: 80,
+          genre: 'Pop / Akustik',
+          description: `Kombinasi akor kustom dalam nada ${selectedKey} ${selectedScale}`,
+          tags: ['Kustom', selectedMood, selectedKey],
+        };
+      }
+      return {
+        ...prev,
+        romans: [...prev.romans, roman],
+        chords: [...prev.chords, chord],
+      };
+    });
+  };
+
+  const handleRemoveLastChord = () => {
+    setIsSaved(false);
+    setGeneratedResult((prev) => {
+      if (!prev || prev.chords.length === 0) return prev;
+      return {
+        ...prev,
+        romans: prev.romans.slice(0, -1),
+        chords: prev.chords.slice(0, -1),
+      };
+    });
+  };
+
+  const handleClearChords = () => {
+    setIsSaved(false);
+    setGeneratedResult((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        romans: [],
+        chords: [],
+      };
+    });
+  };
 
   // Handle Play progression sequence
   const handleTogglePlay = () => {
@@ -290,6 +341,17 @@ export const ChordGeneratorModal: React.FC<ChordGeneratorModalProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Rekomendasi Akor Keluarga (Family Chords) */}
+          <FamilyChordSelector
+            rootKey={selectedKey}
+            scale={selectedScale}
+            onSelectChord={handleSelectFamilyChord}
+            onRemoveLastChord={handleRemoveLastChord}
+            onClearChords={handleClearChords}
+            currentChords={generatedResult?.chords || []}
+            currentRomans={generatedResult?.romans || []}
+          />
 
           {/* 
             LIVE PREVIEW CARD

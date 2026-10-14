@@ -19,7 +19,7 @@ import { MusicChordCard } from './MusicChordCard';
 import { ChordGeneratorModal } from './ChordGeneratorModal';
 import { ChordProgressionEditorModal } from './ChordProgressionEditorModal';
 import { useStudioChords } from '../hooks/useStudioChords';
-import { ROOT_KEYS, MOOD_CATEGORIES } from '../lib/chordTheory';
+import { ROOT_KEYS, SCALE_TYPES, MOOD_CATEGORIES } from '../lib/chordTheory';
 
 export type BankSubTab = 'bars' | 'chords' | 'melodies';
 
@@ -30,6 +30,8 @@ interface MusicIdeaBankViewProps {
   onCreateNewBar: () => void;
   onDuplicateBar?: (barId: string) => void;
   onDeleteBar?: (barId: string) => void;
+  onOpenProgressionEditor?: (progression: StudioChordProgressionRecord) => void;
+  onCreateNewProgression?: () => void;
 }
 
 export const MusicIdeaBankView: React.FC<MusicIdeaBankViewProps> = ({
@@ -39,6 +41,8 @@ export const MusicIdeaBankView: React.FC<MusicIdeaBankViewProps> = ({
   onCreateNewBar,
   onDuplicateBar,
   onDeleteBar,
+  onOpenProgressionEditor,
+  onCreateNewProgression,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<BankSubTab>('bars');
 
@@ -67,13 +71,74 @@ export const MusicIdeaBankView: React.FC<MusicIdeaBankViewProps> = ({
   const [chordSearch, setChordSearch] = useState('');
   const [selectedMoodFilter, setSelectedMoodFilter] = useState<string>('all');
   const [selectedKeyFilter, setSelectedKeyFilter] = useState<string>('all');
+  const [selectedScaleFilter, setSelectedScaleFilter] = useState<string>('all');
   const [favoriteOnlyFilter, setFavoriteOnlyFilter] = useState<boolean>(false);
   const [showKeyDropdown, setShowKeyDropdown] = useState(false);
+  const [showScaleDropdown, setShowScaleDropdown] = useState(false);
 
-  // Modals
+  // Modals / Fullscreen Editors
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const [isManualEditorOpen, setIsManualEditorOpen] = useState(false);
   const [editingProgression, setEditingProgression] = useState<StudioChordProgressionRecord | null>(null);
+
+  const handleOpenManualOrFullscreen = async (prog?: StudioChordProgressionRecord) => {
+    if (prog) {
+      if (onOpenProgressionEditor) {
+        onOpenProgressionEditor(prog);
+      } else {
+        setEditingProgression(prog);
+        setIsManualEditorOpen(true);
+      }
+    } else {
+      if (onOpenProgressionEditor) {
+        const newId = await createNewProgression({
+          title: 'Progresi Musik Baru',
+          key: 'C',
+          scale: 'Major',
+          mood: 'Melankolis',
+          bpm: 80,
+          genre: 'Pop Ballad',
+          chords: ['C', 'G', 'Am', 'F'],
+          romans: ['I', 'V', 'vi', 'IV'],
+          sections: [
+            {
+              id: `sec_${Date.now()}_1`,
+              name: 'Verse 1',
+              chords: ['C', 'G', 'Am', 'F'],
+              romans: ['I', 'V', 'vi', 'IV'],
+            },
+          ],
+        });
+        if (newId) {
+          const created = progressions.find((p) => p.id === newId) || {
+            id: newId,
+            title: 'Progresi Musik Baru',
+            key: 'C',
+            scale: 'Major',
+            mood: 'Melankolis',
+            bpm: 80,
+            genre: 'Pop Ballad',
+            chords: ['C', 'G', 'Am', 'F'],
+            romans: ['I', 'V', 'vi', 'IV'],
+            sections: [
+              {
+                id: `sec_${Date.now()}_1`,
+                name: 'Verse 1',
+                chords: ['C', 'G', 'Am', 'F'],
+                romans: ['I', 'V', 'vi', 'IV'],
+              },
+            ],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          onOpenProgressionEditor(created);
+        }
+      } else {
+        setEditingProgression(null);
+        setIsManualEditorOpen(true);
+      }
+    }
+  };
 
   // Available bar themes
   const availableThemes = useMemo(() => {
@@ -127,6 +192,11 @@ export const MusicIdeaBankView: React.FC<MusicIdeaBankViewProps> = ({
         return false;
       }
 
+      // 3.5 Scale Filter
+      if (selectedScaleFilter !== 'all' && prog.scale.toLowerCase() !== selectedScaleFilter.toLowerCase()) {
+        return false;
+      }
+
       // 4. Search Query
       if (chordSearch.trim()) {
         const q = chordSearch.toLowerCase().trim();
@@ -144,7 +214,7 @@ export const MusicIdeaBankView: React.FC<MusicIdeaBankViewProps> = ({
 
       return true;
     });
-  }, [progressions, favoriteOnlyFilter, selectedMoodFilter, selectedKeyFilter, chordSearch]);
+  }, [progressions, favoriteOnlyFilter, selectedMoodFilter, selectedKeyFilter, selectedScaleFilter, chordSearch]);
 
   return (
     <div className="w-full h-full flex flex-col min-h-0 select-none overflow-hidden space-y-3">
@@ -288,10 +358,7 @@ export const MusicIdeaBankView: React.FC<MusicIdeaBankViewProps> = ({
 
               <button
                 type="button"
-                onClick={() => {
-                  setEditingProgression(null);
-                  setIsManualEditorOpen(true);
-                }}
+                onClick={() => handleOpenManualOrFullscreen()}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-hover text-text-primary text-xs font-semibold transition-colors cursor-pointer border border-border-default/40"
               >
                 <Plus size={14} />
@@ -300,7 +367,7 @@ export const MusicIdeaBankView: React.FC<MusicIdeaBankViewProps> = ({
             </div>
           </div>
 
-          {/* Filter Bar: Mood Chips, Key Dropdown, Favorites Toggle */}
+          {/* Filter Bar: Mood Chips, Key Dropdown, Scale Dropdown, Favorites Toggle */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 pb-1">
             {/* Mood Category Filters */}
             <div className="flex items-center gap-1 bg-bg-secondary p-1 rounded-xl shrink-0">
@@ -391,6 +458,60 @@ export const MusicIdeaBankView: React.FC<MusicIdeaBankViewProps> = ({
               )}
             </div>
 
+            {/* Scale Type Dropdown Filter */}
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowScaleDropdown(!showScaleDropdown)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                  selectedScaleFilter !== 'all'
+                    ? 'bg-accent-primary/10 border-accent-primary/30 text-accent-primary font-bold'
+                    : 'bg-bg-secondary border-border-default/40 text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                <span>{selectedScaleFilter === 'all' ? 'Semua Tangga Nada' : selectedScaleFilter}</span>
+                <ChevronDown size={12} />
+              </button>
+
+              {showScaleDropdown && (
+                <div className="absolute left-0 top-full mt-1.5 w-44 bg-bg-surface border border-border-default rounded-xl shadow-xl z-30 p-1 max-h-48 overflow-y-auto custom-scrollbar">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedScaleFilter('all');
+                      setShowScaleDropdown(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left cursor-pointer ${
+                      selectedScaleFilter === 'all'
+                        ? 'bg-accent-primary/10 text-accent-primary font-bold'
+                        : 'text-text-primary hover:bg-bg-hover'
+                    }`}
+                  >
+                    <span>Semua Tangga Nada</span>
+                    {selectedScaleFilter === 'all' && <Check size={12} />}
+                  </button>
+                  {SCALE_TYPES.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        setSelectedScaleFilter(s);
+                        setShowScaleDropdown(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left cursor-pointer ${
+                        selectedScaleFilter === s
+                          ? 'bg-accent-primary/10 text-accent-primary font-bold'
+                          : 'text-text-primary hover:bg-bg-hover'
+                      }`}
+                    >
+                      <span>{s}</span>
+                      {selectedScaleFilter === s && <Check size={12} />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Favorite Filter Toggle */}
             <button
               type="button"
@@ -445,10 +566,7 @@ export const MusicIdeaBankView: React.FC<MusicIdeaBankViewProps> = ({
                     onPlay={playProgression}
                     onStop={stopPlayback}
                     onPlaySingleChord={playSingleChord}
-                    onEdit={(p) => {
-                      setEditingProgression(p);
-                      setIsManualEditorOpen(true);
-                    }}
+                    onEdit={(p) => handleOpenManualOrFullscreen(p)}
                     onToggleFavorite={toggleFavoriteProgression}
                     onDuplicate={duplicateProgression}
                     onDelete={removeProgression}

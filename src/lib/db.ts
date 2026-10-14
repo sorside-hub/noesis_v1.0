@@ -2,7 +2,7 @@ import Dexie, { Table } from 'dexie';
 import { FileNode } from '../types/vault';
 import { AIAnalysisRecord, EmbeddingRecord } from '../features/rag/types/models';
 import { isNodeRecentlyDeleted } from './sync/syncHelpers';
-import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord, StudioBarRecord, StudioChordProgressionRecord } from '../features/music/types/studioDatabase';
+import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord, StudioBarRecord, StudioChordProgressionRecord, StudioLyricBrainstormRecord } from '../features/music/types/studioDatabase';
 
 export interface AppSetting {
   key: string;
@@ -51,6 +51,7 @@ export class NoesisDB extends Dexie {
   studio_lyric_versions!: Table<StudioLyricVersionRecord, string>;
   studio_bars!: Table<StudioBarRecord, string>;
   studio_chord_progressions!: Table<StudioChordProgressionRecord, string>;
+  studio_lyric_brainstorms!: Table<StudioLyricBrainstormRecord, string>;
 
   constructor() {
     super('NoesisDatabase');
@@ -113,6 +114,11 @@ export class NoesisDB extends Dexie {
     // V11: Studio Idea Bank (Chord Progressions)
     this.version(11).stores({
       studio_chord_progressions: 'id, key, scale, mood, isFavorite, updatedAt, createdAt, deletedAt'
+    });
+
+    // V12: Studio Lyric AI Brainstorms
+    this.version(12).stores({
+      studio_lyric_brainstorms: 'id, songId, versionId, mode, toneStyle, createdAt, deletedAt'
     });
   }
 }

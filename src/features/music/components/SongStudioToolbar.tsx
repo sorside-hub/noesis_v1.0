@@ -11,13 +11,16 @@ import {
   Music, 
   ListPlus,
   ChevronDown,
-  Layers
+  Layers,
+  Sparkles
 } from 'lucide-react';
 
 interface SongStudioToolbarProps {
   editor: Editor | null;
   onOpenAudioModal: () => void;
   onOpenInsertBarModal?: () => void;
+  onToggleBrainstorm?: () => void;
+  isBrainstormOpen?: boolean;
 }
 
 const SONG_SECTIONS = [
@@ -35,6 +38,8 @@ export const SongStudioToolbar: React.FC<SongStudioToolbarProps> = ({
   editor,
   onOpenAudioModal,
   onOpenInsertBarModal,
+  onToggleBrainstorm,
+  isBrainstormOpen = false,
 }) => {
   const [showSectionMenu, setShowSectionMenu] = useState(false);
   const sectionButtonRef = useRef<HTMLButtonElement>(null);
@@ -408,6 +413,24 @@ export const SongStudioToolbar: React.FC<SongStudioToolbarProps> = ({
         <Mic size={13} className="text-accent-primary" />
         <span>Audio Demo</span>
       </button>
+
+      {/* AI Lyric Brainstorm */}
+      {onToggleBrainstorm && (
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onToggleBrainstorm}
+          title="Brainstorm Lirik AI (Metafor, Rima & Diksi)"
+          className={`px-2.5 py-1 flex items-center gap-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+            isBrainstormOpen
+              ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
+              : 'bg-bg-primary text-text-primary hover:bg-bg-hover'
+          }`}
+        >
+          <Sparkles size={13} className={isBrainstormOpen ? 'text-accent-contrast' : 'text-accent-primary'} />
+          <span>Brainstorm</span>
+        </button>
+      )}
 
       <div className="w-px h-4 bg-border-default/30 mx-0.5 shrink-0" />
 

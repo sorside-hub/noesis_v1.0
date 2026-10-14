@@ -77,6 +77,14 @@ export interface StudioBarRecord {
   deletedAt?: number;
 }
 
+export interface ChordProgressionSection {
+  id: string;
+  name: string;             // e.g. "Verse 1", "Verse 2", "Chorus", "Bridge", "Intro", "Outro"
+  chords: string[];         // e.g. ["Em", "D", "C", "G"]
+  romans: string[];         // e.g. ["vi", "V", "IV", "I"]
+  notes?: string;           // Catatan / aransemen seksi
+}
+
 export interface StudioChordProgressionRecord {
   id: string;
   title: string;
@@ -85,6 +93,7 @@ export interface StudioChordProgressionRecord {
   mood: string;             // e.g. "Melankolis", "Heroik & Epik", "Nostalgia", "Ceria & Enerjik", "Gelap & Tegang", "Misterius", "Tenang & Santai"
   romans: string[];         // e.g. ["I", "V", "vi", "IV"]
   chords: string[];         // e.g. ["C", "G", "Am", "F"]
+  sections?: ChordProgressionSection[]; // Multi-bagian lagu (Verse 1, Verse 2, Chorus, dll)
   description?: string;     // Penjelasan harmoni & karakter emosional
   bpm?: number;             // Rekomendasi tempo
   genre?: string;           // Rekomendasi genre (Pop, Rock, Ballad, Indie, dll)
@@ -93,6 +102,31 @@ export interface StudioChordProgressionRecord {
   isFavorite?: boolean;
   createdAt: string;
   updatedAt: string;
+  deletedAt?: number;
+}
+
+export type LyricBrainstormToneStyle = 'raw' | 'indie_folk' | 'poetic' | 'pop_urban' | 'hiphop';
+
+export type LyricBrainstormMode = 'metaphor' | 'rhyme' | 'variations' | 'imagery';
+
+export interface LyricBrainstormSuggestion {
+  id: string;
+  text: string;
+  tag?: string;             // e.g. "Slant Rhyme", "Citraan Visual", "Sarkasme Tajam"
+  nuance?: string;          // Catatan rasa bahasa / penjelasan
+}
+
+export interface StudioLyricBrainstormRecord {
+  id: string;
+  songId: string;           // ID lagu induk
+  versionId?: string;       // ID versi lirik pemanggil
+  mode: LyricBrainstormMode;
+  toneStyle: LyricBrainstormToneStyle;
+  keyword: string;          // Kata kunci / baris yang dieksplorasi
+  contextSnippet?: string;  // Konteks lirik / tema lagu
+  suggestions: LyricBrainstormSuggestion[];
+  createdAt: string;
+  updatedAt?: string;
   deletedAt?: number;
 }
 

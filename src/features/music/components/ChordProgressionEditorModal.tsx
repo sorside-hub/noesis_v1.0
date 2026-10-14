@@ -20,6 +20,7 @@ import {
   playProgressionSequence,
 } from '../lib/chordTheory';
 import { StudioChordProgressionRecord } from '../types/studioDatabase';
+import { FamilyChordSelector } from './FamilyChordSelector';
 
 interface ChordProgressionEditorModalProps {
   isOpen: boolean;
@@ -112,6 +113,32 @@ export const ChordProgressionEditorModal: React.FC<ChordProgressionEditorModalPr
     if (parsedRomans.length === 0) return;
     const computed = convertRomansToChords(parsedRomans, key, scale);
     setChordsInput(computed.join(' - '));
+  };
+
+  // Handle click on family chord chip
+  const handleSelectFamilyChord = (chord: string, roman: string) => {
+    setChordsInput((prev) => {
+      const trimmed = prev.trim();
+      return trimmed ? `${trimmed} - ${chord}` : chord;
+    });
+    setRomansInput((prev) => {
+      const trimmed = prev.trim();
+      return trimmed ? `${trimmed} - ${roman}` : roman;
+    });
+  };
+
+  const handleRemoveLastChord = () => {
+    if (parsedChords.length > 0) {
+      setChordsInput(parsedChords.slice(0, -1).join(' - '));
+    }
+    if (parsedRomans.length > 0) {
+      setRomansInput(parsedRomans.slice(0, -1).join(' - '));
+    }
+  };
+
+  const handleClearChords = () => {
+    setChordsInput('');
+    setRomansInput('');
   };
 
   // Handle Play sequence
@@ -300,6 +327,17 @@ export const ChordProgressionEditorModal: React.FC<ChordProgressionEditorModalPr
               Pisahkan dengan spasi, strip (-), atau koma. Contoh: <code>vi - IV - I - V</code>
             </p>
           </div>
+
+          {/* Rekomendasi Akor Keluarga (Family Chords) */}
+          <FamilyChordSelector
+            rootKey={key}
+            scale={scale}
+            onSelectChord={handleSelectFamilyChord}
+            onRemoveLastChord={handleRemoveLastChord}
+            onClearChords={handleClearChords}
+            currentChords={parsedChords}
+            currentRomans={parsedRomans}
+          />
 
           {/* Deret Chord */}
           <div>

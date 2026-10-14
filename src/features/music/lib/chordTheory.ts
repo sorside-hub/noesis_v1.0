@@ -169,6 +169,213 @@ export function convertRomansToChords(romans: string[], rootKey: string, scale: 
 }
 
 // ==========================================
+// FAMILY CHORDS & DIATONIC HARMONY ENGINE
+// ==========================================
+
+export interface SpicedChordVariant {
+  chord: string;
+  suffix: string; // 'maj7', 'add9', 'sus4', '7', 'm7', 'sus2'
+  label: string;
+  flavor: string;
+}
+
+export interface FamilyChordDegree {
+  degreeIndex: number; // 0 to 6
+  roman: string;       // 'I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'
+  chord: string;       // 'C', 'Dm', 'Em', 'F', 'G', 'Am', 'Bdim'
+  rootNote: string;    // 'C', 'D', 'E', ...
+  role: string;        // 'Tonik', 'Supertonik', 'Median', 'Subdominan', 'Dominan', 'Submedian', 'Leading Tone'
+  quality: 'major' | 'minor' | 'diminished' | 'augmented';
+  spicedVariants: SpicedChordVariant[];
+}
+
+export interface CategorizedSpicedChord {
+  chord: string;
+  degreeRoman: string;
+  category: '7th' | 'sus' | 'add9' | 'warna';
+  label: string;
+  flavor: string;
+}
+
+export interface FamilyChordsResult {
+  rootKey: string;
+  scale: ScaleType;
+  scaleNotes: string[];
+  degrees: FamilyChordDegree[];
+  categorizedSpiced: CategorizedSpicedChord[];
+}
+
+const DEGREE_ROLE_NAMES = [
+  'Tonik (Akor Pusat)',
+  'Supertonik (Jembatan)',
+  'Median (Reflektif)',
+  'Subdominan (Transisi)',
+  'Dominan (Puncak Tensi)',
+  'Submedian (Relatif)',
+  'Leading Tone (Sensitif)',
+];
+
+export function getFamilyChords(rootKey: string, scale: ScaleType = 'Major'): FamilyChordsResult {
+  const scaleNotes = getScaleNotes(rootKey, scale);
+  const scaleRomans = DIATONIC_ROMANS[scale] || DIATONIC_ROMANS['Major'];
+  const qualities = DIATONIC_QUALITIES[scale] || DIATONIC_QUALITIES['Major'];
+
+  const degrees: FamilyChordDegree[] = scaleNotes.map((note, idx) => {
+    const roman = scaleRomans[idx] || `${idx + 1}`;
+    const rawQuality = qualities[idx] || '';
+    let quality: 'major' | 'minor' | 'diminished' | 'augmented' = 'major';
+    if (rawQuality === 'm') quality = 'minor';
+    else if (rawQuality === 'dim') quality = 'diminished';
+    else if (rawQuality === 'aug') quality = 'augmented';
+
+    const baseChord = `${note}${rawQuality}`;
+    const spicedVariants: SpicedChordVariant[] = [];
+
+    if (quality === 'major') {
+      spicedVariants.push({
+        chord: `${note}maj7`,
+        suffix: 'maj7',
+        label: `${note}maj7`,
+        flavor: 'Mewah, syahdu, neo-soul',
+      });
+      spicedVariants.push({
+        chord: `${note}add9`,
+        suffix: 'add9',
+        label: `${note}add9`,
+        flavor: 'Hangat, akustik modern',
+      });
+      spicedVariants.push({
+        chord: `${note}sus4`,
+        suffix: 'sus4',
+        label: `${note}sus4`,
+        flavor: 'Menggantung, mengalir indah',
+      });
+      spicedVariants.push({
+        chord: `${note}sus2`,
+        suffix: 'sus2',
+        label: `${note}sus2`,
+        flavor: 'Lembut, udara terbuka',
+      });
+      if (idx === 4 || scale === 'Mixolydian') {
+        // Dominant degree V gets dominant 7
+        spicedVariants.push({
+          chord: `${note}7`,
+          suffix: '7',
+          label: `${note}7`,
+          flavor: 'Tensi blues/pop kuat',
+        });
+      }
+    } else if (quality === 'minor') {
+      spicedVariants.push({
+        chord: `${note}m7`,
+        suffix: 'm7',
+        label: `${note}m7`,
+        flavor: 'Melankolis halus, jazz/lofi',
+      });
+      spicedVariants.push({
+        chord: `${note}sus2`,
+        suffix: 'sus2',
+        label: `${note}sus2`,
+        flavor: 'Sentuhan hening, folk akustik',
+      });
+      spicedVariants.push({
+        chord: `${note}m(add9)`,
+        suffix: 'm(add9)',
+        label: `${note}m(add9)`,
+        flavor: 'Emosional mendalam',
+      });
+    } else if (quality === 'diminished') {
+      spicedVariants.push({
+        chord: `${note}m7b5`,
+        suffix: 'm7b5',
+        label: `${note}m7b5`,
+        flavor: 'Half-diminished, tensi elegan',
+      });
+    }
+
+    return {
+      degreeIndex: idx,
+      roman,
+      chord: baseChord,
+      rootNote: note,
+      role: DEGREE_ROLE_NAMES[idx] || `Derajat ${idx + 1}`,
+      quality,
+      spicedVariants,
+    };
+  });
+
+  // Group spiced chords into categorized view for fast picking
+  const categorizedSpiced: CategorizedSpicedChord[] = [];
+
+  degrees.forEach((deg) => {
+    deg.spicedVariants.forEach((v) => {
+      let category: '7th' | 'sus' | 'add9' | 'warna' = 'warna';
+      if (v.suffix.includes('7') || v.suffix.includes('maj7')) category = '7th';
+      else if (v.suffix.includes('sus')) category = 'sus';
+      else if (v.suffix.includes('add9')) category = 'add9';
+
+      categorizedSpiced.push({
+        chord: v.chord,
+        degreeRoman: deg.roman,
+        category,
+        label: v.label,
+        flavor: v.flavor,
+      });
+    });
+  });
+
+  return {
+    rootKey,
+    scale,
+    scaleNotes,
+    degrees,
+    categorizedSpiced,
+  };
+}
+
+// Reverse inference: given a chord and key/scale, guess its Roman numeral
+export function inferRomanFromChord(chord: string, rootKey: string, scale: ScaleType = 'Major'): string {
+  const clean = chord.trim();
+  if (!clean) return '';
+
+  const family = getFamilyChords(rootKey, scale);
+
+  // Exact base degree match
+  const exactDeg = family.degrees.find((d) => d.chord.toLowerCase() === clean.toLowerCase());
+  if (exactDeg) return exactDeg.roman;
+
+  // Spiced variant match
+  for (const deg of family.degrees) {
+    for (const sp of deg.spicedVariants) {
+      if (sp.chord.toLowerCase() === clean.toLowerCase()) {
+        const isUpper = deg.roman[0] === deg.roman[0].toUpperCase();
+        if (sp.suffix === 'maj7') return `${deg.roman}maj7`;
+        if (sp.suffix === 'm7') return `${deg.roman}7`;
+        if (sp.suffix === '7') return isUpper ? `${deg.roman}7` : `${deg.roman}7`;
+        if (sp.suffix === 'sus4') return `${deg.roman}sus4`;
+        if (sp.suffix === 'sus2') return `${deg.roman}sus2`;
+        if (sp.suffix === 'add9') return `${deg.roman}add9`;
+        return `${deg.roman}(${sp.suffix})`;
+      }
+    }
+  }
+
+  // Root note match
+  const match = clean.match(/^([A-G][#b]?)(.*)$/);
+  if (match) {
+    const root = match[1];
+    const suffix = match[2];
+    const degIdx = family.scaleNotes.findIndex((n) => n.toLowerCase() === root.toLowerCase());
+    if (degIdx !== -1 && family.degrees[degIdx]) {
+      const baseRom = family.degrees[degIdx].roman;
+      return suffix ? `${baseRom}${suffix}` : baseRom;
+    }
+  }
+
+  return clean;
+}
+
+// ==========================================
 // CURATED PROGRESSION TEMPLATES BY MOOD
 // ==========================================
 export const PROGRESSION_TEMPLATES: ProgressionTemplate[] = [

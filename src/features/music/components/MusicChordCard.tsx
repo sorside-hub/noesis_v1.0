@@ -245,14 +245,27 @@ export const MusicChordCard: React.FC<MusicChordCardProps> = ({
       {/* 
         TITLE & DESCRIPTION
       */}
-      <div className="mb-3">
-        <h4 className="text-sm font-bold text-text-heading line-clamp-1">
+      <div className="mb-3 cursor-pointer" onClick={() => onEdit(progression)}>
+        <h4 className="text-sm font-bold text-text-heading line-clamp-1 group-hover:text-accent-primary transition-colors">
           {progression.title}
         </h4>
         {progression.description && (
           <p className="text-xs text-text-muted mt-0.5 line-clamp-2 leading-relaxed">
             {progression.description}
           </p>
+        )}
+        {/* Multi-Section Structure Badges */}
+        {progression.sections && progression.sections.length > 1 && (
+          <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+            {progression.sections.map((sec) => (
+              <span
+                key={sec.id}
+                className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-bg-secondary text-text-secondary border border-border-default/40"
+              >
+                {sec.name}
+              </span>
+            ))}
+          </div>
         )}
       </div>
 
