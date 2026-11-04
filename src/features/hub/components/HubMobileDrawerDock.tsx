@@ -49,7 +49,7 @@ export const HubMobileDrawerDock: React.FC<HubMobileDrawerDockProps> = ({
       ref={dockRef}
       id="hub-mobile-sliding-dock"
       className={twMerge(
-        'fixed right-0 top-1/2 -translate-y-1/2 z-40 flex items-center transition-transform duration-300 ease-out select-none lg:hidden',
+        'fixed right-0 top-[62%] -translate-y-1/2 z-40 flex items-center transition-transform duration-300 ease-out select-none lg:hidden',
         isOpen ? 'translate-x-0' : 'translate-x-[48px]'
       )}
     >
