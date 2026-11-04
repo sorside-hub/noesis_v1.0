@@ -189,16 +189,10 @@ export const exportVaultToJSON = async (): Promise<string> => {
     const [
       allNodesArray,
       allMediaAttachments,
-      allStudioProjects,
-      allStudioSongs,
-      allStudioLyricVersions,
       bookmarkGroupsRec
     ] = await Promise.all([
       db.nodes.toArray(),
       db.media_attachments.toArray(),
-      db.studio_projects.toArray(),
-      db.studio_songs.toArray(),
-      db.studio_lyric_versions.toArray(),
       db.settings.get('bookmarkGroups')
     ]);
 
@@ -216,9 +210,6 @@ export const exportVaultToJSON = async (): Promise<string> => {
       nodes: allNodesArray,
       bookmarkGroups,
       mediaAttachments: allMediaAttachments,
-      studioProjects: allStudioProjects,
-      studioSongs: allStudioSongs,
-      studioLyricVersions: allStudioLyricVersions,
     };
     return JSON.stringify(exportData, null, 2);
   } catch (err) {
@@ -261,21 +252,6 @@ export const importVaultFromJSON = async (jsonString: string): Promise<void> => 
     // Restore Media Attachments if included in backup
     if (parsed.mediaAttachments && Array.isArray(parsed.mediaAttachments)) {
       await db.media_attachments.bulkPut(parsed.mediaAttachments);
-    }
-
-    // Restore Music Studio Projects
-    if (parsed.studioProjects && Array.isArray(parsed.studioProjects) && parsed.studioProjects.length > 0) {
-      await db.studio_projects.bulkPut(parsed.studioProjects);
-    }
-
-    // Restore Music Studio Songs
-    if (parsed.studioSongs && Array.isArray(parsed.studioSongs) && parsed.studioSongs.length > 0) {
-      await db.studio_songs.bulkPut(parsed.studioSongs);
-    }
-
-    // Restore Music Studio Lyric Versions
-    if (parsed.studioLyricVersions && Array.isArray(parsed.studioLyricVersions) && parsed.studioLyricVersions.length > 0) {
-      await db.studio_lyric_versions.bulkPut(parsed.studioLyricVersions);
     }
   } catch (err) {
     console.error('Failed to import vault:', err);

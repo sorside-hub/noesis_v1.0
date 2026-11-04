@@ -15,14 +15,12 @@ import {
   Check,
   Contrast,
   ClipboardList,
-  Music2
 } from 'lucide-react';
 import { VaultData, FileNode } from '../../../types/vault';
 import { ApiKeyStatusSection } from './ApiKeyStatusSection';
 import { SupabaseUnifiedCard } from './SupabaseUnifiedCard';
 import { NotificationSettingsCard } from './NotificationSettingsCard';
 import { TemplateSettingsCard } from '../../templates/components/TemplateSettingsCard';
-import { MusicianModeSettingsCard } from './MusicianModeSettingsCard';
 import { exportVaultToJSON, importVaultFromJSON } from '../../../lib/storage';
 import { useTheme } from '../../../hooks/useTheme';
 import { useNavigation } from '../../../context/NavigationContext';
@@ -102,8 +100,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
             Tema & Tampilan
           </h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Dark Mode */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Charcoal Navy (Dark) */}
             <button
               type="button"
               onClick={() => setTheme('charcoal-navy')}
@@ -119,6 +117,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
                 </div>
                 <div className="min-w-0">
                   <span className="text-sm font-semibold text-text-primary block truncate">Mode Gelap</span>
+                  <span className="text-[11px] text-text-muted block truncate">Charcoal Navy</span>
                 </div>
               </div>
               {theme === 'charcoal-navy' ? (
@@ -130,7 +129,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
               )}
             </button>
 
-            {/* Light Mode */}
+            {/* Editorial Light (Warm) */}
             <button
               type="button"
               onClick={() => setTheme('editorial-light')}
@@ -145,10 +144,39 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
                   <Sun size={18} />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-sm font-semibold text-text-primary block truncate">Mode Terang</span>
+                  <span className="text-sm font-semibold text-text-primary block truncate">Warm Paper</span>
+                  <span className="text-[11px] text-text-muted block truncate">Editorial Light</span>
                 </div>
               </div>
               {theme === 'editorial-light' ? (
+                <div className="w-5 h-5 rounded-full bg-accent-primary flex items-center justify-center text-white shrink-0">
+                  <Check size={12} strokeWidth={3} />
+                </div>
+              ) : (
+                <div className="w-5 h-5 rounded-full border border-border-default shrink-0" />
+              )}
+            </button>
+
+            {/* Minimalist Ivory (Clean Monokrom) */}
+            <button
+              type="button"
+              onClick={() => setTheme('minimalist-ivory')}
+              className={`p-3.5 rounded-xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer ${
+                theme === 'minimalist-ivory'
+                  ? 'bg-bg-secondary border-accent-primary/60 ring-1 ring-accent-primary/40 shadow-xs'
+                  : 'bg-bg-secondary/60 border-border-subtle hover:border-border-default hover:bg-bg-secondary'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2.5 rounded-xl bg-[#F7F6F3] text-[#18181B] border border-black/10 shrink-0">
+                  <Contrast size={18} />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-sm font-semibold text-text-primary block truncate">Minimalist Ivory</span>
+                  <span className="text-[11px] text-text-muted block truncate">Monokrom Clean</span>
+                </div>
+              </div>
+              {theme === 'minimalist-ivory' ? (
                 <div className="w-5 h-5 rounded-full bg-accent-primary flex items-center justify-center text-white shrink-0">
                   <Check size={12} strokeWidth={3} />
                 </div>
@@ -184,15 +212,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ vault, createFolder 
             Template Catatan
           </h2>
           <TemplateSettingsCard vault={vault} createFolder={createFolder} />
-        </section>
-
-        {/* 2.8 MUSICIAN SUITE & SONGWRITING */}
-        <section className="space-y-2.5">
-          <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider px-1 flex items-center gap-2">
-            <Music2 size={14} className="text-accent-primary" /> 
-            Modul Studio Musik
-          </h2>
-          <MusicianModeSettingsCard />
         </section>
 
         {/* 3. API KEYS & FAILOVER */}

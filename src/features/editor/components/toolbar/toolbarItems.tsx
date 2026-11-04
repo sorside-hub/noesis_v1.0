@@ -2,7 +2,7 @@ import { Editor } from '@tiptap/react';
 import { 
   Undo, Redo, Bold, Italic, Highlighter, Heading1, Heading2, Heading3, List,
   ListOrdered, ListTodo, Indent, Outdent, Strikethrough, TextQuote, Code, SquareTerminal,
-  Minus, Info, Link2, Link as LinkIcon, Tag, Music, Table as TableIcon, Columns2,
+  Minus, Info, Link2, Link as LinkIcon, Tag, Table as TableIcon, Columns2,
   AlignLeft, AlignCenter, AlignRight, Mic, Image as ImageIcon, FileText, Bell, ClipboardList
 } from 'lucide-react';
 

@@ -13,7 +13,6 @@ import TextAlign from '@tiptap/extension-text-align';
 import { CalloutExtension } from '../../extensions/CalloutExtension';
 import { WikilinkExtension } from '../../extensions/WikilinkExtension';
 import { TagExtension } from '../../extensions/TagExtension';
-import { ChordExtension } from '../../extensions/ChordExtension';
 import { MarkdownLinkInputRule } from '../../extensions/MarkdownLinkInputRule';
 import { IndentExtension } from '../../extensions/IndentExtension';
 import { AudioExtension } from '../../extensions/AudioExtension';
@@ -152,13 +151,8 @@ export const CustomTextAlign = TextAlign.extend({
   },
 });
 
-export interface EditorExtensionOptions {
-  enableChords?: boolean;
-}
-
 export const getEditorExtensions = (
-  nodesRef: React.MutableRefObject<any>,
-  options: EditorExtensionOptions = {}
+  nodesRef: React.MutableRefObject<any>
 ) => [
   StarterKit.configure({
     // Use default codeBlock to prevent nodeview crashes
@@ -180,7 +174,6 @@ export const getEditorExtensions = (
   }),
   TagExtension,
   ReminderExtension,
-  ...(options.enableChords ? [ChordExtension] : []),
   MarkdownHighlight.configure({
     multicolor: true,
   }),
@@ -222,7 +215,7 @@ export const getEditorExtensions = (
     types: ['heading', 'paragraph', 'tableCell', 'tableHeader', 'blockquote'],
   }),
   SafeDeleteExtension,
-  ...(options.enableChords ? [] : [FoldingExtension]),
+  FoldingExtension,
   Markdown.configure({
     html: true,
     transformPastedText: true,
@@ -231,8 +224,7 @@ export const getEditorExtensions = (
 ];
 
 export const getEditorProps = (
-  onWikilinkClickRef: React.MutableRefObject<any>,
-  onChordClickRef?: React.MutableRefObject<any>
+  onWikilinkClickRef: React.MutableRefObject<any>
 ) => {
   let tagTouchState: {
     tag: string;
@@ -271,23 +263,6 @@ export const getEditorProps = (
         return true;
       }
 
-      // Handle Chord Badge Click
-      const chordEl = target.closest('.inline-chord-badge, [data-chord]');
-      if (chordEl) {
-        event.preventDefault();
-        event.stopPropagation();
-        const chordName = chordEl.getAttribute('data-chord');
-        if (chordName && onChordClickRef?.current) {
-          if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-          }
-          view.dom.blur();
-          setTimeout(() => {
-            if (onChordClickRef.current) onChordClickRef.current(chordName);
-          }, 30);
-          return true;
-        }
-      }
 
       const wikilinkEl = target.closest('[data-wikilink]');
       if (wikilinkEl) {
@@ -360,24 +335,6 @@ export const getEditorProps = (
         }
         view.dom.blur();
         return true;
-      }
-
-      // Handle Chord Badge Touch
-      const chordEl = target.closest('.inline-chord-badge, [data-chord]');
-      if (chordEl) {
-        event.preventDefault();
-        event.stopPropagation();
-        const chordName = chordEl.getAttribute('data-chord');
-        if (chordName && onChordClickRef?.current) {
-          if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-          }
-          view.dom.blur();
-          setTimeout(() => {
-            if (onChordClickRef.current) onChordClickRef.current(chordName);
-          }, 30);
-          return true;
-        }
       }
 
       const wikilinkEl = target.closest('[data-wikilink]');

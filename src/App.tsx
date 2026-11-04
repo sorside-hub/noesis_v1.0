@@ -4,15 +4,12 @@ import { SettingsView } from './features/settings/components/SettingsView';
 import { ChatView } from './features/chat/components/ChatView';
 import { HubView } from './features/hub/components/HubView';
 import { MediaView } from './features/media/components/MediaView';
-import { MusicStudioHub } from './features/music/components/MusicStudioHub';
 import { BottomNavPill } from './components/navigation/BottomNavPill';
 import { ActivityBar } from './components/navigation/ActivityBar';
 import { useVault } from './hooks/useVault';
 import { useTheme } from './hooks/useTheme';
 import { Loader2 } from 'lucide-react';
 import { NavigationProvider, useNavigation } from './context/NavigationContext';
-import { MusicPlayerProvider } from './features/music/context/MusicPlayerContext';
-import { FloatingVinylPlayer } from './features/music/components/FloatingVinylPlayer';
 import { VoiceNoteModal } from './features/voice/components/VoiceNoteModal';
 import { VoiceMemoModal } from './features/voice/components/VoiceMemoModal';
 import { useHomeScreenShortcuts } from './hooks/useHomeScreenShortcuts';
@@ -22,7 +19,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useEffect } from 'react';
 
 function AppContent({ vaultState }: { vaultState: ReturnType<typeof useVault> }) {
-  const { view, navigateView, navigateToNote, navigateToMusicBar, activeModal, openModal, closeModal } = useNavigation();
+  const { view, navigateView, navigateToNote } = useNavigation();
 
   // Initialize PWA App Shortcuts & Dedicated Home Screen Quick Links
   useHomeScreenShortcuts({ vaultState });
@@ -110,11 +107,6 @@ function AppContent({ vaultState }: { vaultState: ReturnType<typeof useVault> })
           <MediaView vaultState={vaultState} />
         </div>
 
-        {/* Music Studio Hub View */}
-        <div className={`absolute inset-0 ${view === 'music' ? 'block' : 'hidden'}`}>
-          <MusicStudioHub vaultState={vaultState} />
-        </div>
-
         {/* Settings View */}
         <div className={`absolute inset-0 ${view === 'settings' ? 'block' : 'hidden'}`}>
           <SettingsView vault={vaultState.vault} createFolder={vaultState.createFolder} />
@@ -127,9 +119,6 @@ function AppContent({ vaultState }: { vaultState: ReturnType<typeof useVault> })
       {/* Global Voice Note & Voice Memo Modals */}
       <VoiceNoteModal vaultState={vaultState} />
       <VoiceMemoModal vaultState={vaultState} />
-
-      {/* Global Floating Spinning Vinyl Music Player */}
-      <FloatingVinylPlayer />
     </div>
   );
 }
@@ -151,14 +140,12 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <MusicPlayerProvider>
-          <NavigationProvider
-            activeTabId={vaultState.vault.activeTabId}
-            onSelectTabId={vaultState.setActiveTabId}
-          >
-            <AppContent vaultState={vaultState} />
-          </NavigationProvider>
-        </MusicPlayerProvider>
+        <NavigationProvider
+          activeTabId={vaultState.vault.activeTabId}
+          onSelectTabId={vaultState.setActiveTabId}
+        >
+          <AppContent vaultState={vaultState} />
+        </NavigationProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

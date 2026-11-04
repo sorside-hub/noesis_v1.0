@@ -7,8 +7,6 @@ import { AiContextMenu } from './AiContextMenu';
 import { WikilinkAutocompletePopup } from './WikilinkAutocompletePopup';
 import { TagAutocompletePopup } from './TagAutocompletePopup';
 import { SlashCommandMenu } from './SlashCommandMenu';
-import { ChordPopoverModal } from './ChordPopoverModal';
-import { MUSIC_SLASH_COMMANDS } from '../data/musicSlashCommands';
 
 // Extracted configurations and hooks
 import { getEditorExtensions, getEditorProps } from './core/editorConfig';
@@ -36,7 +34,6 @@ export interface EditorCoreProps {
   onAiMenuStateChange?: (isOpen: boolean) => void;
   onEditorReady?: (editor: any) => void;
   isReadOnly?: boolean;
-  enableChords?: boolean;
   hideTitle?: boolean;
 }
 
@@ -52,7 +49,6 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
   onAiMenuStateChange,
   onEditorReady,
   isReadOnly = false,
-  enableChords = false,
   hideTitle = false,
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -75,17 +71,6 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
     text: '',
     from: 0,
     to: 0,
-  });
-
-  const [chordModalState, setChordModalState] = useState({
-    isOpen: false,
-    chordName: '',
-  });
-
-  const onChordClickRef = useRef((chordName: string) => {
-    if (enableChords) {
-      setChordModalState({ isOpen: true, chordName });
-    }
   });
 
   const updateDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -121,7 +106,7 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
   }, [onChange]);
 
   const editor = useEditor({
-    extensions: getEditorExtensions(nodesRef, { enableChords }),
+    extensions: getEditorExtensions(nodesRef),
     content: initialContent,
     onUpdate: ({ editor }) => {
       pendingEditorRef.current = editor;
@@ -146,7 +131,7 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
     onDestroy: () => {
       flushMarkdown();
     },
-    editorProps: getEditorProps(onWikilinkClickRef, onChordClickRef),
+    editorProps: getEditorProps(onWikilinkClickRef),
   });
 
   useEffect(() => {
@@ -410,7 +395,6 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
           position={slashPopupState.position}
           onSelect={handleSlashSelect}
           onClose={() => setSlashPopupState(prev => ({ ...prev, isOpen: false }))}
-          commands={enableChords ? MUSIC_SLASH_COMMANDS : undefined}
         />
       )}
 
@@ -433,15 +417,6 @@ export const EditorCore = forwardRef<EditorCoreRef, EditorCoreProps>(({
           position={tagPopupState.position}
           onSelect={handleTagSelect}
           onClose={() => setTagPopupState(prev => ({ ...prev, isOpen: false }))}
-        />
-      )}
-
-      {/* Interactive Chord Fretboard Diagram Popover */}
-      {chordModalState.isOpen && (
-        <ChordPopoverModal
-          isOpen={chordModalState.isOpen}
-          chordName={chordModalState.chordName}
-          onClose={() => setChordModalState({ isOpen: false, chordName: '' })}
         />
       )}
     </div>

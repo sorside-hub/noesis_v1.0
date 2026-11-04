@@ -1,16 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useVault } from './useVault';
 import { useNavigation } from '../context/NavigationContext';
-import { saveStudioBar } from '../features/music/lib/musicStudioStorage';
-import { StudioBarRecord } from '../features/music/types/studioDatabase';
 import { FileNode } from '../types/vault';
 
 export type ShortcutActionType =
   | 'new-note'
   | 'quick-capture'
   | 'voice-transcript'
-  | 'voice-memo'
-  | 'new-bar';
+  | 'voice-memo';
 
 export const SHORTCUT_DEFINITIONS: {
   id: ShortcutActionType;
@@ -57,15 +54,6 @@ export const SHORTCUT_DEFINITIONS: {
     queryParam: '/?action=voice-memo',
     iconName: 'Mic',
   },
-  {
-    id: 'new-bar',
-    title: 'Bar Musik Baru',
-    shortTitle: 'Bar Baru',
-    description: 'Buka Studio dan buat potongan Bar lirik/ide baru',
-    path: '/quick/bar',
-    queryParam: '/?action=new-bar',
-    iconName: 'Music',
-  },
 ];
 
 export function parseShortcutActionFromUrl(): ShortcutActionType | null {
@@ -78,7 +66,6 @@ export function parseShortcutActionFromUrl(): ShortcutActionType | null {
   if (actionParam === 'quick-capture' || actionParam === 'capture') return 'quick-capture';
   if (actionParam === 'voice-transcript' || actionParam === 'transcript') return 'voice-transcript';
   if (actionParam === 'voice-memo' || actionParam === 'memo') return 'voice-memo';
-  if (actionParam === 'new-bar' || actionParam === 'bar') return 'new-bar';
 
   // Check pathnames
   const pathname = window.location.pathname.toLowerCase();
@@ -86,7 +73,6 @@ export function parseShortcutActionFromUrl(): ShortcutActionType | null {
   if (pathname.includes('/quick/capture') || pathname.includes('/quick-capture')) return 'quick-capture';
   if (pathname.includes('/quick/transcript') || pathname.includes('/quick-transcript')) return 'voice-transcript';
   if (pathname.includes('/quick/memo') || pathname.includes('/quick-memo')) return 'voice-memo';
-  if (pathname.includes('/quick/bar') || pathname.includes('/quick-bar')) return 'new-bar';
 
   return null;
 }
@@ -96,7 +82,7 @@ interface UseHomeScreenShortcutsProps {
 }
 
 export function useHomeScreenShortcuts({ vaultState }: UseHomeScreenShortcutsProps) {
-  const { navigateView, navigateToNote, openModal, navigateToMusicBar } = useNavigation();
+  const { navigateView, navigateToNote, openModal } = useNavigation();
   const executedActionRef = useRef<string | null>(null);
 
   // Set document title if accessed via dedicated launcher URL for crisp Add-to-Home-Screen labeling
@@ -176,32 +162,6 @@ export function useHomeScreenShortcuts({ vaultState }: UseHomeScreenShortcutsPro
             openModal('voice-memo');
             break;
           }
-
-          case 'new-bar': {
-            const barId = `bar_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-            const now = new Date().toISOString();
-            const newBar: StudioBarRecord = {
-              id: barId,
-              title: 'Bar Baru',
-              content: '',
-              theme: '',
-              topic: '',
-              rhymeScheme: 'Bebas',
-              barCount: 4,
-              status: 'available',
-              usedInSongId: null,
-              tags: [],
-              notes: '',
-              createdAt: now,
-              updatedAt: now,
-            };
-
-            await saveStudioBar(newBar);
-            window.dispatchEvent(new CustomEvent('music-studio-updated'));
-            navigateView('music');
-            navigateToMusicBar(barId);
-            break;
-          }
         }
       } catch (err) {
         console.error('[HomeScreenShortcuts] Failed to execute shortcut action:', err);
@@ -220,5 +180,5 @@ export function useHomeScreenShortcuts({ vaultState }: UseHomeScreenShortcutsPro
     // Small delay ensures sub-components and modals have mounted
     const timer = setTimeout(executeAction, 100);
     return () => clearTimeout(timer);
-  }, [vaultState.vault, navigateView, navigateToNote, openModal, navigateToMusicBar, vaultState]);
+  }, [vaultState.vault, navigateView, navigateToNote, openModal, vaultState]);
 }

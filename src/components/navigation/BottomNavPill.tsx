@@ -1,10 +1,9 @@
 import React from 'react';
-import { Folder, LayoutGrid, MessageSquare, HardDrive, Settings, Disc3 } from 'lucide-react';
+import { Folder, LayoutGrid, MessageSquare, HardDrive, Settings } from 'lucide-react';
 import { useVirtualKeyboard } from '../../hooks/useVirtualKeyboard';
 import { useNavigation } from '../../context/NavigationContext';
-import { useMusicianMode } from '../../features/music/hooks/useMusicianMode';
 
-export type ActiveTab = 'vault' | 'hub' | 'chat' | 'media' | 'music' | 'settings';
+export type ActiveTab = 'vault' | 'hub' | 'chat' | 'media' | 'settings';
 
 interface BottomNavPillProps {
   activeTab: ActiveTab;
@@ -14,7 +13,6 @@ interface BottomNavPillProps {
 export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabChange }) => {
   const { isMobileRightSidebarOpen } = useNavigation();
   const { isKeyboardOpen } = useVirtualKeyboard();
-  const { isMusicianModeEnabled } = useMusicianMode();
 
   const shouldShow = !isKeyboardOpen && !isMobileRightSidebarOpen;
 
@@ -88,22 +86,6 @@ export const BottomNavPill: React.FC<BottomNavPillProps> = ({ activeTab, onTabCh
           >
             <LayoutGrid size={14} />
           </button>
-
-          {isMusicianModeEnabled && (
-            <button
-              type="button"
-              aria-label="Music Studio"
-              title="Music Studio Hub"
-              onClick={() => handleTabChange('music')}
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all duration-150 cursor-pointer flex items-center justify-center shrink-0 ${
-                activeTab === 'music'
-                  ? 'bg-accent-primary text-accent-contrast font-semibold shadow-xs'
-                  : 'text-text-primary hover:text-accent-primary hover:bg-accent-primary/10'
-              }`}
-            >
-              <Disc3 size={14} />
-            </button>
-          )}
 
           <button
             type="button"

@@ -89,7 +89,6 @@
 
 @layer base {
   /* 1. Universal Dark Theme (Charcoal Navy) */
-  :root,
   html.dark,
   html[data-theme="charcoal-navy"] {
     /* 1. Canvas & Backgrounds */
@@ -203,6 +202,64 @@
     --status-info: #2563EB;
     --status-info-bg: rgba(37, 99, 235, 0.12);
     --status-info-border: rgba(37, 99, 235, 0.25);
+  }
+
+  /* 3. Minimalist Ivory Theme (Clean Monokrom & Warm Ivory - Default Theme) */
+  :root,
+  html[data-theme="minimalist-ivory"] {
+    /* 1. Canvas & Backgrounds */
+    --bg-primary: #F7F6F3;
+    --bg-secondary: #EFECE6;
+    --bg-tertiary: #E6E2DA;
+    --bg-quaternary: #DDD8CE;
+    --bg-hover: #EAE7E0;
+    --bg-input: #FFFFFF;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #FFFFFF;
+
+    /* 2. Borders */
+    --border-default: #E4E4E7;
+    --border-subtle: rgba(24, 24, 27, 0.06);
+
+    /* 3. Typography & Text */
+    --text-primary: #18181B;
+    --text-secondary: #52525B;
+    --text-muted: #8E8E93;
+    --text-disabled: rgba(24, 24, 27, 0.25);
+    --text-heading: #18181B;
+    --text-bold: #18181B;
+    --text-inverse: #FFFFFF;
+    --text-code: #18181B;
+    --text-quote: #52525B;
+
+    /* 4. Icons */
+    --icon-primary: #27272A;
+    --icon-secondary: #8E8E93;
+    --icon-accent: #18181B;
+
+    /* 5. Accents & Links */
+    --accent-primary: #18181B;
+    --accent-soft: rgba(24, 24, 27, 0.07);
+    --accent-contrast: #FFFFFF;
+    --link-primary: #18181B;
+    --text-link: var(--link-primary);
+
+    /* 6. Semantic Status Badges & Alerts */
+    --status-success: #16A34A;
+    --status-success-bg: rgba(22, 163, 74, 0.10);
+    --status-success-border: rgba(22, 163, 74, 0.20);
+
+    --status-warning: #D97706;
+    --status-warning-bg: rgba(217, 119, 6, 0.10);
+    --status-warning-border: rgba(217, 119, 6, 0.20);
+
+    --status-error: #E11D48;
+    --status-error-bg: rgba(225, 29, 72, 0.10);
+    --status-error-border: rgba(225, 29, 72, 0.20);
+
+    --status-info: #2563EB;
+    --status-info-bg: rgba(37, 99, 235, 0.10);
+    --status-info-border: rgba(37, 99, 235, 0.20);
   }
 }
 

@@ -4,8 +4,8 @@
   "description": "Offline-first Personal Knowledge Management & Second Brain powered by local AI",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#262626",
-  "theme_color": "#262626",
+  "background_color": "#F7F6F3",
+  "theme_color": "#F7F6F3",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
@@ -46,19 +46,6 @@
       "short_name": "Transkrip",
       "description": "Transkripsi suara ke teks cerdas",
       "url": "/?action=voice-transcript",
-      "icons": [
-        {
-          "src": "/pwa-maskable-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Bar Musik Baru",
-      "short_name": "Bar Baru",
-      "description": "Buka Studio dan buat Bar musik baru",
-      "url": "/?action=new-bar",
       "icons": [
         {
           "src": "/pwa-maskable-192x192.png",

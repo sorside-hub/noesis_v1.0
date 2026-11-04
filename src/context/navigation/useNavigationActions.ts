@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { ActiveTab } from '../../components/navigation/BottomNavPill';
-import { NavigationHistoryEntry, MusicSubView, safePushState, safeHistoryBack } from './historyUtils';
+import { NavigationHistoryEntry, safePushState, safeHistoryBack } from './historyUtils';
 
 interface UseNavigationActionsProps {
   view: ActiveTab;
@@ -15,14 +15,6 @@ interface UseNavigationActionsProps {
   setActiveModal: React.Dispatch<React.SetStateAction<string | null>>;
   mediaCategory: string | null;
   setMediaCategory: React.Dispatch<React.SetStateAction<string | null>>;
-  musicProjectId: string | null;
-  setMusicProjectId: React.Dispatch<React.SetStateAction<string | null>>;
-  musicSongId: string | null;
-  setMusicSongId: React.Dispatch<React.SetStateAction<string | null>>;
-  musicBarId: string | null;
-  setMusicBarId: React.Dispatch<React.SetStateAction<string | null>>;
-  musicSubView: MusicSubView | null;
-  setMusicSubView: React.Dispatch<React.SetStateAction<MusicSubView | null>>;
   setIsDesktopSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isPopStateNavigatingRef: React.MutableRefObject<boolean>;
   currentSeqRef: React.MutableRefObject<number>;
@@ -41,14 +33,6 @@ export const useNavigationActions = ({
   setActiveModal,
   mediaCategory,
   setMediaCategory,
-  musicProjectId,
-  setMusicProjectId,
-  musicSongId,
-  setMusicSongId,
-  musicBarId,
-  setMusicBarId,
-  musicSubView,
-  setMusicSubView,
   setIsDesktopSidebarOpen,
   isPopStateNavigatingRef,
   currentSeqRef,
@@ -59,12 +43,6 @@ export const useNavigationActions = ({
       if (newView === view) {
         if (newView === 'media') {
           setMediaCategory(null);
-        }
-        if (newView === 'music') {
-          setMusicProjectId(null);
-          setMusicSongId(null);
-          setMusicBarId(null);
-          setMusicSubView(null);
         }
 
         setIsMobileSidebarOpen(false);
@@ -82,10 +60,6 @@ export const useNavigationActions = ({
           isMobileRightSidebarOpen: false,
           activeModal: null,
           mediaCategory: newView === 'media' ? mediaCategory : null,
-          musicProjectId: newView === 'music' ? musicProjectId : null,
-          musicSongId: newView === 'music' ? musicSongId : null,
-          musicBarId: newView === 'music' ? musicBarId : null,
-          musicSubView: newView === 'music' ? musicSubView : null,
           seq: currentSeqRef.current,
         };
         safePushState(nextEntry);
@@ -96,7 +70,7 @@ export const useNavigationActions = ({
       setIsMobileRightSidebarOpen(false);
       setActiveModal(null);
     },
-    [view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, mediaCategory, musicProjectId, musicSongId, musicBarId, musicSubView, setView, setMediaCategory, setMusicProjectId, setMusicSongId, setMusicBarId, setMusicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
+    [view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, mediaCategory, setView, setMediaCategory, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
   );
 
   // Navigate to a specific media category
@@ -116,9 +90,6 @@ export const useNavigationActions = ({
           isMobileRightSidebarOpen: false,
           activeModal: null,
           mediaCategory: category,
-          musicProjectId: null,
-          musicSongId: null,
-          musicSubView: null,
           seq: currentSeqRef.current,
         };
         safePushState(nextEntry);
@@ -131,144 +102,6 @@ export const useNavigationActions = ({
       setActiveModal(null);
     },
     [mediaCategory, view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, setView, setMediaCategory, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
-  );
-
-  // Navigate to a specific music project (EP or Album Overview)
-  const navigateToMusicProject = useCallback(
-    (projectId: string | null) => {
-      const isSameProject = projectId === musicProjectId && view === 'music' && !musicSongId;
-      if (isSameProject && !isMobileSidebarOpen && !isMobileRightSidebarOpen && !activeModal) {
-        return;
-      }
-
-      if (!isPopStateNavigatingRef.current) {
-        currentSeqRef.current += 1;
-        const nextEntry: NavigationHistoryEntry = {
-          view: 'music',
-          activeTabId,
-          isMobileSidebarOpen: false,
-          isMobileRightSidebarOpen: false,
-          activeModal: null,
-          mediaCategory: null,
-          musicProjectId: projectId,
-          musicSongId: null,
-          musicSubView: null,
-          seq: currentSeqRef.current,
-        };
-        safePushState(nextEntry);
-      }
-
-      setView('music');
-      setMusicProjectId(projectId);
-      setMusicSongId(null);
-      setMusicSubView(null);
-      setIsMobileSidebarOpen(false);
-      setIsMobileRightSidebarOpen(false);
-      setActiveModal(null);
-    },
-    [musicProjectId, musicSongId, view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, setView, setMusicProjectId, setMusicSongId, setMusicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
-  );
-
-  // Navigate to a specific music studio song (Default to 'overview')
-  const navigateToMusicSong = useCallback(
-    (songId: string | null) => {
-      const isSameSong = songId === musicSongId && view === 'music' && musicSubView === 'overview';
-      if (isSameSong && !isMobileSidebarOpen && !isMobileRightSidebarOpen && !activeModal) {
-        return;
-      }
-
-      const targetSubView: MusicSubView | null = songId ? 'overview' : null;
-
-      if (!isPopStateNavigatingRef.current) {
-        currentSeqRef.current += 1;
-        const nextEntry: NavigationHistoryEntry = {
-          view: 'music',
-          activeTabId,
-          isMobileSidebarOpen: false,
-          isMobileRightSidebarOpen: false,
-          activeModal: null,
-          mediaCategory: null,
-          musicProjectId,
-          musicSongId: songId,
-          musicSubView: targetSubView,
-          seq: currentSeqRef.current,
-        };
-        safePushState(nextEntry);
-      }
-
-      setView('music');
-      setMusicSongId(songId);
-      setMusicSubView(targetSubView);
-      setIsMobileSidebarOpen(false);
-      setIsMobileRightSidebarOpen(false);
-      setActiveModal(null);
-    },
-    [musicSongId, musicSubView, musicProjectId, view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, setView, setMusicSongId, setMusicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
-  );
-
-  // Navigate to a specific sub-view within a song (e.g. editor, premise, scratchpad)
-  const navigateToMusicSubView = useCallback(
-    (songId: string, subView: MusicSubView) => {
-      if (!isPopStateNavigatingRef.current) {
-        currentSeqRef.current += 1;
-        const nextEntry: NavigationHistoryEntry = {
-          view: 'music',
-          activeTabId,
-          isMobileSidebarOpen: false,
-          isMobileRightSidebarOpen: false,
-          activeModal: null,
-          mediaCategory: null,
-          musicProjectId,
-          musicSongId: songId,
-          musicSubView: subView,
-          seq: currentSeqRef.current,
-        };
-        safePushState(nextEntry);
-      }
-
-      setView('music');
-      setMusicSongId(songId);
-      setMusicSubView(subView);
-      setIsMobileSidebarOpen(false);
-      setIsMobileRightSidebarOpen(false);
-      setActiveModal(null);
-    },
-    [activeTabId, musicProjectId, setView, setMusicSongId, setMusicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
-  );
-
-  // Navigate to a specific bar in Idea Bank
-  const navigateToMusicBar = useCallback(
-    (barId: string | null) => {
-      const isSameBar = barId === musicBarId && view === 'music';
-      if (isSameBar && !isMobileSidebarOpen && !isMobileRightSidebarOpen && !activeModal) {
-        return;
-      }
-
-      if (!isPopStateNavigatingRef.current) {
-        currentSeqRef.current += 1;
-        const nextEntry: NavigationHistoryEntry = {
-          view: 'music',
-          activeTabId,
-          isMobileSidebarOpen: false,
-          isMobileRightSidebarOpen: false,
-          activeModal: null,
-          mediaCategory: null,
-          musicProjectId: null,
-          musicSongId: null,
-          musicBarId: barId,
-          musicSubView: null,
-          seq: currentSeqRef.current,
-        };
-        safePushState(nextEntry);
-      }
-
-      setView('music');
-      setMusicBarId(barId);
-      setIsMobileSidebarOpen(false);
-      setIsMobileRightSidebarOpen(false);
-      setActiveModal(null);
-    },
-    [musicBarId, view, activeTabId, isMobileSidebarOpen, isMobileRightSidebarOpen, activeModal, setView, setMusicBarId, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
   );
 
   // Navigate to a specific note
@@ -288,9 +121,6 @@ export const useNavigationActions = ({
           isMobileRightSidebarOpen: false,
           activeModal: null,
           mediaCategory: null,
-          musicProjectId: null,
-          musicSongId: null,
-          musicSubView: null,
           seq: currentSeqRef.current,
         };
         safePushState(nextEntry);
@@ -319,9 +149,6 @@ export const useNavigationActions = ({
         isMobileRightSidebarOpen: false,
         activeModal: null,
         mediaCategory,
-        musicProjectId,
-        musicSongId,
-        musicSubView,
         seq: currentSeqRef.current,
       };
       safePushState(nextEntry);
@@ -330,7 +157,7 @@ export const useNavigationActions = ({
     setIsMobileSidebarOpen(true);
     setIsMobileRightSidebarOpen(false);
     setActiveModal(null);
-  }, [isMobileSidebarOpen, view, activeTabId, mediaCategory, musicProjectId, musicSongId, musicSubView, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]);
+  }, [isMobileSidebarOpen, view, activeTabId, mediaCategory, setIsMobileSidebarOpen, setIsMobileRightSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]);
 
   // Close Left Mobile Sidebar
   const closeMobileSidebar = useCallback(() => {
@@ -355,9 +182,6 @@ export const useNavigationActions = ({
         isMobileRightSidebarOpen: true,
         activeModal: null,
         mediaCategory,
-        musicProjectId,
-        musicSongId,
-        musicSubView,
         seq: currentSeqRef.current,
       };
       safePushState(nextEntry);
@@ -366,7 +190,7 @@ export const useNavigationActions = ({
     setIsMobileRightSidebarOpen(true);
     setIsMobileSidebarOpen(false);
     setActiveModal(null);
-  }, [isMobileRightSidebarOpen, view, activeTabId, mediaCategory, musicProjectId, musicSongId, musicSubView, setIsMobileRightSidebarOpen, setIsMobileSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]);
+  }, [isMobileRightSidebarOpen, view, activeTabId, mediaCategory, setIsMobileRightSidebarOpen, setIsMobileSidebarOpen, setActiveModal, isPopStateNavigatingRef, currentSeqRef]);
 
   // Close Right Mobile Sidebar
   const closeMobileRightSidebar = useCallback(() => {
@@ -405,9 +229,6 @@ export const useNavigationActions = ({
           isMobileRightSidebarOpen: false,
           activeModal: modalId,
           mediaCategory,
-          musicProjectId,
-          musicSongId,
-          musicSubView,
           seq: currentSeqRef.current,
         };
         safePushState(nextEntry);
@@ -415,7 +236,7 @@ export const useNavigationActions = ({
 
       setActiveModal(modalId);
     },
-    [activeModal, view, activeTabId, isMobileSidebarOpen, mediaCategory, musicProjectId, musicSongId, musicSubView, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
+    [activeModal, view, activeTabId, isMobileSidebarOpen, mediaCategory, setActiveModal, isPopStateNavigatingRef, currentSeqRef]
   );
 
   // Close Modal
@@ -436,10 +257,6 @@ export const useNavigationActions = ({
   return {
     navigateView,
     navigateToMediaCategory,
-    navigateToMusicProject,
-    navigateToMusicSong,
-    navigateToMusicBar,
-    navigateToMusicSubView,
     navigateToNote,
     openMobileSidebar,
     closeMobileSidebar,

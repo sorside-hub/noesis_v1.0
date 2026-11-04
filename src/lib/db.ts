@@ -1,8 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import { FileNode } from '../types/vault';
-import { AIAnalysisRecord, EmbeddingRecord } from '../features/rag/types/models';
 import { isNodeRecentlyDeleted } from './sync/syncHelpers';
-import { StudioProjectRecord, StudioSongRecord, StudioLyricVersionRecord, StudioBarRecord, StudioChordProgressionRecord, StudioLyricBrainstormRecord } from '../features/music/types/studioDatabase';
 
 export interface AppSetting {
   key: string;
@@ -46,12 +44,6 @@ export class NoesisDB extends Dexie {
   chat_messages!: Table<ChatMessageRecord, string>;
   ai_metadata!: Table<any, string>;
   media_attachments!: Table<MediaAttachment, string>;
-  studio_projects!: Table<StudioProjectRecord, string>;
-  studio_songs!: Table<StudioSongRecord, string>;
-  studio_lyric_versions!: Table<StudioLyricVersionRecord, string>;
-  studio_bars!: Table<StudioBarRecord, string>;
-  studio_chord_progressions!: Table<StudioChordProgressionRecord, string>;
-  studio_lyric_brainstorms!: Table<StudioLyricBrainstormRecord, string>;
 
   constructor() {
     super('NoesisDatabase');
@@ -119,6 +111,16 @@ export class NoesisDB extends Dexie {
     // V12: Studio Lyric AI Brainstorms
     this.version(12).stores({
       studio_lyric_brainstorms: 'id, songId, versionId, mode, toneStyle, createdAt, deletedAt'
+    });
+
+    // V13: Drop all Studio Music tables cleanly
+    this.version(13).stores({
+      studio_projects: null,
+      studio_songs: null,
+      studio_lyric_versions: null,
+      studio_bars: null,
+      studio_chord_progressions: null,
+      studio_lyric_brainstorms: null
     });
   }
 }

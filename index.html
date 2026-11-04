@@ -7,12 +7,12 @@
     <meta name="description" content="Offline-first Personal Knowledge Management & Second Brain powered by local AI." />
     
     <!-- PWA Primary & Theme Colors -->
-    <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#262626" />
-    <meta name="background-color" content="#262626" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#F7F6F3" />
+    <meta name="background-color" content="#F7F6F3" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Noesis" />
     <meta name="application-name" content="Noesis" />
 
@@ -21,13 +21,27 @@
       (function() {
         try {
           var saved = localStorage.getItem('noesis_theme_mode');
-          var isLight = saved === 'editorial-light' || saved === 'light';
+          var theme = saved || 'minimalist-ivory';
           var root = document.documentElement;
-          root.classList.remove(isLight ? 'dark' : 'light');
-          root.classList.add(isLight ? 'light' : 'dark');
-          root.setAttribute('data-theme', isLight ? 'editorial-light' : 'charcoal-navy');
-          root.style.backgroundColor = isLight ? '#FAF8F5' : '#262626';
-          root.style.colorScheme = isLight ? 'light' : 'dark';
+          if (theme === 'charcoal-navy' || theme === 'dark') {
+            root.classList.remove('light');
+            root.classList.add('dark');
+            root.setAttribute('data-theme', 'charcoal-navy');
+            root.style.backgroundColor = '#262626';
+            root.style.colorScheme = 'dark';
+          } else if (theme === 'editorial-light' || theme === 'light') {
+            root.classList.remove('dark');
+            root.classList.add('light');
+            root.setAttribute('data-theme', 'editorial-light');
+            root.style.backgroundColor = '#FAF8F5';
+            root.style.colorScheme = 'light';
+          } else {
+            root.classList.remove('dark');
+            root.classList.add('light');
+            root.setAttribute('data-theme', 'minimalist-ivory');
+            root.style.backgroundColor = '#F7F6F3';
+            root.style.colorScheme = 'light';
+          }
         } catch (e) {}
       })();
     </script>
