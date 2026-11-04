@@ -8,6 +8,7 @@ import {
   SupabaseConfigState 
 } from '../../../lib/supabase';
 import { syncPullFromCloud, syncPushAllToCloud, SyncSummary } from '../../../lib/cloudSync';
+import { clearLocalVaultData } from '../../../lib/storage';
 import { SUPABASE_SETUP_SQL } from '../components/SupabaseSetupSQL';
 
 export function useSupabaseSettings() {
@@ -170,10 +171,30 @@ export function useSupabaseSettings() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsSubmitting(true);
+    setAuthError(null);
+    setAuthMessage(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setAuthError(err.message || 'Gagal masuk menggunakan Google OAuth.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSignOut = async () => {
     setIsSubmitting(true);
     try {
       await supabase.auth.signOut();
+      await clearLocalVaultData();
     } catch (err: any) {
       console.error('Error signing out:', err);
     } finally {
@@ -274,6 +295,7 @@ export function useSupabaseSettings() {
     handleCancelEdit,
     handleCopySql,
     handleAuth,
+    handleGoogleSignIn,
     handleSignOut,
     handlePullSync,
     handlePushSync,

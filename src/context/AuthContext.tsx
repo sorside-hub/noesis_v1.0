@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { initRealtimeSync, syncPullFromCloud } from '../lib/cloudSync';
+import { clearLocalVaultData } from '../lib/storage';
 
 interface AuthContextType {
   user: User | null;
@@ -61,6 +62,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (event === 'SIGNED_IN') {
             syncPullFromCloud().catch(console.error);
           }
+        } else if (event === 'SIGNED_OUT') {
+          clearLocalVaultData().catch(console.error);
         }
       });
 

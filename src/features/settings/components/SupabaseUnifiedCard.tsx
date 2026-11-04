@@ -49,6 +49,7 @@ export const SupabaseUnifiedCard: React.FC = () => {
     handleCancelEdit,
     handleCopySql,
     handleAuth,
+    handleGoogleSignIn,
     handleSignOut,
     handlePullSync,
     handlePushSync,
@@ -155,18 +156,10 @@ export const SupabaseUnifiedCard: React.FC = () => {
           />
         ) : (
           <SupabaseAuthForm
-            email={email}
-            setEmail={setEmail}
-            password={password}
-            setPassword={setPassword}
-            isSignUp={isSignUp}
-            setIsSignUp={setIsSignUp}
             isSubmitting={isSubmitting}
             authError={authError}
-            setAuthError={setAuthError}
             authMessage={authMessage}
-            setAuthMessage={setAuthMessage}
-            handleAuth={handleAuth}
+            handleGoogleSignIn={handleGoogleSignIn}
           />
         )}
       </div>

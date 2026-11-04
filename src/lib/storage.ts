@@ -258,3 +258,38 @@ export const importVaultFromJSON = async (jsonString: string): Promise<void> => 
     throw err;
   }
 };
+
+/**
+ * Completely clears all local vault data, chats, metadata, media attachments, and tabs
+ * from Dexie IndexedDB and LocalStorage upon Sign Out (auto-clear on logout).
+ */
+export const clearLocalVaultData = async (): Promise<void> => {
+  try {
+    await Promise.all([
+      db.nodes.clear(),
+      db.chat_sessions.clear(),
+      db.chat_messages.clear(),
+      db.ai_metadata.clear(),
+      db.media_attachments.clear(),
+      db.settings.delete('bookmarkGroups'),
+      db.settings.delete('openTabs'),
+      db.settings.delete('activeTabId'),
+    ]);
+
+    localStorage.removeItem('noesis_vault_open_tabs');
+    localStorage.removeItem('noesis_vault_bookmark_groups');
+    localStorage.removeItem('noesis_vault_active_tab');
+    localStorage.removeItem(STORAGE_KEY_VAULT);
+    localStorage.removeItem(LEGACY_KEY_TITLE);
+    localStorage.removeItem(LEGACY_KEY_CONTENT);
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('vault-updated'));
+      window.dispatchEvent(new Event('chat-updated'));
+      window.dispatchEvent(new Event('media-updated'));
+      window.dispatchEvent(new CustomEvent('bookmark-groups-updated', { detail: [] }));
+    }
+  } catch (err) {
+    console.error('Failed to clear local vault data on sign out:', err);
+  }
+};
