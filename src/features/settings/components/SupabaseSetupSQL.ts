@@ -318,9 +318,7 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
--- Aktifkan RLS pada storage.objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-
+-- Kebijakan RLS untuk storage.objects (storage.objects sudah RLS enabled bawaan Supabase)
 DO $$ BEGIN
   -- Policy 1: Public Read Access agar media tampil di Editor tanpa token rahasia
   IF NOT EXISTS (
@@ -360,6 +358,7 @@ DO $$ BEGIN
     TO authenticated
     USING (bucket_id = 'noesis-attachments');
   END IF;
+EXCEPTION WHEN OTHERS THEN NULL;
 END $$;
 `;
 
