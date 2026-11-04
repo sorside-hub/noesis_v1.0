@@ -305,6 +305,62 @@ BEGIN
     EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE media_attachments';
   END IF;
 END $$;
+
+-- 10. SETUP OTOMATIS SUPABASE STORAGE BUCKET (noesis-attachments) & POLICIES
+-- Membuat bucket 'noesis-attachments' otomatis jika belum ada (Public Access)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'noesis-attachments',
+  'noesis-attachments',
+  true,
+  104857600,
+  NULL
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Aktifkan RLS pada storage.objects
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  -- Policy 1: Public Read Access agar media tampil di Editor tanpa token rahasia
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Public Read Access for noesis-attachments'
+  ) THEN
+    CREATE POLICY "Public Read Access for noesis-attachments"
+    ON storage.objects FOR SELECT
+    USING (bucket_id = 'noesis-attachments');
+  END IF;
+
+  -- Policy 2: User terautentikasi dapat mengunggah media
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Authenticated Upload Access for noesis-attachments'
+  ) THEN
+    CREATE POLICY "Authenticated Upload Access for noesis-attachments"
+    ON storage.objects FOR INSERT
+    TO authenticated
+    WITH CHECK (bucket_id = 'noesis-attachments');
+  END IF;
+
+  -- Policy 3: User terautentikasi dapat mengedit metadata file mereka
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Authenticated Update Access for noesis-attachments'
+  ) THEN
+    CREATE POLICY "Authenticated Update Access for noesis-attachments"
+    ON storage.objects FOR UPDATE
+    TO authenticated
+    USING (bucket_id = 'noesis-attachments');
+  END IF;
+
+  -- Policy 4: User terautentikasi dapat menghapus file milik mereka
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Authenticated Delete Access for noesis-attachments'
+  ) THEN
+    CREATE POLICY "Authenticated Delete Access for noesis-attachments"
+    ON storage.objects FOR DELETE
+    TO authenticated
+    USING (bucket_id = 'noesis-attachments');
+  END IF;
+END $$;
 `;
 
 export const SUPABASE_SETUP_SQL = SUPABASE_NOESIS_SQL;
