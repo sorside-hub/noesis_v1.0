@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useVault } from './useVault';
 import { useNavigation } from '../context/NavigationContext';
 import { FileNode } from '../types/vault';
+import { NavigationHistoryEntry, safeReplaceState } from '../context/navigation/historyUtils';
 
 export type ShortcutActionType =
   | 'new-note'
@@ -109,13 +110,14 @@ export function useHomeScreenShortcuts({ vaultState }: UseHomeScreenShortcutsPro
     executedActionRef.current = action;
 
     const executeAction = async () => {
+      let createdNoteId: string | null = null;
       try {
         switch (action) {
           case 'new-note': {
             navigateView('vault');
-            const newId = vaultState.createNote(null, 'Untitled');
-            if (newId) {
-              navigateToNote(newId);
+            createdNoteId = vaultState.createNote(null, 'Untitled');
+            if (createdNoteId) {
+              navigateToNote(createdNoteId);
             }
             break;
           }
@@ -144,9 +146,9 @@ export function useHomeScreenShortcuts({ vaultState }: UseHomeScreenShortcutsPro
               .replace(':', '.');
             const captureName = `Capture ${dateStr} ${timeStr}`;
 
-            const newId = vaultState.createNote(inboxFolderId, captureName, { status: 'Inbox' });
-            if (newId) {
-              navigateToNote(newId);
+            createdNoteId = vaultState.createNote(inboxFolderId, captureName, { status: 'Inbox' });
+            if (createdNoteId) {
+              navigateToNote(createdNoteId);
             }
             break;
           }
@@ -166,10 +168,26 @@ export function useHomeScreenShortcuts({ vaultState }: UseHomeScreenShortcutsPro
       } catch (err) {
         console.error('[HomeScreenShortcuts] Failed to execute shortcut action:', err);
       } finally {
-        // Clean URL to base root without refreshing
+        // Clean URL query parameters to root '/' without destroying navigation history state
         try {
-          if (window.location.search || window.location.pathname !== '/') {
-            window.history.replaceState({}, document.title, '/');
+          if (typeof window !== 'undefined' && (window.location.search || window.location.pathname !== '/')) {
+            const currentState = (window.history.state as NavigationHistoryEntry | null) || null;
+            const activeTabId = createdNoteId || currentState?.activeTabId || null;
+            const targetModal = action === 'voice-transcript' ? 'voice-note' : action === 'voice-memo' ? 'voice-memo' : null;
+
+            const cleanEntry: NavigationHistoryEntry = {
+              view: 'vault',
+              activeTabId,
+              isMobileSidebarOpen: false,
+              isMobileRightSidebarOpen: false,
+              activeModal: targetModal,
+              mediaCategory: null,
+              seq: currentState?.seq || 1,
+            };
+            safeReplaceState(cleanEntry);
+            if (window.history && typeof window.history.replaceState === 'function') {
+              window.history.replaceState(cleanEntry, document.title, '/');
+            }
           }
         } catch {
           // ignore popstate restrictions
