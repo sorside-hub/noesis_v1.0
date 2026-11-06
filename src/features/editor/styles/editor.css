@@ -60,6 +60,10 @@
   font-weight: var(--text-body-weight);
   line-height: var(--text-body-height);
 }
+.ProseMirror {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
 .prose p,
 .ProseMirror p,
 .prose li,
@@ -68,6 +72,7 @@
   margin-bottom: 0 !important;
   line-height: var(--text-body-height) !important;
   color: var(--text-primary) !important;
+  white-space: pre-wrap !important;
 }
 .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6,
 .ProseMirror h1, .ProseMirror h2, .ProseMirror h3, .ProseMirror h4, .ProseMirror h5, .ProseMirror h6 {

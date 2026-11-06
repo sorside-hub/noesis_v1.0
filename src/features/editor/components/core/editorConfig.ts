@@ -23,6 +23,7 @@ import { ReminderExtension } from '../../extensions/ReminderExtension';
 import { SafeDeleteExtension } from '../../extensions/SafeDeleteExtension';
 import { FoldingExtension } from '../../extensions/FoldingExtension';
 import { TextSelection } from '@tiptap/pm/state';
+import { Slice, Fragment } from '@tiptap/pm/model';
 import Link from '@tiptap/extension-link';
 import { Markdown } from 'tiptap-markdown';
 import { detectMediaFromText, createMediaNode } from '../../lib/mediaPasteUtils';
@@ -238,6 +239,35 @@ export const getEditorProps = (
   return {
   attributes: {
     class: 'prose dark:prose-invert prose-zinc max-w-none focus:outline-none min-h-[300px] px-6 sm:px-8 py-4 text-text-primary',
+  },
+  parseOptions: {
+    preserveWhitespace: 'full',
+  },
+  clipboardTextSerializer(slice: Slice) {
+    return slice.content.textBetween(0, slice.content.size, '\n', '\n');
+  },
+  clipboardTextParser(text: string, $context: any, _plain: boolean, view: any) {
+    if ($context?.parent?.type?.spec?.code) {
+      return new Slice(Fragment.from(view.state.schema.text(text)), 0, 0);
+    }
+    const clean = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = clean.split('\n');
+    if (lines.length <= 1) {
+      return new Slice(Fragment.from(lines[0] ? view.state.schema.text(lines[0]) : []), 0, 0);
+    }
+    const nodes = lines.map((line) => {
+      if (!line) {
+        return view.state.schema.nodes.paragraph.create();
+      }
+      return view.state.schema.nodes.paragraph.create(null, view.state.schema.text(line));
+    });
+    return new Slice(Fragment.from(nodes), 1, 1);
+  },
+  transformPastedHTML(html: string) {
+    let transformed = html;
+    transformed = transformed.replace(/<p\b[^>]*>(\s*)<\/p>/gi, '<p><br></p>');
+    transformed = transformed.replace(/<div\b[^>]*>(\s*)<\/div>/gi, '<div><br></div>');
+    return transformed;
   },
   handleDOMEvents: {
     pointerdown(view: any, event: any) {

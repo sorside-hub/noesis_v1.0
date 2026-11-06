@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreHorizontal, FolderInput, Trash2, Star, StarOff, FileDown, Sparkles } from 'lucide-react';
+import { MoreHorizontal, FolderInput, Trash2, Star, StarOff, FileDown, Sparkles, Copy, Check } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { FileNode } from '../../../types/vault';
 import { ExportNoteModal } from '../../../components/modals/ExportNoteModal';
@@ -7,6 +7,7 @@ import { SingleNoteTriageModal } from './SingleNoteTriageModal';
 import { useNavigation } from '../../../context/NavigationContext';
 import { TriageResult } from '../../../api-core/inboxTriageHandler';
 import { getAllLocalKeyOverrides } from '../../../lib/ai/keyManager';
+import { htmlToMarkdown } from '../../../lib/exportUtils';
 
 interface NoteOptionsMenuProps {
   node?: FileNode | null;
@@ -30,6 +31,7 @@ export const NoteOptionsMenu: React.FC<NoteOptionsMenuProps> = ({
   className,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isTriageModalOpen, setIsTriageModalOpen] = useState(false);
   const [isTriageLoading, setIsTriageLoading] = useState(false);
@@ -130,6 +132,24 @@ export const NoteOptionsMenu: React.FC<NoteOptionsMenuProps> = ({
     onToggleBookmark?.();
   };
 
+  const handleCopyNote = async () => {
+    if (!node) return;
+    try {
+      let content = node.content || '';
+      if (content.startsWith('<') && content.includes('</')) {
+        content = htmlToMarkdown(content);
+      }
+      await navigator.clipboard.writeText(content.trim());
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+        setIsOpen(false);
+      }, 1200);
+    } catch (err) {
+      console.error('Failed to copy note content:', err);
+    }
+  };
+
   const handleMoveClick = () => {
     setIsOpen(false);
     onMoveNote();
@@ -204,6 +224,27 @@ export const NoteOptionsMenu: React.FC<NoteOptionsMenuProps> = ({
                   <>
                     <Star size={14} className="text-accent-primary shrink-0" />
                     <span>Bookmark</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Salin Catatan Action */}
+            {node && (
+              <button
+                type="button"
+                onClick={handleCopyNote}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-text-primary hover:bg-bg-hover hover:text-accent-primary transition-colors cursor-pointer text-left"
+              >
+                {isCopied ? (
+                  <>
+                    <Check size={14} className="text-status-success shrink-0" />
+                    <span className="text-status-success font-medium">Catatan Tersalin!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={14} className="text-icon-accent shrink-0" />
+                    <span>Salin Catatan</span>
                   </>
                 )}
               </button>
